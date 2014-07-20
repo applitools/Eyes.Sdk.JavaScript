@@ -19,7 +19,7 @@
         "url": "git://github.com/applitools/Eyes.Sdk.JavaScript.git"
     },
     "license": "Apache-2.0",
-    "main": "./src/EyesBase",
+    "main": "index",
     "dependencies": {
         "restler": "~3.2.2"
     },
