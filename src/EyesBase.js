@@ -64,13 +64,22 @@
             this._matchLevel = EyesBase.MatchLevels.Strict;
             this._failureReports = EyesBase.FailureReports.OnClose;
             this._userInputs = [];
-            // TODO: use actual values:
-//            this._saveNewTests = true;
-//            this._saveFailedTests = false;
+            this._saveNewTests = true;
+            this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(this._serverUrl, EyesBase.agentId, EyesBase.apiKey);
             this._isDisabled = isDisabled;
         }
     }
+
+    EyesBase.prototype.setSaveNewTests = function(shouldSave) {
+        console.log('new test should be saved?', shouldSave);
+        this._saveNewTests = shouldSave;
+    };
+
+    EyesBase.prototype.setSaveFailedTests = function(shouldSave) {
+        console.log('failed test should be saved?', shouldSave);
+        this._saveFailedTests = shouldSave;
+    };
 
     EyesBase.prototype.open = function (appName, testName, viewportSize, matchLevel, failureReports) {
         return PromiseFactory.makePromise(function (deferred) {
@@ -125,10 +134,15 @@
             }
 
             console.log('EyesBase.close - calling server connector to end the running session');
-            this._serverConnector.endSession(this._runningSession, false, this._runningSession.isNewSession)// TODO: calculate the flags!!
-                .then(function () {
+            var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
+                (!this._runningSession.isNewSession && this._saveFailedTests));
+            this._serverConnector.endSession(this._runningSession, false, save)
+                .then(function (result) {
                     console.log('EyesBase.close - session ended');
+                    result.isNew = this._runningSession.isNewSession;
+                    result.url = this._runningSession.url;
                     this._runningSession = undefined;
+                    console.log('close:', result);
                     deferred.fulfill();
                 }.bind(this));
         }.bind(this));
@@ -184,7 +198,7 @@
                                 }.bind(this));
                             }.bind(this));
                         }.bind(this));
-                    }.bind(this), this._waitTimeout);
+                    }.bind(this), this._waitTimeout.bind(this));
 
                 console.log("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                 this._matchWindowTask.matchWindow(this._userInputs, region, tag, this._shouldMatchWindowRunOnceOnTimeout,
