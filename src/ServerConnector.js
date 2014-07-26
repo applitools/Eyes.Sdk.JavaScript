@@ -77,7 +77,7 @@
 
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         console.log('ServerConnector.endSession called with isAborted:', isAborted,
-        ', save:', save);
+        ', save:', save, 'for session:', runningSession);
         return PromiseFactory.makePromise(function (deferred) {
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());

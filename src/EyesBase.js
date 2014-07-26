@@ -137,13 +137,36 @@
             var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
                 (!this._runningSession.isNewSession && this._saveFailedTests));
             this._serverConnector.endSession(this._runningSession, false, save)
-                .then(function (result) {
+                .then(function (results) {
                     console.log('EyesBase.close - session ended');
-                    result.isNew = this._runningSession.isNewSession;
-                    result.url = this._runningSession.url;
+                    results.isNew = this._runningSession.isNewSession;
+                    results.url = this._runningSession.sessionUrl;
                     this._runningSession = undefined;
-                    console.log('close:', result);
-                    deferred.fulfill();
+                    console.log('close:', results);
+
+                    var message;
+                    if (results.isNew) {
+                        var instructions = "Please approve the new baseline at " + results.url;
+                        console.log('--- New test ended.', instructions);
+
+                        if (throwEx) {
+                            message = "'" + this._sessionStartInfo.scenarioIdOrName
+                                + "' of '" + this._sessionStartInfo.appIdOrName
+                                + "'. " + instructions;
+                            throw {results: results, message: message};
+                        }
+                    } else if (results.mismatches > 0 || results.missing > 0) {
+                        console.log("--- Failed test ended. See details at " + results.url);
+
+                        if (throwEx) {
+                            message = "'" + this._sessionStartInfo.scenarioIdOrName
+                                + "' of '" + this._sessionStartInfo.appIdOrName
+                                + "'. See details at " + results.url;
+
+                            throw {results: results, message: message};
+                        }
+                    }
+                    deferred.fulfill(results);
                 }.bind(this));
         }.bind(this));
     };
