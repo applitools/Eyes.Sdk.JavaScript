@@ -6,6 +6,7 @@
  description: Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
 
  provides: [EyesBase]
+ requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory]
 
  ---
  */
@@ -16,7 +17,8 @@
     var ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
         GeneralUtils = require('./GeneralUtils'),
-        PromiseFactory = require('./EyesPromiseFactory');
+        PromiseFactory = require('./EyesPromiseFactory'),
+        ImageUtils = require('./ImageUtils');
 
     var _MatchLevels = {
         // Images do not necessarily match.
@@ -47,11 +49,10 @@
      * C'tor = initializes the module settings
      *
      * @param {String} serverUrl
-     * @param {Number} matchTimeout
      * @param {Boolean} isDisabled
      *
      **/
-    function EyesBase(serverUrl, matchTimeout, isDisabled) {
+    function EyesBase(serverUrl, isDisabled) {
         if (serverUrl) {
             if (!EyesBase.apiKey) {
                 var err = 'API key is missing! Please set it via Eyes.setApiKey';
@@ -60,7 +61,6 @@
             }
 
             this._serverUrl = serverUrl;
-            this._matchTimeout = matchTimeout;
             this._matchLevel = EyesBase.MatchLevels.Strict;
             this._failureReports = EyesBase.FailureReports.OnClose;
             this._userInputs = [];
@@ -68,6 +68,7 @@
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(this._serverUrl, EyesBase.agentId, EyesBase.apiKey);
             this._isDisabled = isDisabled;
+            this._defaultMatchTimeout = 2000;
         }
     }
 
@@ -81,7 +82,52 @@
         this._saveFailedTests = shouldSave;
     };
 
-    EyesBase.prototype.open = function (appName, testName, viewportSize, matchLevel, failureReports) {
+    EyesBase.prototype.setDefaultMatchTimeout = function(timeout) {
+        console.log('setting default match timeout to:', timeout);
+        this._defaultMatchTimeout = timeout;
+    };
+
+    EyesBase.prototype.setFailureReports = function(mode) {
+        switch (mode) {
+            case EyesBase.FailureReports.OnClose:
+                this._failureReports = EyesBase.FailureReports.OnClose;
+                break;
+            case EyesBase.FailureReports.Immediate:
+                this._failureReports = EyesBase.FailureReports.Immediate;
+                break;
+            default:
+                console.warn('wrong parameter value for failure reports - defaulting to onClose', mode);
+                this._failureReports = EyesBase.FailureReports.OnClose;
+                break;
+        }
+    };
+
+    EyesBase.prototype.setMatchLevel = function(level) {
+        switch (level) {
+            case EyesBase.MatchLevels.None:
+                this._matchLevel = EyesBase.MatchLevels.None;
+                break;
+            case EyesBase.MatchLevels.Content:
+                this._matchLevel = EyesBase.MatchLevels.Content;
+                break;
+            case EyesBase.MatchLevels.Strict:
+                this._matchLevel = EyesBase.MatchLevels.Strict;
+                break;
+            case EyesBase.MatchLevels.Layout:
+                this._matchLevel = EyesBase.MatchLevels.Layout;
+                break;
+            case EyesBase.MatchLevels.Exact:
+                this._matchLevel = EyesBase.MatchLevels.Exact;
+                break;
+            default:
+                console.warn('wrong parameter value for match level - defaulting to strict', level);
+                this._matchLevel = EyesBase.MatchLevels.Strict;
+                break;
+        }
+
+    };
+
+    EyesBase.prototype.open = function (appName, testName, viewportSize) {
         return PromiseFactory.makePromise(function (deferred) {
             console.log('EyesBase.open is running');
             if (this._isDisabled) {
@@ -99,8 +145,6 @@
             }
 
             this._isOpen = true;
-            this._matchLevel = matchLevel || EyesBase.MatchLevels.Strict;
-            this._failureReports = failureReports || EyesBase.FailureReports.OnClose;
             this._userInputs = [];
             this._viewportSize = viewportSize;
             this._testName = testName;
@@ -171,11 +215,9 @@
         }.bind(this));
     };
 
-    EyesBase.prototype.checkWindow = function(tag, ignoreMismatch, retryTimeout, getRegionFunc) {
+    EyesBase.prototype.checkWindow = function(tag, ignoreMismatch, retryTimeout, region) {
+        tag = tag || '';
         retryTimeout = retryTimeout || -1;
-        getRegionFunc = getRegionFunc || function () {
-            return undefined;
-        };
 
         return PromiseFactory.makePromise(function (deferred) {
             console.log('EyesBase.checkWindow - running');
@@ -193,35 +235,10 @@
                 return;
             }
 
-            tag = tag || '';
-            var region = getRegionFunc();
-
             this.startSession().then(function() {
                 console.log('EyesBase.checkWindow - session started - creating match window task');
                 this._matchWindowTask = new MatchWindowTask(this._serverConnector,
-                    this._runningSession, this._matchTimeout, function (region) {
-                        return PromiseFactory.makePromise(function (innerDeferred) {
-                            console.log('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-                            this.getScreenshot().then(function (uncompressed) {
-                                console.log('EyesBase.checkWindow - getAppOutput received the screenshot');
-                                // TODO - handle region here
-                                // --->>>
-                                //
-                                var data = {appOutput: {}};
-                                if (uncompressed) {
-                                    data.screenShot = new Buffer(uncompressed, 'base64').toString('binary');
-                                    data.appOutput.screenshot64 = uncompressed;
-                                }
-
-                                console.log('EyesBase.checkWindow - getAppOutput getting title');
-                                this.getTitle().then(function(title) {
-                                    console.log('EyesBase.checkWindow - getAppOutput received the title');
-                                    data.appOutput.title = title;
-                                    innerDeferred.fulfill(data);
-                                }.bind(this));
-                            }.bind(this));
-                        }.bind(this));
-                    }.bind(this), this._waitTimeout.bind(this));
+                    this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this), this._waitTimeout.bind(this));
 
                 console.log("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                 this._matchWindowTask.matchWindow(this._userInputs, region, tag, this._shouldMatchWindowRunOnceOnTimeout,
@@ -245,10 +262,37 @@
                         }
 
                         deferred.fulfill(result);
-                    }.bind(this));
+                    }.bind(this), function (err) {
+                        console.error('Could not perform window check:', err);
+                        deferred.reject(err);
+                    });
             }.bind(this));
         }.bind(this));
     };
+
+    function _getAppData(region, lastScreenshot) {
+        return PromiseFactory.makePromise(function (innerDeferred) {
+            console.log('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
+            this.getScreenshot().then(function (orig64) {
+                console.log('EyesBase.checkWindow - getAppOutput received the screenshot');
+                ImageUtils.crop(orig64, region).then(function(croppedOrig64){
+                    console.log('cropped image returned - continuing');
+                    var data = {appOutput: {}};
+                    data.screenShot = new Buffer(croppedOrig64, 'base64');
+                    data.appOutput.screenshot64 = croppedOrig64; //TODO: compress deltas
+
+                    console.log('EyesBase.checkWindow - getAppOutput getting title');
+                    this.getTitle().then(function(title) {
+                        console.log('EyesBase.checkWindow - getAppOutput received the title');
+                        data.appOutput.title = title;
+                        innerDeferred.fulfill(data);
+                    }.bind(this));
+                }.bind(this), function(err) {
+                    innerDeferred.reject(err);
+                });
+            }.bind(this));
+        }.bind(this));
+    }
 
     EyesBase.prototype.startSession = function () {
         return PromiseFactory.makePromise(function (deferred) {

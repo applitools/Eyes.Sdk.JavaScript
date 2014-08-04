@@ -80,7 +80,7 @@
 
     function _match(region, tag, ignoreMismatch, userInputs, deferred) {
         console.log('MatchWindowTask.matchWindow - _match calls for app output');
-        this._getAppOutput(region).then(function (appOutput) {
+        this._getAppOutput(region, this._lastScreenshot).then(function (appOutput) {
             console.log('MatchWindowTask.matchWindow - _match retrieved app output');
             var data = {
                 userInputs: userInputs,
@@ -92,7 +92,9 @@
                 this._matchResult = matchResult;
                 _finalize.call(this, region, ignoreMismatch, appOutput.screenshot, deferred);
             }.bind(this));
-        }.bind(this));
+        }.bind(this), function (err) {
+            deferred.reject(err);
+        });
     }
 
     function _retryMatch(start, retryTimeout, region, tag, userInputs, ignoreMismatch, screenshot, deferred) {
@@ -100,7 +102,7 @@
         if ((new Date().getTime() - start) < retryTimeout) {
             console.log('MatchWindowTask.matchWindow - _retryMatch will retry. time:', new Date().getTime().toString());
             console.log('MatchWindowTask.matchWindow - _retryMatch calls for app output');
-            this._getAppOutput(region).then(function (appOutput) {
+            this._getAppOutput(region, this._lastScreenshot).then(function (appOutput) {
                 console.log('MatchWindowTask.matchWindow - _retryMatch retrieved app output');
                 screenshot = appOutput.screenshot;
                 var data = {
@@ -125,7 +127,9 @@
                         _finalize.call(this, region, ignoreMismatch, screenshot, deferred);
                     }
                 }.bind(this));
-            }.bind(this));
+            }.bind(this), function (err) {
+                deferred.reject(err);
+            });
         } else {
             console.log('MatchWindowTask.matchWindow - _retryMatch exhausted the retry interval. time: ',
                 new Date().getTime().toString());
