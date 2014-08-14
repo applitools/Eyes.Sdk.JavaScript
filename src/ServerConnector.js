@@ -57,7 +57,7 @@
      **/
     ServerConnector.prototype.startSession = function (sessionStartInfo) {
         console.log('ServerConnector.startSession called with:', sessionStartInfo);
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('ServerConnector.startSession will now post call');
             restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
                 .on('complete', function(data, response) {
@@ -65,11 +65,11 @@
                         ' status code ', response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
                         console.log('ServerConnector.startSession - post succeeded');
-                        deferred.fulfill({sessionId: data['id'], sessionUrl: data['url'],
+                        resolve({sessionId: data['id'], sessionUrl: data['url'],
                             isNewSession: response.statusCode == 201});
                     } else {
                         console.log('ServerConnector.startSession - post failed');
-                        deferred.reject(response);
+                        reject(Error(response));
                     }
                 });
         }.bind(this));
@@ -78,7 +78,7 @@
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         console.log('ServerConnector.endSession called with isAborted:', isAborted,
         ', save:', save, 'for session:', runningSession);
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             console.log("ServerConnector.endSession will now post:", data, "to:", url);
@@ -86,7 +86,7 @@
                 .on('complete', function(data, response) {
                     console.log('ServerConnector.endSession result', data,' status code', response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
-                        deferred.fulfill({
+                        resolve({
                             steps: data['steps'],
                             matches: data['matches'],
                             mismatches: data['mismatches'],
@@ -98,14 +98,14 @@
                             noneMatches: data['noneMatches']
                         });
                     } else {
-                        deferred.reject("error on server connector endSession");
+                        reject(Error("error on server connector endSession"));
                     }
                 });
         }.bind(this));
     };
 
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData) {
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             var options = Object.create(this._httpOptions);
             options.headers = Object.create(this._httpOptions.headers);
@@ -115,9 +115,9 @@
                 .on('complete', function(data, response) {
                     console.log('ServerConnector.matchWindow result', data,'status code', response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
-                        deferred.fulfill({asExpected: data.asExpected});
+                        resolve({asExpected: data.asExpected});
                     } else {
-                        deferred.reject(JSON.parse(response));
+                        reject(Error(JSON.parse(response)));
                     }
                 });
         }.bind(this));

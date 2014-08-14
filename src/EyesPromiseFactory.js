@@ -22,12 +22,10 @@
     /**
      *
      * When ever you need to produce a promise - call this method and return the return value's promise.
-     * call ret.fulfill(result) to fulfill the promise
      *
      * @example:
-     * var deferred = EyesPromiseFactory.makePromise();
-     * async_method(deferred) {deferred.fulfill(result};}
-     * return deferred.promise;
+     * function async_method(resolve, reject) {if (all_good) {resolve(val);} else {reject(Error("No good!"));};}
+     * var promise = EyesPromiseFactory.makePromise(async_method);
      *
      * @method makePromise
      *

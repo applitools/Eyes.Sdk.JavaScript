@@ -128,11 +128,11 @@
     };
 
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('EyesBase.open is running');
             if (this._isDisabled) {
                 console.log("Eyes Open ignored - disabled");
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
@@ -140,7 +140,7 @@
                 this.abortIfNotClosed();
                 var errMsg = "A test is already running";
                 console.log(errMsg);
-                deferred.reject(errMsg);
+                reject(Error(errMsg));
                 return;
             }
 
@@ -149,31 +149,31 @@
             this._viewportSize = viewportSize;
             this._testName = testName;
             this._appName = appName;
-            deferred.fulfill();
+            resolve();
         }.bind(this));
     };
 
     EyesBase.prototype.close = function (throwEx) {
         //TODO: try catch + exception
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('EyesBase.close is running');
             if (this._isDisabled) {
                 console.log("Eyes Close ignored - disabled");
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
             if (!this._isOpen) {
                 var errMsg = "close called with Eyes not open";
                 console.log(errMsg);
-                deferred.reject(errMsg);
+                reject(Error(errMsg));
                 return;
             }
 
             this._isOpen = false;
             if (!this._runningSession) {
                 console.log("Close: Server session was not started");
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
@@ -210,7 +210,7 @@
                             throw {results: results, message: message};
                         }
                     }
-                    deferred.fulfill(results);
+                    resolve(results);
                 }.bind(this));
         }.bind(this));
     };
@@ -219,11 +219,11 @@
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
 
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('EyesBase.checkWindow - running');
             if (this._isDisabled) {
                 console.log("Eyes checkWindow ignored - disabled");
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
@@ -231,7 +231,7 @@
             {
                 var errMsg = "checkWindow called with Eyes not open";
                 console.log(errMsg);
-                deferred.reject(errMsg);
+                reject(Error(errMsg));
                 return;
             }
 
@@ -256,22 +256,22 @@
 
                             if (this._failureReports === EyesBase.FailureReports.Immediate)
                             {
-                                deferred.reject("Mismatch found in '" + this._sessionStartInfo.scenarioIdOrName + "' of '" +
-                                    this._sessionStartInfo.appIdOrName + "'");
+                                reject(Error("Mismatch found in '" + this._sessionStartInfo.scenarioIdOrName + "' of '" +
+                                    this._sessionStartInfo.appIdOrName + "'"));
                             }
                         }
 
-                        deferred.fulfill(result);
+                        resolve(result);
                     }.bind(this), function (err) {
                         console.error('Could not perform window check:', err);
-                        deferred.reject(err);
+                        reject(Error(err));
                     });
             }.bind(this));
         }.bind(this));
     };
 
     function _getAppData(region, lastScreenshot) {
-        return PromiseFactory.makePromise(function (innerDeferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             this.getScreenshot().then(function (orig64) {
                 console.log('EyesBase.checkWindow - getAppOutput received the screenshot');
@@ -285,20 +285,20 @@
                     this.getTitle().then(function(title) {
                         console.log('EyesBase.checkWindow - getAppOutput received the title');
                         data.appOutput.title = title;
-                        innerDeferred.fulfill(data);
+                        resolve(data);
                     }.bind(this));
                 }.bind(this), function(err) {
-                    innerDeferred.reject(err);
+                    reject(Error(err));
                 });
             }.bind(this));
         }.bind(this));
     }
 
     EyesBase.prototype.startSession = function () {
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
 
             if (this._runningSession) {
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
@@ -341,16 +341,16 @@
                 this._serverConnector.startSession(this._sessionStartInfo).then(function (result) {
                         this._runningSession = result;
                         this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
-                        deferred.fulfill();
+                        resolve();
                     }.bind(this),
                     function(err) {
                         console.error(err);
-                        deferred.reject();
+                        reject(Error());
                     }.bind(this)
                 );
             }.bind(this), function (err) {
                 console.error(err);
-                deferred.reject(err);
+                reject(Error(err));
             }.bind(this));
 
         }.bind(this));
@@ -358,10 +358,10 @@
     };
 
     EyesBase.prototype.abortIfNotClosed = function () {
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             if (this._isDisabled) {
                 console.log("Eyes abortIfNotClosed ignored - disabled");
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
@@ -369,13 +369,13 @@
             this._matchWindowTask = undefined;
 
             if (!this._runningSession) {
-                deferred.fulfill();
+                resolve();
                 return;
             }
 
             this._serverConnector.endSession(this._runningSession, true, false).then(function () {
                 this._runningSession = undefined;
-                deferred.fulfill();
+                resolve();
             }.bind(this));
         }.bind(this));
     };

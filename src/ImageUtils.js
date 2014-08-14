@@ -25,11 +25,11 @@
     var ImageUtils = {};
 
     ImageUtils.crop = function(base64png, region) {
-        return PromiseFactory.makePromise(function (deferred) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
 
             if ((!region) || region.width == 0 || region.height == 0) {
                 console.log('No need to crop - no region');
-                deferred.fulfill(base64png);
+                resolve(base64png);
                 return;
             }
 
@@ -45,7 +45,7 @@
                 temp.open('eyes-crop-', function (err2, cropInfo) {
                     if (err1 || err2) {
                         console.log('Failed to open a temp file:', err1 || err2);
-                        deferred.reject(err1 || err2);
+                        reject(Error(err1 || err2));
                         return;
                     }
 
@@ -53,7 +53,7 @@
                     fs.writeFile(info.path, buf, function (err) {
                         if (err) {
                             console.log('Failed to write to a temp file:', err);
-                            deferred.reject(err);
+                            reject(Error(err));
                             return;
                         }
 
@@ -67,7 +67,7 @@
 
                                 if (region.top >= this.height || region.left >= this.width) {
                                     console.error('region is not contained in screenshot - aborting');
-                                    deferred.reject('region is not contained in screenshot');
+                                    reject(Error('region is not contained in screenshot'));
                                     return;
                                 }
 
@@ -99,11 +99,11 @@
                                         fs.readFile(cropInfo.path, function (err, data) {
                                             if (err) {
                                                 console.log('Failed to read a temp file:', err);
-                                                deferred.reject(err);
+                                                reject(Error(err));
                                                 return;
                                             }
 
-                                            deferred.fulfill(data.toString('base64'));
+                                            resolve(data.toString('base64'));
                                         });
                                     });
                             });
