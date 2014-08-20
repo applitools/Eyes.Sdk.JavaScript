@@ -29,19 +29,34 @@
      * C'tor = initializes the module settings
      *
      * @param {String} serverUri
-     * @param {String} userName - the user name (in fact - SDK-ID)
-     * @param {String} password - the password (in fact - account id)
-     *
      **/
-    function ServerConnector(serverUri, userName, password) {
+    function ServerConnector(serverUri) {
         console.log('ServerConnector initialized');
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._httpOptions = {
-            username: userName,
-            password: password,
+            rejectUnauthorized: false,
             headers: DEFAULT_HEADERS,
-            timeout: CONNECTION_TIMEOUT_MS
+            timeout: CONNECTION_TIMEOUT_MS,
+            query: {}
         };
+    }
+
+    /**
+     * Sets the API key of your applitools Eyes account.
+     *
+     * @param apiKey {String} The api key to be used.
+     */
+    ServerConnector.prototype.setApiKey = function (apiKey) {
+        console.log('api key set to: ', apiKey)
+        this._httpOptions.query.apiKey = apiKey;
+    };
+
+    /**
+     *
+     * @return {String} The currently set API key.
+     */
+    ServerConnector.prototype.getApiKey = function () {
+        return this._httpOptions.query.apiKey;
     }
 
     /**

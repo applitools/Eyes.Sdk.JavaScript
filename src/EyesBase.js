@@ -20,7 +20,7 @@
         PromiseFactory = require('./EyesPromiseFactory'),
         ImageUtils = require('./ImageUtils');
 
-    var _MatchLevels = {
+    var _MatchLevel = {
         // Images do not necessarily match.
         None: 'None',
 
@@ -54,39 +54,133 @@
      **/
     function EyesBase(serverUrl, isDisabled) {
         if (serverUrl) {
-            if (!EyesBase.apiKey) {
-                var err = 'API key is missing! Please set it via Eyes.setApiKey';
-                console.error(err);
-                throw err;
-            }
-
             this._serverUrl = serverUrl;
-            this._matchLevel = EyesBase.MatchLevels.Strict;
+            this._matchLevel = EyesBase.MatchLevel.Strict;
             this._failureReports = EyesBase.FailureReports.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
             this._saveFailedTests = false;
-            this._serverConnector = new ServerConnector(this._serverUrl, EyesBase.agentId, EyesBase.apiKey);
+            this._serverConnector = new ServerConnector(this._serverUrl);
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
+            this._agentId = undefined;
         }
     }
 
-    EyesBase.prototype.setSaveNewTests = function(shouldSave) {
+    /**
+     * Sets the API key of your applitools Eyes account.
+     *
+     * @param apiKey {String} The api key to be used.
+     */
+    EyesBase.prototype.setApiKey = function (apiKey) {
+        this._serverConnector.setApiKey(apiKey);
+    };
+
+    /**
+     * @return {String} The currently set api key.
+     */
+    EyesBase.prototype.getApiKey = function () {
+        return this._serverConnector.getApiKey();
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the user given agent id of the SDK.
+     *
+     * @param agentId {String} The agent ID to set.
+     */
+    EyesBase.prototype.setAgentId = function (agentId) {
+        this._agentId = agentId;
+    };
+
+    /**
+     * @return {String} The user given agent id of the SDK.
+     */
+    EyesBase.prototype.getAgentId = function () {
+        return this._agentId;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The user given agent id of the SDK.
+     */
+    EyesBase.prototype._getFullAgentId = function () {
+        //noinspection JSUnresolvedVariable
+        if (!this._getBaseAgentId) {
+            throw Error("_getBaseAgentId not implemented!");
+        }
+        var agentId = this.getAgentId();
+        if (!agentId) {
+            //noinspection JSUnresolvedFunction
+            return this._getBaseAgentId();
+        }
+        //noinspection JSUnresolvedFunction
+        return agentId + " [" + this._getBaseAgentId() + "]";
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Set whether or not new tests are saved by default.
+     * @param {boolean} shouldSave True if new tests should be saved by default.
+     *                     False otherwise.
+     */
+    EyesBase.prototype.setSaveNewTests = function (shouldSave) {
         console.log('new test should be saved?', shouldSave);
         this._saveNewTests = shouldSave;
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @return {boolean} True if new tests are saved by default.
+     */
+    EyesBase.prototype.getSaveNewTests = function () {
+        return this._saveNewTests;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Set whether or not failed tests are saved by default.
+     * @param {boolean} shouldSave True if failed tests should be saved by
+     *                        default, false otherwise.
+     */
     EyesBase.prototype.setSaveFailedTests = function(shouldSave) {
         console.log('failed test should be saved?', shouldSave);
         this._saveFailedTests = shouldSave;
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean} True if failed tests are saved by default.
+     */
+    EyesBase.prototype.getSaveFailedTests = function() {
+        return this._saveFailedTests;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the maximal time a match operation tries to perform a match.
+     * @param {number} timeout Timeout in milliseconds.
+     */
     EyesBase.prototype.setDefaultMatchTimeout = function(timeout) {
         console.log('setting default match timeout to:', timeout);
         this._defaultMatchTimeout = timeout;
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @return {number} The maximal time in milliseconds a match operation tries to perform a match.
+     */
+    EyesBase.prototype.getDefaultMatchTimeout = function () {
+        return this._defaultMatchTimeout;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @param mode Use one of the values in EyesBase.FailureReports.
+     */
     EyesBase.prototype.setFailureReports = function(mode) {
         switch (mode) {
             case EyesBase.FailureReports.OnClose:
@@ -102,29 +196,51 @@
         }
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @return {EyesBase.FailureReports} The currently set FailureReports.
+     */
+    EyesBase.prototype.getFailureReports = function () {
+        return this._failureReports;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * The test-wide match level to use when checking application screenshot with the expected output.
+     * @param {EyesBase.MatchLevel} level The match level setting.
+     */
     EyesBase.prototype.setMatchLevel = function(level) {
         switch (level) {
-            case EyesBase.MatchLevels.None:
-                this._matchLevel = EyesBase.MatchLevels.None;
+            case EyesBase.MatchLevel.None:
+                this._matchLevel = EyesBase.MatchLevel.None;
                 break;
-            case EyesBase.MatchLevels.Content:
-                this._matchLevel = EyesBase.MatchLevels.Content;
+            case EyesBase.MatchLevel.Content:
+                this._matchLevel = EyesBase.MatchLevel.Content;
                 break;
-            case EyesBase.MatchLevels.Strict:
-                this._matchLevel = EyesBase.MatchLevels.Strict;
+            case EyesBase.MatchLevel.Strict:
+                this._matchLevel = EyesBase.MatchLevel.Strict;
                 break;
-            case EyesBase.MatchLevels.Layout:
-                this._matchLevel = EyesBase.MatchLevels.Layout;
+            case EyesBase.MatchLevel.Layout:
+                this._matchLevel = EyesBase.MatchLevel.Layout;
                 break;
-            case EyesBase.MatchLevels.Exact:
-                this._matchLevel = EyesBase.MatchLevels.Exact;
+            case EyesBase.MatchLevel.Exact:
+                this._matchLevel = EyesBase.MatchLevel.Exact;
                 break;
             default:
                 console.warn('wrong parameter value for match level - defaulting to strict', level);
-                this._matchLevel = EyesBase.MatchLevels.Strict;
+                this._matchLevel = EyesBase.MatchLevel.Strict;
                 break;
         }
 
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {EyesBase.MatchLevel} The test-wide match level.
+     */
+    EyesBase.prototype.getMatchLevel = function () {
+        return this._matchLevel;
     };
 
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
@@ -136,9 +252,17 @@
                 return;
             }
 
+            var errMsg;
+            if (!this._serverConnector.getApiKey()) {
+                errMsg = 'API key is missing! Please set it via Eyes.setApiKey';
+                console.log(errMsg);
+                reject(Error(errMsg));
+                return;
+            }
+
             if (this._isOpen) {
                 this.abortIfNotClosed();
-                var errMsg = "A test is already running";
+                errMsg = "A test is already running";
                 console.log(errMsg);
                 reject(Error(errMsg));
                 return;
@@ -328,7 +452,7 @@
                     os: '', hostingApp: '', displaySize: this._viewportSize, inferred: ''}; // TODO: implement! + _get_inferred_environment()
 
                 this._sessionStartInfo = {
-                    agentId: EyesBase.agentId,
+                    agentId: this._getFullAgentId(),
                     appIdOrName: this._appName,
                     scenarioIdOrName: this._testName,
                     batchInfo: testBatch,
@@ -381,7 +505,7 @@
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com';
-    EyesBase.MatchLevels = Object.freeze(_MatchLevels);
+    EyesBase.MatchLevel = Object.freeze(_MatchLevel);
     EyesBase.FailureReports = Object.freeze(_FailureReports);
 
     module.exports = EyesBase;
