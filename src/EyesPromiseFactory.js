@@ -29,7 +29,7 @@
      *
      * @method makePromise
      *
-     * @return {Object} deferred promise
+     * @return {Promise} deferred promise
      *
      **/
     EyesPromiseFactory.makePromise = function (asyncAction) {

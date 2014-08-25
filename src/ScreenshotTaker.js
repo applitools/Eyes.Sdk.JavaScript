@@ -25,6 +25,7 @@
         this._driverServerUri = cnct(cnct(cnct(driverServerUri, "session"), driverSessionId), "screenshot");
     }
 
+    // FIXME remove or implement?
     ScreenshotTaker.prototype.getScreenshotAsBase64 = function() {
 
     };

@@ -397,16 +397,16 @@
     function _getAppData(region, lastScreenshot) {
         return PromiseFactory.makePromise(function (resolve, reject) {
             console.log('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-            this.getScreenshot().then(function (orig64) {
+            this.getScreenshot().then(function (image) {
                 console.log('EyesBase.checkWindow - getAppOutput received the screenshot');
-                ImageUtils.crop(orig64, region).then(function(croppedOrig64){
+                ImageUtils.crop(image, region).then(function(croppedImage){
                     console.log('cropped image returned - continuing');
                     var data = {appOutput: {}};
-                    data.screenShot = new Buffer(croppedOrig64, 'base64');
-                    data.appOutput.screenshot64 = croppedOrig64; //TODO: compress deltas
+                    data.screenShot = croppedImage;
+                    data.appOutput.screenshot64 = croppedImage.toString('base64'); //TODO: compress deltas
 
                     console.log('EyesBase.checkWindow - getAppOutput getting title');
-                    this.getTitle().then(function(title) {
+                    this.getTitle().then(function (title) {
                         console.log('EyesBase.checkWindow - getAppOutput received the title');
                         data.appOutput.title = title;
                         resolve(data);

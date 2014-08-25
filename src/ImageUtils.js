@@ -24,21 +24,18 @@
 
     var ImageUtils = {};
 
-    ImageUtils.crop = function(base64png, region) {
+    ImageUtils.crop = function(image, region) {
         return PromiseFactory.makePromise(function (resolve, reject) {
 
             if ((!region) || region.width == 0 || region.height == 0) {
                 console.log('No need to crop - no region');
-                resolve(base64png);
+                resolve(image);
                 return;
             }
 
             // TODO: handle cases when region is not contained!
 
             console.log('cropping screenshot to:', region);
-
-            // 1. create a buffer with the data
-            var buf = new Buffer(base64png, 'base64');
 
             // 2. open a temp file
             temp.open('eyes-snap-', function (err1, info) {
@@ -50,7 +47,7 @@
                     }
 
                     // 3. write the buffer to the temp file
-                    fs.writeFile(info.path, buf, function (err) {
+                    fs.writeFile(info.path, image, function (err) {
                         if (err) {
                             console.log('Failed to write to a temp file:', err);
                             reject(Error(err));
@@ -103,7 +100,7 @@
                                                 return;
                                             }
 
-                                            resolve(data.toString('base64'));
+                                            resolve(data);
                                         });
                                     });
                             });
