@@ -17,7 +17,7 @@
   "homepage": "http://www.applitools.com/",
   "repository": {
     "type": "git",
-    "url": "git://github.com/applitools/eyes.images.git"
+    "url": "git://github.com/applitools/eyes.images.javascript.git"
   },
   "license": "Apache-2.0",
   "main": "./src/Eyes",
