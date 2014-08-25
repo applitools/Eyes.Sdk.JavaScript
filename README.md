@@ -1,7 +1,7 @@
 eyes.images.javascript
 =======================
 
- Applitools Eyes SDK for working directly with images.
+Applitools Eyes Javascript SDK for working directly with images.
 
 Example:
 __________________________
