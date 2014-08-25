@@ -15,8 +15,9 @@
 
     var EyesPromiseFactory = {};
 
-    EyesPromiseFactory.setPromiseHandler = function(handler) {
-        this._handler = handler;
+    EyesPromiseFactory.setFactoryMethods = function(promiseFactory, deferredFactory) {
+        this._promiseFactory = promiseFactory;
+        this._deferredFactory = deferredFactory;
     };
 
     /**
@@ -33,7 +34,11 @@
      *
      **/
     EyesPromiseFactory.makePromise = function (asyncAction) {
-        return this._handler(asyncAction);
+        return this._promiseFactory(asyncAction);
+    };
+
+    EyesPromiseFactory.makeDeferred = function (asyncAction) {
+        return this._deferredFactory();
     };
 
     module.exports = EyesPromiseFactory;
