@@ -118,6 +118,22 @@
         return agentId + " [" + this._getBaseAgentId() + "]";
     };
 
+    /**
+     * Sets the host OS name - overrides the one in the agent string.
+     *
+     * @param hostOS {String} The host OS.
+     */
+    EyesBase.prototype.setHostOS = function (hostOS) {
+        this._hostOS = hostOS;
+    };
+
+    /**
+     * @return {String} The host OS as set by the user.
+     */
+    EyesBase.prototype.getHostOS = function () {
+        return this._hostOS;
+    };
+
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set whether or not new tests are saved by default.
@@ -448,30 +464,38 @@
                     return this.name + " [" + this.id + "]" + " - " + this.startedAt;
                 };
 
-                var appEnv = {
-                    os: '', hostingApp: '', displaySize: this._viewportSize, inferred: ''}; // TODO: implement! + _get_inferred_environment()
+                this.getInferredEnvironment().then(function(userAgent) {
+                    var appEnv = {
+                        os: this._hostOS || null,
+                        hostingApp: this._appName || null,
+                        displaySize: this._viewportSize,
+                        inferred: userAgent};
 
-                this._sessionStartInfo = {
-                    agentId: this._getFullAgentId(),
-                    appIdOrName: this._appName,
-                    scenarioIdOrName: this._testName,
-                    batchInfo: testBatch,
-                    environment: appEnv,
-                    matchLevel: this._matchLevel,
-                    branchName: null, // TODO: this._branchName,
-                    parentBranchName: null // TODO: this._parentBranchName
-                };
+                    this._sessionStartInfo = {
+                        agentId: this._getFullAgentId(),
+                        appIdOrName: this._appName,
+                        scenarioIdOrName: this._testName,
+                        batchInfo: testBatch,
+                        environment: appEnv,
+                        matchLevel: this._matchLevel,
+                        branchName: null, // TODO: this._branchName,
+                        parentBranchName: null // TODO: this._parentBranchName
+                    };
 
-                this._serverConnector.startSession(this._sessionStartInfo).then(function (result) {
-                        this._runningSession = result;
-                        this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
-                        resolve();
-                    }.bind(this),
-                    function(err) {
-                        console.error(err);
-                        reject(Error());
-                    }.bind(this)
-                );
+                    this._serverConnector.startSession(this._sessionStartInfo).then(function (result) {
+                            this._runningSession = result;
+                            this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
+                            resolve();
+                        }.bind(this),
+                        function(err) {
+                            console.error(err);
+                            reject(Error());
+                        }.bind(this)
+                    );
+                }.bind(this), function(err) {
+                    console.error(err);
+                    reject(Error(err));
+                });
             }.bind(this), function (err) {
                 console.error(err);
                 reject(Error(err));
