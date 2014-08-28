@@ -134,6 +134,27 @@
         return this._hostOS;
     };
 
+    /**
+     * Sets the test batch
+     *
+     * @param name {String}.
+     * @param id {String}.
+     * @param startedAt {String}.
+     */
+    EyesBase.prototype.setBatch = function (name, id, startedAt) {
+        this._batch = {
+            id: id || GeneralUtils.guid(),
+            name: name,
+            startedAt: startedAt || new Date().toUTCString()};
+    };
+
+    /**
+     * @return {Object} gets the test batch.
+     */
+    EyesBase.prototype.getBatch = function () {
+        return this._batch;
+    };
+
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set whether or not new tests are saved by default.
