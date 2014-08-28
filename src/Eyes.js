@@ -111,6 +111,12 @@
         }.bind(this));
     };
 
+    Eyes.prototype.getInferredEnvironment = function () {
+        return PromiseFactory.makePromise(function (resolve) {
+            resolve('');
+        });
+    };
+
     /**
      * Internal function for performing an image verification for an image (or a region of an image).
      *
