@@ -39,7 +39,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.1';
+        return 'eyes.images/0.0.3';
     };
 
     /**
