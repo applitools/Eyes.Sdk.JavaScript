@@ -7,7 +7,7 @@ Example:
 __________________________
 
 ```javascript
-var Eyes = require('eyes.images');
+var Eyes = require('eyes.images').Eyes;
 var eyes = new Eyes();
 eyes.setApiKey("<YOUR_API_KEY>");
 

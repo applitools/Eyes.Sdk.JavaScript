@@ -39,7 +39,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.3';
+        return 'eyes.images/0.0.4';
     };
 
     /**
@@ -71,7 +71,7 @@
      * @return {Promise}
      */
     Eyes.prototype.checkImage = function (image, tag, ignoreMismatch, retryTimeout) {
-        console.log("checkImage(image, '%s', %s, %d)");
+        this._logger.verbose("checkImage(image, '%s', %s, %d)");
         //noinspection JSCheckFunctionSignatures
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout);
     };
@@ -89,7 +89,7 @@
      * @return {Promise}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
-        console.log("checkRegion([%o], image, '%s', %s, %d)");
+        this._logger.verbose("checkRegion([%o], image, '%s', %s, %d)");
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout, region);
     };
 
@@ -140,9 +140,10 @@
     Eyes.prototype._waitTimeout = function (ms) {
         // Notice we have to use deferred here, since we want the setTimeout to call resolve..
         var deferred = PromiseFactory.makeDeferred();
-        console.log('waiting %d ms', ms);
+        var logger = this._logger;
+        logger.log('waiting' + ms + 'ms');
         setTimeout(function () {
-            console.log('Finished waiting...');
+            logger.log('Finished waiting...');
             deferred.resolve();
         }, ms);
         return deferred.promise;
