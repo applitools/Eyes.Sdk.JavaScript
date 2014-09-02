@@ -28,29 +28,25 @@
         return PromiseFactory.makePromise(function (resolve, reject) {
 
             if ((!region) || region.width == 0 || region.height == 0) {
-                console.log('No need to crop - no region');
+                //No need to crop - no region
                 resolve(image);
                 return;
             }
 
             // TODO: handle cases when region is not contained!
 
-            console.log('cropping screenshot to:', region);
-
             // 2. open a temp file
             temp.open('eyes-snap-', function (err1, info) {
                 temp.open('eyes-crop-', function (err2, cropInfo) {
                     if (err1 || err2) {
-                        console.log('Failed to open a temp file:', err1 || err2);
-                        reject(Error(err1 || err2));
+                        reject(Error('Failed to open a temp file:' + err1 || err2));
                         return;
                     }
 
                     // 3. write the buffer to the temp file
                     fs.writeFile(info.path, image, function (err) {
                         if (err) {
-                            console.log('Failed to write to a temp file:', err);
-                            reject(Error(err));
+                            reject(Error('Failed to write to a temp file:' + err));
                             return;
                         }
 
@@ -63,7 +59,6 @@
                             .on('parsed', function () {
 
                                 if (region.top >= this.height || region.left >= this.width) {
-                                    console.error('region is not contained in screenshot - aborting');
                                     reject(Error('region is not contained in screenshot'));
                                     return;
                                 }
@@ -95,8 +90,7 @@
                                         // 7. Read the file into a buffer
                                         fs.readFile(cropInfo.path, function (err, data) {
                                             if (err) {
-                                                console.log('Failed to read a temp file:', err);
-                                                reject(Error(err));
+                                                reject(Error('Failed to read a temp file:' + err));
                                                 return;
                                             }
 

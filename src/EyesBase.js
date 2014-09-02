@@ -6,7 +6,7 @@
  description: Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
 
  provides: [EyesBase]
- requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory]
+ requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory, ImageUtils, Logger]
 
  ---
  */
@@ -18,7 +18,8 @@
         MatchWindowTask = require('./MatchWindowTask'),
         GeneralUtils = require('./GeneralUtils'),
         PromiseFactory = require('./EyesPromiseFactory'),
-        ImageUtils = require('./ImageUtils');
+        ImageUtils = require('./ImageUtils'),
+        Logger = require('./Logger');
 
     var _MatchLevel = {
         // Images do not necessarily match.
@@ -54,18 +55,28 @@
      **/
     function EyesBase(serverUrl, isDisabled) {
         if (serverUrl) {
+            this._logger = new Logger();
             this._serverUrl = serverUrl;
             this._matchLevel = EyesBase.MatchLevel.Strict;
             this._failureReports = EyesBase.FailureReports.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
             this._saveFailedTests = false;
-            this._serverConnector = new ServerConnector(this._serverUrl);
+            this._serverConnector = new ServerConnector(this._serverUrl, this._logger);
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
         }
     }
+
+    /**
+     * Set the log handler
+     *
+     * @param {Object} logHandler
+     */
+    EyesBase.prototype.setLogHandler = function (logHandler) {
+        this._logger.setLogHandler(logHandler);
+    };
 
     /**
      * Sets the API key of your applitools Eyes account.
@@ -137,15 +148,16 @@
     /**
      * Sets the test batch
      *
-     * @param name {String}.
-     * @param id {String}.
-     * @param startedAt {String}.
+     * @param name {String} - the batch name
+     *
+     * @remarks:
+     *   For advanced use cases - it is possible to pass ID and start date in that order - as 2nd and 3rd args
      */
-    EyesBase.prototype.setBatch = function (name, id, startedAt) {
+    EyesBase.prototype.setBatch = function (name) {
         this._batch = {
-            id: id || GeneralUtils.guid(),
+            id: arguments[1] || GeneralUtils.guid(),
             name: name,
-            startedAt: startedAt || new Date().toUTCString()};
+            startedAt: arguments[2] || new Date().toUTCString()};
     };
 
     /**
@@ -162,7 +174,6 @@
      *                     False otherwise.
      */
     EyesBase.prototype.setSaveNewTests = function (shouldSave) {
-        console.log('new test should be saved?', shouldSave);
         this._saveNewTests = shouldSave;
     };
 
@@ -182,7 +193,6 @@
      *                        default, false otherwise.
      */
     EyesBase.prototype.setSaveFailedTests = function(shouldSave) {
-        console.log('failed test should be saved?', shouldSave);
         this._saveFailedTests = shouldSave;
     };
 
@@ -200,7 +210,6 @@
      * @param {number} timeout Timeout in milliseconds.
      */
     EyesBase.prototype.setDefaultMatchTimeout = function(timeout) {
-        console.log('setting default match timeout to:', timeout);
         this._defaultMatchTimeout = timeout;
     };
 
@@ -227,7 +236,6 @@
                 this._failureReports = EyesBase.FailureReports.Immediate;
                 break;
             default:
-                console.warn('wrong parameter value for failure reports - defaulting to onClose', mode);
                 this._failureReports = EyesBase.FailureReports.OnClose;
                 break;
         }
@@ -265,7 +273,6 @@
                 this._matchLevel = EyesBase.MatchLevel.Exact;
                 break;
             default:
-                console.warn('wrong parameter value for match level - defaulting to strict', level);
                 this._matchLevel = EyesBase.MatchLevel.Strict;
                 break;
         }
@@ -281,10 +288,10 @@
     };
 
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
+        this._logger.getLogHandler().open();
         return PromiseFactory.makePromise(function (resolve, reject) {
-            console.log('EyesBase.open is running');
             if (this._isDisabled) {
-                console.log("Eyes Open ignored - disabled");
+                this._logger.log("Eyes Open ignored - disabled");
                 resolve();
                 return;
             }
@@ -292,7 +299,8 @@
             var errMsg;
             if (!this._serverConnector.getApiKey()) {
                 errMsg = 'API key is missing! Please set it via Eyes.setApiKey';
-                console.log(errMsg);
+                this._logger.log(errMsg);
+                this._logger.getLogHandler().close();
                 reject(Error(errMsg));
                 return;
             }
@@ -300,7 +308,8 @@
             if (this._isOpen) {
                 this.abortIfNotClosed();
                 errMsg = "A test is already running";
-                console.log(errMsg);
+                this._logger.log(errMsg);
+                this._logger.getLogHandler().close();
                 reject(Error(errMsg));
                 return;
             }
@@ -315,62 +324,75 @@
     };
 
     EyesBase.prototype.close = function (throwEx) {
+        if (typeof throwEx === 'undefined') {
+            throwEx = true;
+        }
+
         //TODO: try catch + exception
         return PromiseFactory.makePromise(function (resolve, reject) {
-            console.log('EyesBase.close is running');
+            this._logger.verbose('EyesBase.close is running');
             if (this._isDisabled) {
-                console.log("Eyes Close ignored - disabled");
+                this._logger.log("Eyes Close ignored - disabled");
+                this._logger.getLogHandler().close();
                 resolve();
                 return;
             }
 
             if (!this._isOpen) {
                 var errMsg = "close called with Eyes not open";
-                console.log(errMsg);
+                this._logger.log(errMsg);
+                this._logger.getLogHandler().close();
                 reject(Error(errMsg));
                 return;
             }
 
             this._isOpen = false;
             if (!this._runningSession) {
-                console.log("Close: Server session was not started");
+                this._logger.log("Close: Server session was not started");
+                this._logger.getLogHandler().close();
                 resolve();
                 return;
             }
 
-            console.log('EyesBase.close - calling server connector to end the running session');
+            this._logger.verbose('EyesBase.close - calling server connector to end the running session');
             var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
                 (!this._runningSession.isNewSession && this._saveFailedTests));
             this._serverConnector.endSession(this._runningSession, false, save)
                 .then(function (results) {
-                    console.log('EyesBase.close - session ended');
+                    this._logger.log('=======================================');
+                    this._logger.log('>> EyesBase.close - session ended');
                     results.isNew = this._runningSession.isNewSession;
                     results.url = this._runningSession.sessionUrl;
+                    results.isPassed = ((!results.isNew) && results.mismatches == 0 && results.missing == 0);
                     this._runningSession = undefined;
-                    console.log('close:', results);
+                    this._logger.log('>> close: ' + JSON.stringify(results));
 
                     var message;
                     if (results.isNew) {
-                        var instructions = "Please approve the new baseline at " + results.url;
-                        console.log('--- New test ended.', instructions);
+                        var instructions = " Please approve the new baseline at " + results.url;
+                        this._logger.log('>> New test ended. ' + instructions);
 
                         if (throwEx) {
-                            message = "'" + this._sessionStartInfo.scenarioIdOrName
+                            message = "[EYES: NEW TEST]: '" + this._sessionStartInfo.scenarioIdOrName
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. " + instructions;
-                            throw {results: results, message: message};
+                            this._logger.getLogHandler().close();
+                            throw Error(message + " results: " + JSON.stringify(results));
                         }
-                    } else if (results.mismatches > 0 || results.missing > 0) {
-                        console.log("--- Failed test ended. See details at " + results.url);
+                    } else if (!results.isPassed) {
+                        this._logger.log(">> Failed test ended. See details at " + results.url);
 
                         if (throwEx) {
-                            message = "'" + this._sessionStartInfo.scenarioIdOrName
+                            message = "[EYES: TEST FAILED]: '" + this._sessionStartInfo.scenarioIdOrName
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. See details at " + results.url;
-
-                            throw {results: results, message: message};
+                            this._logger.getLogHandler().close();
+                            throw Error(message + " results: " + JSON.stringify(results));
                         }
+                    } else {
+                        this._logger.log(">> Test passed. See details at " + results.url);
                     }
+                    this._logger.getLogHandler().close();
                     resolve(results);
                 }.bind(this));
         }.bind(this));
@@ -381,9 +403,9 @@
         retryTimeout = retryTimeout || -1;
 
         return PromiseFactory.makePromise(function (resolve, reject) {
-            console.log('EyesBase.checkWindow - running');
+            this._logger.verbose('EyesBase.checkWindow - running');
             if (this._isDisabled) {
-                console.log("Eyes checkWindow ignored - disabled");
+                this._logger.verbose("Eyes checkWindow ignored - disabled");
                 resolve();
                 return;
             }
@@ -391,20 +413,22 @@
             if (!this._isOpen)
             {
                 var errMsg = "checkWindow called with Eyes not open";
-                console.log(errMsg);
+                this._logger.log(errMsg);
                 reject(Error(errMsg));
                 return;
             }
 
             this.startSession().then(function() {
-                console.log('EyesBase.checkWindow - session started - creating match window task');
+                this._logger.verbose('EyesBase.checkWindow - session started - creating match window task');
                 this._matchWindowTask = new MatchWindowTask(this._serverConnector,
-                    this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this), this._waitTimeout.bind(this));
+                    this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this),
+                    this._waitTimeout.bind(this), this._logger);
 
-                console.log("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
+                this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                 this._matchWindowTask.matchWindow(this._userInputs, region, tag, this._shouldMatchWindowRunOnceOnTimeout,
                     ignoreMismatch, retryTimeout).then(function(result) {
-                        console.log("EyesBase.checkWindow - match window returned result:", result);
+                        this._logger.verbose("EyesBase.checkWindow - match window returned result: "
+                            + JSON.stringify(result));
                         if (!ignoreMismatch)
                         {
                             this._userInputs = [];
@@ -412,44 +436,49 @@
 
                         if (!result.asExpected)
                         {
-                            console.log("EyesBase.checkWindow - match window result was not success");
+                            this._logger.verbose("EyesBase.checkWindow - match window result was not success");
                             this._shouldMatchWindowRunOnceOnTimeout = true;
+
+                            if (!this._runningSession.isNewSession) {
+                                this._logger.log("Mismatch! " + tag);
+                            }
 
                             if (this._failureReports === EyesBase.FailureReports.Immediate)
                             {
-                                reject(Error("Mismatch found in '" + this._sessionStartInfo.scenarioIdOrName + "' of '" +
-                                    this._sessionStartInfo.appIdOrName + "'"));
+                                throw Error("[EYES: TEST FAILED]: Mismatch found in '" +
+                                    this._sessionStartInfo.scenarioIdOrName + "' of '" +
+                                    this._sessionStartInfo.appIdOrName + "'");
                             }
                         }
 
                         resolve(result);
                     }.bind(this), function (err) {
-                        console.error('Could not perform window check:', err);
-                        reject(Error(err));
-                    });
+                        this._logger.log('Could not perform window check: ' + err.toString());
+                        reject(err);
+                    }.bind(this));
             }.bind(this));
         }.bind(this));
     };
 
     function _getAppData(region, lastScreenshot) {
         return PromiseFactory.makePromise(function (resolve, reject) {
-            console.log('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
+            this._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             this.getScreenshot().then(function (image) {
-                console.log('EyesBase.checkWindow - getAppOutput received the screenshot');
+                this._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                 ImageUtils.crop(image, region).then(function(croppedImage){
-                    console.log('cropped image returned - continuing');
+                    this._logger.verbose('cropped image returned - continuing');
                     var data = {appOutput: {}};
                     data.screenShot = croppedImage;
                     data.appOutput.screenshot64 = croppedImage.toString('base64'); //TODO: compress deltas
 
-                    console.log('EyesBase.checkWindow - getAppOutput getting title');
+                    this._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
                     this.getTitle().then(function (title) {
-                        console.log('EyesBase.checkWindow - getAppOutput received the title');
+                        this._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
                         data.appOutput.title = title;
                         resolve(data);
                     }.bind(this));
                 }.bind(this), function(err) {
-                    reject(Error(err));
+                    reject(err);
                 });
             }.bind(this));
         }.bind(this));
@@ -509,17 +538,17 @@
                             resolve();
                         }.bind(this),
                         function(err) {
-                            console.error(err);
-                            reject(Error());
+                            this._logger.log(err.toString());
+                            reject(err);
                         }.bind(this)
                     );
                 }.bind(this), function(err) {
-                    console.error(err);
-                    reject(Error(err));
-                });
+                    this._logger.log(err.toString());
+                    reject(err);
+                }.bind(this));
             }.bind(this), function (err) {
-                console.error(err);
-                reject(Error(err));
+                this._logger.log(err.toString());
+                reject(err);
             }.bind(this));
 
         }.bind(this));
@@ -529,7 +558,8 @@
     EyesBase.prototype.abortIfNotClosed = function () {
         return PromiseFactory.makePromise(function (resolve, reject) {
             if (this._isDisabled) {
-                console.log("Eyes abortIfNotClosed ignored - disabled");
+                this._logger.log("Eyes abortIfNotClosed ignored - disabled");
+                this._logger.getLogHandler().close();
                 resolve();
                 return;
             }
@@ -539,11 +569,13 @@
 
             if (!this._runningSession) {
                 resolve();
+                this._logger.getLogHandler().close();
                 return;
             }
 
             this._serverConnector.endSession(this._runningSession, true, false).then(function () {
                 this._runningSession = undefined;
+                this._logger.getLogHandler().close();
                 resolve();
             }.bind(this));
         }.bind(this));

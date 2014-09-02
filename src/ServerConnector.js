@@ -29,9 +29,11 @@
      * C'tor = initializes the module settings
      *
      * @param {String} serverUri
+     * @param {Object} logger
+     *
      **/
-    function ServerConnector(serverUri) {
-        console.log('ServerConnector initialized');
+    function ServerConnector(serverUri, logger) {
+        this._logger = logger;
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._httpOptions = {
             rejectUnauthorized: false,
@@ -47,7 +49,6 @@
      * @param apiKey {String} The api key to be used.
      */
     ServerConnector.prototype.setApiKey = function (apiKey) {
-        console.log('api key set to: ', apiKey)
         this._httpOptions.query.apiKey = apiKey;
     };
 
@@ -71,35 +72,36 @@
      *
      **/
     ServerConnector.prototype.startSession = function (sessionStartInfo) {
-        console.log('ServerConnector.startSession called with:', sessionStartInfo);
+        this._logger.verbose('ServerConnector.startSession called with: ' + sessionStartInfo);
         return PromiseFactory.makePromise(function (resolve, reject) {
-            console.log('ServerConnector.startSession will now post call');
+            this._logger.verbose('ServerConnector.startSession will now post call');
             restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
                 .on('complete', function(data, response) {
-                    console.log('ServerConnector.startSession - start session result', data,
-                        ' status code ', response.statusCode);
+                    this._logger.verbose('ServerConnector.startSession - start session result ' + data +
+                        ' status code ' + response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
-                        console.log('ServerConnector.startSession - post succeeded');
+                        this._logger.verbose('ServerConnector.startSession - post succeeded');
                         resolve({sessionId: data['id'], sessionUrl: data['url'],
                             isNewSession: response.statusCode == 201});
                     } else {
-                        console.log('ServerConnector.startSession - post failed');
+                        this._logger.log('ServerConnector.startSession - post failed');
                         reject(Error(response));
                     }
-                });
+                }.bind(this));
         }.bind(this));
     };
 
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
-        console.log('ServerConnector.endSession called with isAborted:', isAborted,
-        ', save:', save, 'for session:', runningSession);
+        this._logger.verbose('ServerConnector.endSession called with isAborted: ' + isAborted +
+        ', save: ' + save + ' for session: ' + runningSession);
         return PromiseFactory.makePromise(function (resolve, reject) {
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            console.log("ServerConnector.endSession will now post:", data, "to:", url);
+            this._logger.verbose("ServerConnector.endSession will now post: " + JSON.stringify(data) + " to: " + url);
             restler.json(url, data, this._httpOptions, 'DELETE')
                 .on('complete', function(data, response) {
-                    console.log('ServerConnector.endSession result', data,' status code', response.statusCode);
+                    this._logger.verbose('ServerConnector.endSession result ' + data +
+                        ' status code ' + response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
                         resolve({
                             steps: data['steps'],
@@ -115,7 +117,7 @@
                     } else {
                         reject(Error("error on server connector endSession"));
                     }
-                });
+                }.bind(this));
         }.bind(this));
     };
 
@@ -125,16 +127,17 @@
             var options = Object.create(this._httpOptions);
             options.headers = Object.create(this._httpOptions.headers);
             options.headers['Content-Type'] = 'application/octet-stream';
-            console.log("ServerConnector.matchWindow will now post to:", url);
+            this._logger.verbose("ServerConnector.matchWindow will now post to: " + url);
             restler.postJson(url, matchWindowData, options)
                 .on('complete', function(data, response) {
-                    console.log('ServerConnector.matchWindow result', data,'status code', response.statusCode);
+                    this._logger.verbose('ServerConnector.matchWindow result ' + data +
+                        ' status code ' + response.statusCode);
                     if (response.statusCode == 200 || response.statusCode == 201) {
                         resolve({asExpected: data.asExpected});
                     } else {
                         reject(Error(JSON.parse(response)));
                     }
-                });
+                }.bind(this));
         }.bind(this));
     };
 
