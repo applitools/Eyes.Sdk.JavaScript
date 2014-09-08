@@ -11,7 +11,7 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     //noinspection JSUnresolvedFunction
@@ -25,7 +25,7 @@
      * @constructor
      *
      * @param {String} serverUrl
-     * @param {Boolean} isDisabled - set to true to disable Applitools Eyes and use the webdriver directly.
+     * @param {Boolean} isDisabled - set to true to disable Applitools Eyes and use the web driver directly.
      *
      **/
     function Eyes(serverUrl, isDisabled) {
@@ -46,8 +46,8 @@
      * Starts a test.
      * @param {string} appName      The application being tested.
      * @param {string} testName     The test's name.
-     * @param {Object} imageSize    Determines the resolution used for the baseline. {@code null} will automatically grab the
-     *                              resolution from the image.
+     * @param {Object} imageSize    Determines the resolution used for the baseline. {@code null} will automatically
+     *                              grab the resolution from the image.
      * @return {Promise}
      */
     Eyes.prototype.open = function (appName, testName, imageSize) {
@@ -93,15 +93,17 @@
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout, region);
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {Promise} An updated screenshot.
      */
     Eyes.prototype.getScreenshot = function () {
         return PromiseFactory.makePromise(function (resolve) {
-           resolve(this._screenshot);
+            resolve(this._screenshot);
         }.bind(this));
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {Promise} The current title of of the AUT.
      */
@@ -111,6 +113,7 @@
         }.bind(this));
     };
 
+    //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.getInferredEnvironment = function () {
         return PromiseFactory.makePromise(function (resolve) {
             resolve('');
@@ -133,10 +136,11 @@
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, region) {
         this._screenshot = image;
-        this._title = tag ? tag : '';
+        this._title = tag || '';
         return EyesBase.prototype.checkWindow.call(this, tag, ignoreMismatch, retryTimeout, region);
     };
 
+    //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._waitTimeout = function (ms) {
         // Notice we have to use deferred here, since we want the setTimeout to call resolve..
         var deferred = PromiseFactory.makeDeferred();
@@ -149,13 +153,16 @@
         return deferred.promise;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.getViewportSize = function () {
         // FIXME Replace this with getting the image size.
+        //noinspection JSLint
         return PromiseFactory.makePromise(function (resolve, reject) {
-            reject(Error("Automatic viewport size not implemented yet!"));
+            reject(new Error("Automatic viewport size not implemented yet!"));
         }.bind(this));
     };
 
+    //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.setViewportSize = function (size) {
         return PromiseFactory.makePromise(function (resolve) {
             this._viewportSize = size;
@@ -163,5 +170,6 @@
         }.bind(this));
     };
 
+    //noinspection JSUnresolvedVariable
     module.exports = Eyes;
 }());
