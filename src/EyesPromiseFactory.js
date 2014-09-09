@@ -10,7 +10,7 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     var EyesPromiseFactory = {};
@@ -21,7 +21,7 @@
      *                          constructor.
      * @param deferredFactory A function which returns a deferred.
      */
-    EyesPromiseFactory.setFactoryMethods = function(promiseFactory, deferredFactory) {
+    EyesPromiseFactory.setFactoryMethods = function (promiseFactory, deferredFactory) {
         this._promiseFactory = promiseFactory;
         this._deferredFactory = deferredFactory;
     };

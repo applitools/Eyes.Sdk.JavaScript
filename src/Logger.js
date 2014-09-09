@@ -10,7 +10,7 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     var NullLogHanlder = require('./NullLogHandler');
@@ -42,11 +42,11 @@
         return this._logHandler;
     };
 
-    Logger.prototype.verbose = function(message){
+    Logger.prototype.verbose = function (message) {
         this._logHandler.onMessage(true, message);
     };
 
-    Logger.prototype.log = function(message){
+    Logger.prototype.log = function (message) {
         this._logHandler.onMessage(false, message);
     };
 

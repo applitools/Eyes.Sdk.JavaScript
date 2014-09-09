@@ -6,12 +6,12 @@
  description: Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
 
  provides: [EyesBase]
- requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory, ImageUtils, Logger]
+ requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory, ImageUtils, Logger, Triggers]
 
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     var ServerConnector = require('./ServerConnector'),
@@ -19,6 +19,7 @@
         GeneralUtils = require('./GeneralUtils'),
         PromiseFactory = require('./EyesPromiseFactory'),
         ImageUtils = require('./ImageUtils'),
+        Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
     var _MatchLevel = {
@@ -38,7 +39,7 @@
         Exact: 'Exact'
     };
 
-    var _FailureReports = {
+    var _FailureReport = {
         // Failures are reported immediately when they are detected.
         Immediate: 'Immediate',
         // Failures are reported when tests are completed (i.e., when Eyes.close() is called).
@@ -58,7 +59,7 @@
             this._logger = new Logger();
             this._serverUrl = serverUrl;
             this._matchLevel = EyesBase.MatchLevel.Strict;
-            this._failureReports = EyesBase.FailureReports.OnClose;
+            this._failureReport = EyesBase.FailureReport.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
             this._saveFailedTests = false;
@@ -118,7 +119,7 @@
     EyesBase.prototype._getFullAgentId = function () {
         //noinspection JSUnresolvedVariable
         if (!this._getBaseAgentId) {
-            throw Error("_getBaseAgentId not implemented!");
+            throw new Error("_getBaseAgentId not implemented!");
         }
         var agentId = this.getAgentId();
         if (!agentId) {
@@ -157,7 +158,8 @@
         this._batch = {
             id: arguments[1] || GeneralUtils.guid(),
             name: name,
-            startedAt: arguments[2] || new Date().toUTCString()};
+            startedAt: arguments[2] || new Date().toUTCString()
+        };
     };
 
     /**
@@ -192,7 +194,7 @@
      * @param {boolean} shouldSave True if failed tests should be saved by
      *                        default, false otherwise.
      */
-    EyesBase.prototype.setSaveFailedTests = function(shouldSave) {
+    EyesBase.prototype.setSaveFailedTests = function (shouldSave) {
         this._saveFailedTests = shouldSave;
     };
 
@@ -200,7 +202,7 @@
     /**
      * @return {boolean} True if failed tests are saved by default.
      */
-    EyesBase.prototype.getSaveFailedTests = function() {
+    EyesBase.prototype.getSaveFailedTests = function () {
         return this._saveFailedTests;
     };
 
@@ -209,7 +211,7 @@
      * Sets the maximal time a match operation tries to perform a match.
      * @param {number} timeout Timeout in milliseconds.
      */
-    EyesBase.prototype.setDefaultMatchTimeout = function(timeout) {
+    EyesBase.prototype.setDefaultMatchTimeout = function (timeout) {
         this._defaultMatchTimeout = timeout;
     };
 
@@ -225,58 +227,57 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @param mode Use one of the values in EyesBase.FailureReports.
+     * @param mode Use one of the values in EyesBase.FailureReport.
      */
-    EyesBase.prototype.setFailureReports = function(mode) {
+    EyesBase.prototype.setFailureReport = function (mode) {
         switch (mode) {
-            case EyesBase.FailureReports.OnClose:
-                this._failureReports = EyesBase.FailureReports.OnClose;
-                break;
-            case EyesBase.FailureReports.Immediate:
-                this._failureReports = EyesBase.FailureReports.Immediate;
-                break;
-            default:
-                this._failureReports = EyesBase.FailureReports.OnClose;
-                break;
+        case EyesBase.FailureReport.OnClose:
+            this._failureReport = EyesBase.FailureReport.OnClose;
+            break;
+        case EyesBase.FailureReport.Immediate:
+            this._failureReport = EyesBase.FailureReport.Immediate;
+            break;
+        default:
+            this._failureReport = EyesBase.FailureReport.OnClose;
+            break;
         }
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @return {EyesBase.FailureReports} The currently set FailureReports.
+     * @return {EyesBase.FailureReport} The currently set FailureReport.
      */
-    EyesBase.prototype.getFailureReports = function () {
-        return this._failureReports;
+    EyesBase.prototype.getFailureReport = function () {
+        return this._failureReport;
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * The test-wide match level to use when checking application screenshot with the expected output.
+     * The test-wide match level to use when checking application screenShot with the expected output.
      * @param {EyesBase.MatchLevel} level The match level setting.
      */
-    EyesBase.prototype.setMatchLevel = function(level) {
+    EyesBase.prototype.setMatchLevel = function (level) {
         switch (level) {
-            case EyesBase.MatchLevel.None:
-                this._matchLevel = EyesBase.MatchLevel.None;
-                break;
-            case EyesBase.MatchLevel.Content:
-                this._matchLevel = EyesBase.MatchLevel.Content;
-                break;
-            case EyesBase.MatchLevel.Strict:
-                this._matchLevel = EyesBase.MatchLevel.Strict;
-                break;
-            case EyesBase.MatchLevel.Layout:
-                this._matchLevel = EyesBase.MatchLevel.Layout;
-                break;
-            case EyesBase.MatchLevel.Exact:
-                this._matchLevel = EyesBase.MatchLevel.Exact;
-                break;
-            default:
-                this._matchLevel = EyesBase.MatchLevel.Strict;
-                break;
+        case EyesBase.MatchLevel.None:
+            this._matchLevel = EyesBase.MatchLevel.None;
+            break;
+        case EyesBase.MatchLevel.Content:
+            this._matchLevel = EyesBase.MatchLevel.Content;
+            break;
+        case EyesBase.MatchLevel.Strict:
+            this._matchLevel = EyesBase.MatchLevel.Strict;
+            break;
+        case EyesBase.MatchLevel.Layout:
+            this._matchLevel = EyesBase.MatchLevel.Layout;
+            break;
+        case EyesBase.MatchLevel.Exact:
+            this._matchLevel = EyesBase.MatchLevel.Exact;
+            break;
+        default:
+            this._matchLevel = EyesBase.MatchLevel.Strict;
+            break;
         }
-
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -301,7 +302,7 @@
                 errMsg = 'API key is missing! Please set it via Eyes.setApiKey';
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
-                reject(Error(errMsg));
+                reject(new Error(errMsg));
                 return;
             }
 
@@ -310,7 +311,7 @@
                 errMsg = "A test is already running";
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
-                reject(Error(errMsg));
+                reject(new Error(errMsg));
                 return;
             }
 
@@ -324,7 +325,7 @@
     };
 
     EyesBase.prototype.close = function (throwEx) {
-        if (typeof throwEx === 'undefined') {
+        if (throwEx === undefined) {
             throwEx = true;
         }
 
@@ -342,7 +343,7 @@
                 var errMsg = "close called with Eyes not open";
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
-                reject(Error(errMsg));
+                reject(new Error(errMsg));
                 return;
             }
 
@@ -357,13 +358,13 @@
             this._logger.verbose('EyesBase.close - calling server connector to end the running session');
             var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
                 (!this._runningSession.isNewSession && this._saveFailedTests));
-            this._serverConnector.endSession(this._runningSession, false, save)
+            return this._serverConnector.endSession(this._runningSession, false, save)
                 .then(function (results) {
                     this._logger.log('=======================================');
                     this._logger.log('>> EyesBase.close - session ended');
                     results.isNew = this._runningSession.isNewSession;
                     results.url = this._runningSession.sessionUrl;
-                    results.isPassed = ((!results.isNew) && results.mismatches == 0 && results.missing == 0);
+                    results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
                     this._runningSession = undefined;
                     this._logger.log('>> close: ' + JSON.stringify(results));
 
@@ -377,7 +378,7 @@
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. " + instructions;
                             this._logger.getLogHandler().close();
-                            throw Error(message + " results: " + JSON.stringify(results));
+                            throw new Error(message + " results: " + JSON.stringify(results));
                         }
                     } else if (!results.isPassed) {
                         this._logger.log(">> Failed test ended. See details at " + results.url);
@@ -387,7 +388,7 @@
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. See details at " + results.url;
                             this._logger.getLogHandler().close();
-                            throw Error(message + " results: " + JSON.stringify(results));
+                            throw new Error(message + " results: " + JSON.stringify(results));
                         }
                     } else {
                         this._logger.log(">> Test passed. See details at " + results.url);
@@ -398,7 +399,31 @@
         }.bind(this));
     };
 
-    EyesBase.prototype.checkWindow = function(tag, ignoreMismatch, retryTimeout, region) {
+    function _getAppData(region, lastScreenShot) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
+            this._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
+            return this.getScreenShot().then(function (image) {
+                this._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
+                return ImageUtils.crop(image, region).then(function (croppedImage) {
+                    this._logger.verbose('cropped image returned - continuing');
+                    var data = {appOutput: {}};
+                    data.screenShot = croppedImage;
+                    data.appOutput.screenShot64 = croppedImage.toString('base64'); //TODO: compress deltas
+
+                    this._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
+                    return this.getTitle().then(function (title) {
+                        this._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
+                        data.appOutput.title = title;
+                        resolve(data);
+                    }.bind(this));
+                }.bind(this), function (err) {
+                    reject(err);
+                });
+            }.bind(this));
+        }.bind(this));
+    }
+
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, region) {
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
 
@@ -410,32 +435,31 @@
                 return;
             }
 
-            if (!this._isOpen)
-            {
+            if (!this._isOpen) {
                 var errMsg = "checkWindow called with Eyes not open";
                 this._logger.log(errMsg);
-                reject(Error(errMsg));
+                reject(new Error(errMsg));
                 return;
             }
 
-            this.startSession().then(function() {
+            return this.startSession().then(function () {
                 this._logger.verbose('EyesBase.checkWindow - session started - creating match window task');
                 this._matchWindowTask = new MatchWindowTask(this._serverConnector,
                     this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this),
                     this._waitTimeout.bind(this), this._logger);
 
                 this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
-                this._matchWindowTask.matchWindow(this._userInputs, region, tag, this._shouldMatchWindowRunOnceOnTimeout,
-                    ignoreMismatch, retryTimeout).then(function(result) {
+                return this._matchWindowTask.matchWindow(this._userInputs, region, tag,
+                    this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
+                    .then(function (result) {
                         this._logger.verbose("EyesBase.checkWindow - match window returned result: "
                             + JSON.stringify(result));
-                        if (!ignoreMismatch)
-                        {
+
+                        if (!ignoreMismatch) {
                             this._userInputs = [];
                         }
 
-                        if (!result.asExpected)
-                        {
+                        if (!result.asExpected) {
                             this._logger.verbose("EyesBase.checkWindow - match window result was not success");
                             this._shouldMatchWindowRunOnceOnTimeout = true;
 
@@ -443,9 +467,8 @@
                                 this._logger.log("Mismatch! " + tag);
                             }
 
-                            if (this._failureReports === EyesBase.FailureReports.Immediate)
-                            {
-                                throw Error("[EYES: TEST FAILED]: Mismatch found in '" +
+                            if (this._failureReport === EyesBase.FailureReport.Immediate) {
+                                throw new Error("[EYES: TEST FAILED]: Mismatch found in '" +
                                     this._sessionStartInfo.scenarioIdOrName + "' of '" +
                                     this._sessionStartInfo.appIdOrName + "'");
                             }
@@ -460,30 +483,6 @@
         }.bind(this));
     };
 
-    function _getAppData(region, lastScreenshot) {
-        return PromiseFactory.makePromise(function (resolve, reject) {
-            this._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-            this.getScreenshot().then(function (image) {
-                this._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
-                ImageUtils.crop(image, region).then(function(croppedImage){
-                    this._logger.verbose('cropped image returned - continuing');
-                    var data = {appOutput: {}};
-                    data.screenShot = croppedImage;
-                    data.appOutput.screenshot64 = croppedImage.toString('base64'); //TODO: compress deltas
-
-                    this._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
-                    this.getTitle().then(function (title) {
-                        this._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
-                        data.appOutput.title = title;
-                        resolve(data);
-                    }.bind(this));
-                }.bind(this), function(err) {
-                    reject(err);
-                });
-            }.bind(this));
-        }.bind(this));
-    }
-
     EyesBase.prototype.startSession = function () {
         return PromiseFactory.makePromise(function (resolve, reject) {
 
@@ -493,20 +492,16 @@
             }
 
             var promise;
-            if (!this._viewportSize)
-            {
+            if (!this._viewportSize) {
                 promise = this.getViewportSize();
-            }
-            else
-            {
+            } else {
                 promise = this.setViewportSize(this._viewportSize);
             }
 
-            promise.then(function (result) {
+            return promise.then(function (result) {
                 this._viewportSize = this._viewportSize || result;
                 var testBatch = this._batch; //TODO: allow to set batch somewhere
-                if (!testBatch)
-                {
+                if (!testBatch) {
                     testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
                 }
 
@@ -514,12 +509,13 @@
                     return this.name + " [" + this.id + "]" + " - " + this.startedAt;
                 };
 
-                this.getInferredEnvironment().then(function(userAgent) {
+                return this.getInferredEnvironment().then(function (userAgent) {
                     var appEnv = {
                         os: this._hostOS || null,
                         hostingApp: this._appName || null,
                         displaySize: this._viewportSize,
-                        inferred: userAgent};
+                        inferred: userAgent
+                    };
 
                     this._sessionStartInfo = {
                         agentId: this._getFullAgentId(),
@@ -532,17 +528,16 @@
                         parentBranchName: null // TODO: this._parentBranchName
                     };
 
-                    this._serverConnector.startSession(this._sessionStartInfo).then(function (result) {
+                    return this._serverConnector.startSession(this._sessionStartInfo)
+                        .then(function (result) {
                             this._runningSession = result;
                             this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
                             resolve();
-                        }.bind(this),
-                        function(err) {
+                        }.bind(this), function (err) {
                             this._logger.log(err.toString());
                             reject(err);
-                        }.bind(this)
-                    );
-                }.bind(this), function(err) {
+                        }.bind(this));
+                }.bind(this), function (err) {
                     this._logger.log(err.toString());
                     reject(err);
                 }.bind(this));
@@ -550,9 +545,7 @@
                 this._logger.log(err.toString());
                 reject(err);
             }.bind(this));
-
         }.bind(this));
-
     };
 
     EyesBase.prototype.abortIfNotClosed = function () {
@@ -573,17 +566,75 @@
                 return;
             }
 
-            this._serverConnector.endSession(this._runningSession, true, false).then(function () {
+            return this._serverConnector.endSession(this._runningSession, true, false).then(function () {
                 this._runningSession = undefined;
                 this._logger.getLogHandler().close();
                 resolve();
-            }.bind(this));
+            }.bind(this), function (err) {
+                reject(err);
+            });
         }.bind(this));
+    };
+
+    EyesBase.prototype.addKeyboardTrigger = function (control, text) {
+        if (!this._matchWindowTask) {
+            this._logger.verbose("addKeyboardTrigger: No screen shot - ignoring text: " + text);
+            return;
+        }
+
+        if (control.width > 0 && control.height > 0) {
+            var sb = this._matchWindowTask.getLastScreenShotBounds();
+            control = GeneralUtils.intersect(control, sb);
+            if (control.width === 0 || control.height === 0) {
+                this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text: " + text);
+                return;
+            }
+
+            // Even after we intersected the control, we need to make sure it's location
+            // is based on the last screenshot location (remember it might be offsetted).
+            control.left -= sb.left;
+            control.top -= sb.top;
+        }
+
+        var trigger = Triggers.createTextTrigger(control, text);
+        this._userInputs.push(trigger);
+        this._logger.verbose("AddKeyboardTrigger: Added " + trigger);
+    };
+
+    EyesBase.prototype.addMouseTrigger = function (mouseAction, control, cursor) {
+        if (!this._matchWindowTask) {
+            this._logger.verbose("addMouseTrigger: No screen shot - ignoring event");
+            return;
+        }
+
+        var sb = this._matchWindowTask.getLastScreenShotBounds();
+        cursor.x += control.left;
+        cursor.y += control.top;
+        if (!GeneralUtils.contains(sb, cursor)) {
+            this._logger.verbose("AddMouseTrigger: out of bounds - ignoring mouse event");
+            return;
+        }
+
+        control = GeneralUtils.intersect(control, sb);
+        if (control.width > 0 && control.height > 0) {
+            cursor.x -= control.left;
+            cursor.y -= control.top;
+            control.left -= sb.left;
+            control.top -= sb.top;
+        } else {
+            cursor.x -= sb.left;
+            cursor.y -= sb.top;
+        }
+
+        var trigger = Triggers.createMouseTrigger(mouseAction, control, cursor);
+        this._userInputs.push(trigger);
+
+        this._logger.verbose("AddMouseTrigger: Added " + trigger);
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com';
     EyesBase.MatchLevel = Object.freeze(_MatchLevel);
-    EyesBase.FailureReports = Object.freeze(_FailureReports);
+    EyesBase.FailureReport = Object.freeze(_FailureReport);
 
     module.exports = EyesBase;
 }());

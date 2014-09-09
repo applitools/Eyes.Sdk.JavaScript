@@ -11,12 +11,11 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     var temp = require('temp'),
         fs = require('fs'),
-        util  = require('util'),
         PNG = require('pngjs').PNG,
         PromiseFactory = require('./EyesPromiseFactory');
 
@@ -24,10 +23,10 @@
 
     var ImageUtils = {};
 
-    ImageUtils.crop = function(image, region) {
+    ImageUtils.crop = function (image, region) {
         return PromiseFactory.makePromise(function (resolve, reject) {
 
-            if ((!region) || region.width == 0 || region.height == 0) {
+            if ((!region) || region.width === 0 || region.height === 0) {
                 //No need to crop - no region
                 resolve(image);
                 return;
@@ -39,14 +38,14 @@
             temp.open('eyes-snap-', function (err1, info) {
                 temp.open('eyes-crop-', function (err2, cropInfo) {
                     if (err1 || err2) {
-                        reject(Error('Failed to open a temp file:' + err1 || err2));
+                        reject(new Error('Failed to open a temp file:' + err1 || err2));
                         return;
                     }
 
                     // 3. write the buffer to the temp file
                     fs.writeFile(info.path, image, function (err) {
                         if (err) {
-                            reject(Error('Failed to write to a temp file:' + err));
+                            reject(new Error('Failed to write to a temp file:' + err));
                             return;
                         }
 
@@ -59,7 +58,7 @@
                             .on('parsed', function () {
 
                                 if (region.top >= this.height || region.left >= this.width) {
-                                    reject(Error('region is not contained in screenshot'));
+                                    reject(new Error('region is not contained in screen shot'));
                                     return;
                                 }
 
@@ -70,10 +69,11 @@
                                     xStart = region.left,
                                     xEnd = Math.min(region.left + region.width, this.width);
 
-                                for (var y = yStart; y < yEnd; y++) {
-                                    for (var x = xStart; x < xEnd; x++) {
-                                        var idx = (this.width * y + x) << 2;
-                                        for (var i = 0; i < 4; i++) {
+                                var y, x, idx, i;
+                                for (y = yStart; y < yEnd; y++) {
+                                    for (x = xStart; x < xEnd; x++) {
+                                        idx = (this.width * y + x) << 2;
+                                        for (i = 0; i < 4; i++) {
                                             croppedArray.push(this.data[idx + i]);
                                         }
                                     }
@@ -90,7 +90,7 @@
                                         // 7. Read the file into a buffer
                                         fs.readFile(cropInfo.path, function (err, data) {
                                             if (err) {
-                                                reject(Error('Failed to read a temp file:' + err));
+                                                reject(new Error('Failed to read a temp file:' + err));
                                                 return;
                                             }
 

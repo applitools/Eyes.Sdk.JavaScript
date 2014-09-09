@@ -10,7 +10,7 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     /**
@@ -42,12 +42,12 @@
         return this._isVerbose;
     };
 
-    ConsoleLogHandler.prototype.open = function(){
-
+    ConsoleLogHandler.prototype.open = function () {
+        return true;
     };
 
-    ConsoleLogHandler.prototype.close = function(){
-
+    ConsoleLogHandler.prototype.close = function () {
+        return true;
     };
 
     /**
@@ -55,13 +55,13 @@
      * @param {Boolean} verbose - is the message verbose
      * @param {String} message
      */
-    ConsoleLogHandler.prototype.onMessage = function(verbose, message){
+    ConsoleLogHandler.prototype.onMessage = function (verbose, message) {
         if (!verbose || this._isVerbose) {
             console.log(ConsoleLogHandler.getTimeString() + " - Eyes: " + message);
         }
     };
 
-    ConsoleLogHandler.getTimeString = function() {
+    ConsoleLogHandler.getTimeString = function () {
         var pad10 = function (x) {
             return (x < 10) ? '0' + x : x;
         };
@@ -75,7 +75,10 @@
             M = pad10(now.getUTCMonth()),
             Y = now.getUTCFullYear();
 
-        if(h > 12) h -= 12;
+        if (h > 12) {
+            h -= 12;
+        }
+
         h = pad10(h);
 
         return D + '/' + M + '/' + Y + ' ' + h + ':' + m + ':' + s + ' ' + amPm;

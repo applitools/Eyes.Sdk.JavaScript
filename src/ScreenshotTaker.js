@@ -1,12 +1,12 @@
 /*
  ---
 
- name: ScreenshotTaker
+ name: ScreenShotTaker
 
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     var GeneralUtils = require('./GeneralUtils');
@@ -20,15 +20,15 @@
      *
      *
      **/
-    function ScreenshotTaker(driverServerUri, driverSessionId) {
+    function ScreenShotTaker(driverServerUri, driverSessionId) {
         var cnct = GeneralUtils.urlConcat;
-        this._driverServerUri = cnct(cnct(cnct(driverServerUri, "session"), driverSessionId), "screenshot");
+        this._driverServerUri = cnct(cnct(cnct(driverServerUri, "session"), driverSessionId), "screenShot");
     }
 
     // FIXME remove or implement?
-    ScreenshotTaker.prototype.getScreenshotAsBase64 = function() {
-
+    ScreenShotTaker.prototype.getScreenShotAsBase64 = function () {
+        return true;
     };
 
-    module.exports = ScreenshotTaker;
+    module.exports = ScreenShotTaker;
 }());

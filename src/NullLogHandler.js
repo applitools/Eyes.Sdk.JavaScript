@@ -10,7 +10,7 @@
  ---
  */
 
-;(function() {
+(function () {
     "use strict";
 
     /**
@@ -42,12 +42,12 @@
         return this._isVerbose;
     };
 
-    NullLogHandler.prototype.open = function(){
-
+    NullLogHandler.prototype.open = function () {
+        return true;
     };
 
-    NullLogHandler.prototype.close = function(){
-
+    NullLogHandler.prototype.close = function () {
+        return true;
     };
 
     /**
@@ -55,7 +55,8 @@
      * @param {Boolean} verbose - is the message verbose
      * @param {String} message
      */
-    NullLogHandler.prototype.onMessage = function(verbose, message){
+    NullLogHandler.prototype.onMessage = function (verbose, message) {
+        return verbose + message;
     };
 
     module.exports = NullLogHandler;
