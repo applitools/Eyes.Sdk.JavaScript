@@ -72,12 +72,12 @@
      *
      **/
     ServerConnector.prototype.startSession = function (sessionStartInfo) {
-        this._logger.verbose('ServerConnector.startSession called with: ' + sessionStartInfo);
+        this._logger.verbose('ServerConnector.startSession called with: ' + JSON.stringify(sessionStartInfo));
         return PromiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('ServerConnector.startSession will now post call');
             restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
                 .on('complete', function (data, response) {
-                    this._logger.verbose('ServerConnector.startSession - start session result ' + data +
+                    this._logger.verbose('ServerConnector.startSession - start session result ' + JSON.stringify(data) +
                         ' status code ' + response.statusCode);
                     if (response.statusCode === 200 || response.statusCode === 201) {
                         this._logger.verbose('ServerConnector.startSession - post succeeded');
@@ -130,7 +130,7 @@
             this._logger.verbose("ServerConnector.matchWindow will now post to: " + url);
             restler.postJson(url, matchWindowData, options)
                 .on('complete', function (data, response) {
-                    this._logger.verbose('ServerConnector.matchWindow result ' + data +
+                    this._logger.verbose('ServerConnector.matchWindow result ' + JSON.stringify(data) +
                         ' status code ' + response.statusCode);
                     if (response.statusCode === 200 || response.statusCode === 201) {
                         resolve({asExpected: data.asExpected});

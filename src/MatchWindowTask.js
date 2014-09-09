@@ -80,6 +80,8 @@
             this._lastBounds = region;
         }
 
+        this._logger.verbose("last bounds: " + JSON.stringify(this._lastBounds));
+
         resolve(this._matchResult);
     }
 
@@ -120,7 +122,7 @@
                 };
                 return this._serverConnector.matchWindow(this._runningSession, data).then(function (result) {
                     this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch received server connector result: '
-                        + result);
+                        + JSON.stringify(result));
                     this._matchResult = result;
 
                     if (!this._matchResult.asExpected) {

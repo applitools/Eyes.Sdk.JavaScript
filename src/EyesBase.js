@@ -399,16 +399,17 @@
         }.bind(this));
     };
 
+    // lastScreenShot - notice it's an object with imageBuffer, width & height properties
     function _getAppData(region, lastScreenShot) {
         return PromiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
             return this.getScreenShot().then(function (image) {
                 this._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
-                return ImageUtils.crop(image, region).then(function (croppedImage) {
+                return ImageUtils.processImage(image, region).then(function (processedImage) {
                     this._logger.verbose('cropped image returned - continuing');
                     var data = {appOutput: {}};
-                    data.screenShot = croppedImage;
-                    data.appOutput.screenShot64 = croppedImage.toString('base64'); //TODO: compress deltas
+                    data.screenShot = processedImage;
+                    data.appOutput.screenShot64 = processedImage.imageBuffer.toString('base64'); //TODO: compress deltas
 
                     this._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
                     return this.getTitle().then(function (title) {
@@ -577,6 +578,9 @@
     };
 
     EyesBase.prototype.addKeyboardTrigger = function (control, text) {
+        this._logger.verbose("addKeyboardTrigger called with text: " + text + "for control: "
+            + JSON.stringify(control));
+
         if (!this._matchWindowTask) {
             this._logger.verbose("addKeyboardTrigger: No screen shot - ignoring text: " + text);
             return;

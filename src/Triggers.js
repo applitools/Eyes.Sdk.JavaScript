@@ -41,7 +41,7 @@
         };
 
         mouseTrigger.toString = function () {
-            return mouseAction + ' [' + control + '] ' + location;
+            return mouseAction + ' [' + JSON.stringify(control) + '] ' + JSON.stringify(location);
         };
 
         return mouseTrigger;
@@ -55,7 +55,7 @@
         };
 
         textTrigger.toString = function () {
-            return "Text [" + control + "] '" + text + "'";
+            return "Text [" + JSON.stringify(control) + "] '" + text + "'";
         };
 
         return textTrigger;

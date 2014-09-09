@@ -23,17 +23,24 @@
 
     var ImageUtils = {};
 
-    ImageUtils.crop = function (image, region) {
+    /**
+     *
+     * processImage - processes a PNG buffer - returns it alnog with the image dimensions and, if needed cropps it.
+     *
+     * @param {Buffer} image
+     * @param {Object} region (optional) - region to crop to
+     *
+     * @returns {Object} - Promise - when resolved contains an object with the buffer and the image dimensions
+     *
+     **/
+    ImageUtils.processImage = function (image, region) {
         return PromiseFactory.makePromise(function (resolve, reject) {
 
-            if ((!region) || region.width === 0 || region.height === 0) {
-                //No need to crop - no region
-                resolve(image);
-                return;
-            }
-
-            // TODO: handle cases when region is not contained!
-
+            var result = {
+                imageBuffer: image,
+                width: 0,
+                height: 0
+            };
             // 2. open a temp file
             temp.open('eyes-snap-', function (err1, info) {
                 temp.open('eyes-crop-', function (err2, cropInfo) {
@@ -56,6 +63,15 @@
                                 filterType: 4
                             }))
                             .on('parsed', function () {
+
+                                if ((!region) || region.width === 0 || region.height === 0) {
+                                    //No need to crop - no region
+                                    result.imageBuffer = image;
+                                    result.width = this.width;
+                                    result.height = this.height;
+                                    resolve(result);
+                                    return;
+                                }
 
                                 if (region.top >= this.height || region.left >= this.width) {
                                     reject(new Error('region is not contained in screen shot'));
@@ -82,6 +98,8 @@
                                 this.data = new Buffer(croppedArray);
                                 this.width = xEnd - xStart;
                                 this.height = yEnd - yStart;
+                                result.width = this.width;
+                                result.height = this.height;
 
                                 // 6. Write back to a temp png file
 
@@ -94,7 +112,8 @@
                                                 return;
                                             }
 
-                                            resolve(data);
+                                            result.imageBuffer = data;
+                                            resolve(result);
                                         });
                                     });
                             });
