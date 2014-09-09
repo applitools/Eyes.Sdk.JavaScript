@@ -42,12 +42,22 @@
         return this._logHandler;
     };
 
-    Logger.prototype.verbose = function (message) {
-        this._logHandler.onMessage(true, message);
+    function _stringify(args) {
+        return args.map(function (arg) {
+            if (typeof arg === 'object') {
+                return JSON.stringify(arg);
+            }
+
+            return arg.toString();
+        }).join(" ");
+    }
+
+    Logger.prototype.verbose = function () {
+        this._logHandler.onMessage(true, _stringify(Array.prototype.slice.call(arguments, 0)));
     };
 
-    Logger.prototype.log = function (message) {
-        this._logHandler.onMessage(false, message);
+    Logger.prototype.log = function () {
+        this._logHandler.onMessage(false, _stringify(Array.prototype.slice.call(arguments, 0)));
     };
 
     module.exports = Logger;

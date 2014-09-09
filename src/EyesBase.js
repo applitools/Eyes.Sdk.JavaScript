@@ -366,12 +366,12 @@
                     results.url = this._runningSession.sessionUrl;
                     results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
                     this._runningSession = undefined;
-                    this._logger.log('>> close: ' + JSON.stringify(results));
+                    this._logger.log('>> close:', results);
 
                     var message;
                     if (results.isNew) {
                         var instructions = " Please approve the new baseline at " + results.url;
-                        this._logger.log('>> New test ended. ' + instructions);
+                        this._logger.log('>> New test ended.', instructions);
 
                         if (throwEx) {
                             message = "[EYES: NEW TEST]: '" + this._sessionStartInfo.scenarioIdOrName
@@ -381,7 +381,7 @@
                             throw new Error(message + " results: " + JSON.stringify(results));
                         }
                     } else if (!results.isPassed) {
-                        this._logger.log(">> Failed test ended. See details at " + results.url);
+                        this._logger.log(">> Failed test ended. See details at", results.url);
 
                         if (throwEx) {
                             message = "[EYES: TEST FAILED]: '" + this._sessionStartInfo.scenarioIdOrName
@@ -391,7 +391,7 @@
                             throw new Error(message + " results: " + JSON.stringify(results));
                         }
                     } else {
-                        this._logger.log(">> Test passed. See details at " + results.url);
+                        this._logger.log(">> Test passed. See details at", results.url);
                     }
                     this._logger.getLogHandler().close();
                     resolve(results);
@@ -453,8 +453,8 @@
                 return this._matchWindowTask.matchWindow(this._userInputs, region, tag,
                     this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
                     .then(function (result) {
-                        this._logger.verbose("EyesBase.checkWindow - match window returned result: "
-                            + JSON.stringify(result));
+                        this._logger.verbose("EyesBase.checkWindow - match window returned result:",
+                            JSON.stringify(result));
 
                         if (!ignoreMismatch) {
                             this._userInputs = [];
@@ -465,7 +465,7 @@
                             this._shouldMatchWindowRunOnceOnTimeout = true;
 
                             if (!this._runningSession.isNewSession) {
-                                this._logger.log("Mismatch! " + tag);
+                                this._logger.log("Mismatch!", tag);
                             }
 
                             if (this._failureReport === EyesBase.FailureReport.Immediate) {
@@ -477,7 +477,7 @@
 
                         resolve(result);
                     }.bind(this), function (err) {
-                        this._logger.log('Could not perform window check: ' + err.toString());
+                        this._logger.log('Could not perform window check:', err);
                         reject(err);
                     }.bind(this));
             }.bind(this));
@@ -535,15 +535,15 @@
                             this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
                             resolve();
                         }.bind(this), function (err) {
-                            this._logger.log(err.toString());
+                            this._logger.log(err);
                             reject(err);
                         }.bind(this));
                 }.bind(this), function (err) {
-                    this._logger.log(err.toString());
+                    this._logger.log(err);
                     reject(err);
                 }.bind(this));
             }.bind(this), function (err) {
-                this._logger.log(err.toString());
+                this._logger.log(err);
                 reject(err);
             }.bind(this));
         }.bind(this));
@@ -578,11 +578,10 @@
     };
 
     EyesBase.prototype.addKeyboardTrigger = function (control, text) {
-        this._logger.verbose("addKeyboardTrigger called with text: " + text + "for control: "
-            + JSON.stringify(control));
+        this._logger.verbose("addKeyboardTrigger called with text:", text, "for control:", control);
 
         if (!this._matchWindowTask) {
-            this._logger.verbose("addKeyboardTrigger: No screen shot - ignoring text: " + text);
+            this._logger.verbose("addKeyboardTrigger: No screen shot - ignoring text:", text);
             return;
         }
 
@@ -590,7 +589,7 @@
             var sb = this._matchWindowTask.getLastScreenShotBounds();
             control = GeneralUtils.intersect(control, sb);
             if (control.width === 0 || control.height === 0) {
-                this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text: " + text);
+                this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text:", text);
                 return;
             }
 
@@ -602,7 +601,7 @@
 
         var trigger = Triggers.createTextTrigger(control, text);
         this._userInputs.push(trigger);
-        this._logger.verbose("AddKeyboardTrigger: Added " + trigger);
+        this._logger.verbose("AddKeyboardTrigger: Added", trigger);
     };
 
     EyesBase.prototype.addMouseTrigger = function (mouseAction, control, cursor) {
@@ -633,7 +632,7 @@
         var trigger = Triggers.createMouseTrigger(mouseAction, control, cursor);
         this._userInputs.push(trigger);
 
-        this._logger.verbose("AddMouseTrigger: Added " + trigger);
+        this._logger.verbose("AddMouseTrigger: Added", trigger);
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com';
