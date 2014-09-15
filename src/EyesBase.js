@@ -533,7 +533,7 @@
 
             return promise.then(function (result) {
                 this._viewportSize = this._viewportSize || result;
-                var testBatch = this._batch; //TODO: allow to set batch somewhere
+                var testBatch = this._batch;
                 if (!testBatch) {
                     testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
                 }
