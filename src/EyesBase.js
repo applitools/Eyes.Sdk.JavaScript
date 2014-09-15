@@ -288,6 +288,38 @@
         return this._matchLevel;
     };
 
+    /**
+     * Sets the branch name.
+     *
+     * @param branchName {String} The branch name.
+     */
+    EyesBase.prototype.setBranchName = function (branchName) {
+        this._branchName = branchName;
+    };
+
+    /**
+     * @return {String} The branch name.
+     */
+    EyesBase.prototype.getBranchName = function () {
+        return this._branchName;
+    };
+
+    /**
+     * Sets the parent branch name.
+     *
+     * @param parentBranchName {String} The parent branch name.
+     */
+    EyesBase.prototype.setParentBranchName = function (parentBranchName) {
+        this._parentBranchName = parentBranchName;
+    };
+
+    /**
+     * @return {String} The parent branch name.
+     */
+    EyesBase.prototype.getParentBranchName = function () {
+        return this._parentBranchName;
+    };
+
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
         this._logger.getLogHandler().open();
         return PromiseFactory.makePromise(function (resolve, reject) {
@@ -525,8 +557,8 @@
                         batchInfo: testBatch,
                         environment: appEnv,
                         matchLevel: this._matchLevel,
-                        branchName: null, // TODO: this._branchName,
-                        parentBranchName: null // TODO: this._parentBranchName
+                        branchName: this._branchName || null,
+                        parentBranchName: this._parentBranchName || null
                     };
 
                     return this._serverConnector.startSession(this._sessionStartInfo)
