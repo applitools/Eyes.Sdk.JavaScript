@@ -361,7 +361,6 @@
             throwEx = true;
         }
 
-        //TODO: try catch + exception
         return PromiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.close is running');
             if (this._isDisabled) {
@@ -410,7 +409,8 @@
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. " + instructions;
                             this._logger.getLogHandler().close();
-                            throw new Error(message + " results: " + JSON.stringify(results));
+                            reject(new Error(message + " results: " + JSON.stringify(results)));
+                            return;
                         }
                     } else if (!results.isPassed) {
                         this._logger.log(">> Failed test ended. See details at", results.url);
@@ -420,7 +420,8 @@
                                 + "' of '" + this._sessionStartInfo.appIdOrName
                                 + "'. See details at " + results.url;
                             this._logger.getLogHandler().close();
-                            throw new Error(message + " results: " + JSON.stringify(results));
+                            reject(new Error(message + " results: " + JSON.stringify(results)));
+                            return;
                         }
                     } else {
                         this._logger.log(">> Test passed. See details at", results.url);
@@ -433,27 +434,31 @@
 
     // lastScreenShot - notice it's an object with imageBuffer, width & height properties
     function _getAppData(region, lastScreenShot) {
+        var that = this;
         return PromiseFactory.makePromise(function (resolve, reject) {
-            this._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
-            return this.getScreenShot().then(function (image) {
-                this._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
-                return ImageUtils.processImage(image, region).then(function (processedImage) {
-                    this._logger.verbose('cropped image returned - continuing');
-                    var data = {appOutput: {}};
+            that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
+            var data = {appOutput: {}};
+            return that.getScreenShot()
+                .then(function (image) {
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
+                    return ImageUtils.processImage(image, region);
+                })
+                .then(function (processedImage) {
+                    that._logger.verbose('cropped image returned - continuing');
                     data.screenShot = processedImage;
                     data.appOutput.screenShot64 = processedImage.imageBuffer.toString('base64'); //TODO: compress deltas
 
-                    this._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
-                    return this.getTitle().then(function (title) {
-                        this._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
-                        data.appOutput.title = title;
-                        resolve(data);
-                    }.bind(this));
-                }.bind(this), function (err) {
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
+                    return that.getTitle();
+                })
+                .then(function (title) {
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
+                    data.appOutput.title = title;
+                    resolve(data);
+                }, function (err) {
                     reject(err);
                 });
-            }.bind(this));
-        }.bind(this));
+        });
     }
 
     EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, region) {
@@ -501,16 +506,13 @@
                             }
 
                             if (this._failureReport === EyesBase.FailureReport.Immediate) {
-                                throw new Error("[EYES: TEST FAILED]: Mismatch found in '" +
+                                reject(new Error("[EYES: TEST FAILED]: Mismatch found in '" +
                                     this._sessionStartInfo.scenarioIdOrName + "' of '" +
-                                    this._sessionStartInfo.appIdOrName + "'");
+                                    this._sessionStartInfo.appIdOrName + "'"));
                             }
                         }
 
                         resolve(result);
-                    }.bind(this), function (err) {
-                        this._logger.log('Could not perform window check:', err);
-                        reject(err);
                     }.bind(this));
             }.bind(this));
         }.bind(this));
@@ -603,9 +605,7 @@
                 this._runningSession = undefined;
                 this._logger.getLogHandler().close();
                 resolve();
-            }.bind(this), function (err) {
-                reject(err);
-            });
+            }.bind(this));
         }.bind(this));
     };
 

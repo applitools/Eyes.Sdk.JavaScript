@@ -85,7 +85,7 @@
         resolve(this._matchResult);
     }
 
-    function _match(region, tag, ignoreMismatch, userInputs, resolve, reject) {
+    function _match(region, tag, ignoreMismatch, userInputs, resolve) {
         this._logger.verbose('MatchWindowTask.matchWindow - _match calls for app output');
         return this._getAppOutput(region, this._lastScreenShot).then(function (appOutput) {
             this._logger.verbose('MatchWindowTask.matchWindow - _match retrieved app output');
@@ -101,12 +101,10 @@
                 this._matchResult = matchResult;
                 return _finalize.call(this, region, ignoreMismatch, appOutput.screenShot, resolve);
             }.bind(this));
-        }.bind(this), function (err) {
-            reject(err);
-        });
+        }.bind(this));
     }
 
-    function _retryMatch(start, retryTimeout, region, tag, userInputs, ignoreMismatch, screenShot, resolve, reject) {
+    function _retryMatch(start, retryTimeout, region, tag, userInputs, ignoreMismatch, screenShot, resolve) {
 
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch will retry');
@@ -132,22 +130,20 @@
                             this._logger.verbose('MatchWindowTask.matchWindow -',
                                 '_retryMatch timeout passed -  retrying');
                             return _retryMatch.call(this, start, retryTimeout, region, tag, userInputs, ignoreMismatch,
-                                screenShot, resolve, reject);
+                                screenShot, resolve);
                         }.bind(this));
                     }
                     this._logger.verbose('MatchWindowTask.matchWindow -',
                         '_retryMatch received success result - finalizing');
                     return _finalize.call(this, region, ignoreMismatch, screenShot, resolve);
                 }.bind(this));
-            }.bind(this), function (err) {
-                reject(err);
-            });
+            }.bind(this));
         }
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch exhausted the retry interval');
         if (!this._matchResult.asExpected) {
             // Try one last time...
             this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch last attempt because we got failure');
-            return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve, reject);
+            return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve);
         }
 
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch no need for ',
@@ -165,24 +161,24 @@
             retryTimeout = this._defaultRetryTimeout;
         }
 
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return PromiseFactory.makePromise(function (resolve) {
             this._logger.verbose('MatchWindowTask.matchWindow starting to perform the match process');
             if (shouldRunOnceOnRetryTimeout || (retryTimeout === 0)) {
                 if (retryTimeout > 0) {
                     this._logger.verbose('MatchWindowTask.matchWindow - running once but after going into timeout');
                     return this._waitTimeout(retryTimeout).then(function () {
                         this._logger.verbose('MatchWindowTask.matchWindow - back from timeout - calling match');
-                        return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve, reject);
+                        return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve);
                     }.bind(this));
                 }
                 this._logger.verbose('MatchWindowTask.matchWindow - running once immediately');
-                return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve, reject);
+                return _match.call(this, region, tag, ignoreMismatch, userInputs, resolve);
             }
             // Retry matching and ignore mismatches while the retry timeout does not expires.
             var start = new Date().getTime();
             this._logger.verbose('MatchWindowTask.matchWindow - starting retry sequence. start:', start);
             return _retryMatch.call(this, start, retryTimeout, region, tag, userInputs, ignoreMismatch, undefined,
-                resolve, reject);
+                resolve);
         }.bind(this));
     };
 
