@@ -1,6 +1,6 @@
 {
     "name": "eyes.sdk",
-    "version": "0.0.11",
+    "version": "0.0.12",
     "description": "Applitools Eyes SDK For JavaScript",
     "author": "Applitools Team <team@applitools.com> (http://www.applitools.com/)",
     "keywords": [
@@ -21,9 +21,9 @@
     "license": "Apache-2.0",
     "main": "index",
     "dependencies": {
-        "restler": "~3.2.2",
-        "pngjs": "~0.4.0",
-        "temp": "~0.8.0"
+        "restler": "~3",
+        "pngjs": "~0.4",
+        "temp": "~0.8"
     },
     "devDependencies": {
         "mocha": "*",
