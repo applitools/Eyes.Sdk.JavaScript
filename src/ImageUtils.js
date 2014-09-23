@@ -25,7 +25,7 @@
 
     /**
      *
-     * processImage - processes a PNG buffer - returns it alnog with the image dimensions and, if needed cropps it.
+     * processImage - processes a PNG buffer - returns it along with the image dimensions and, if needed crops it.
      *
      * @param {Buffer} image
      * @param {Object} region (optional) - region to crop to

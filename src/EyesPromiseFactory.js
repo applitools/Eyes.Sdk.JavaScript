@@ -16,7 +16,7 @@
     var EyesPromiseFactory = {};
 
     /**
-     * Sets the factory methods which will be used to create promises and deferreds.
+     * Sets the factory methods which will be used to create promises and deferred-s.
      * @param promiseFactory A function which receives as a parameter the same function you would pass to a Promise
      *                          constructor.
      * @param deferredFactory A function which returns a deferred.

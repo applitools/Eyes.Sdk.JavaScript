@@ -66,7 +66,7 @@
      * this running session will either be linked to an existing session, or to
      * a completely new session.
      *
-     * @method _startSession
+     * @method startSession
      * @param {Object} sessionStartInfo - The start parameters for the session.
      * @return {Object} Promise with a resolve result that represents the current running session.
      *
@@ -91,6 +91,17 @@
         }.bind(this));
     };
 
+    /**
+     *
+     * Ends a running session in the server. Session results are received from the server.
+     *
+     * @method endSession
+     * @param {Object} runningSession - The session to end.
+     * @param {Object} isAborted.
+     * @param {Object} save - Save the session.
+     * @return {Object} Promise with a resolve result that represents the test results.
+     *
+     **/
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         this._logger.verbose('ServerConnector.endSession called with isAborted:', isAborted,
             ', save:', save, 'for session:', runningSession);

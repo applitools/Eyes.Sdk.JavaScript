@@ -13,7 +13,7 @@
 (function () {
     "use strict";
 
-    var NullLogHanlder = require('./NullLogHandler');
+    var NullLogHandler = require('./NullLogHandler');
 
     /**
      *
@@ -21,7 +21,7 @@
      *
      **/
     function Logger() {
-        this._logHandler = new NullLogHanlder();
+        this._logHandler = new NullLogHandler();
     }
 
     /**
@@ -30,7 +30,7 @@
      * @param {Object} logHandler
      */
     Logger.prototype.setLogHandler = function (logHandler) {
-        this._logHandler = logHandler || new NullLogHanlder();
+        this._logHandler = logHandler || new NullLogHandler();
     };
 
     /**

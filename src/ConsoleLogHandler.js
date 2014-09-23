@@ -24,6 +24,7 @@
         this._isVerbose = !!isVerbose;
     }
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Whether to handle or ignore verbose log messages.
      *
@@ -33,6 +34,7 @@
         this._isVerbose = !!isVerbose;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Whether to handle or ignore verbose log messages.
      *
@@ -42,14 +44,17 @@
         return this._isVerbose;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     ConsoleLogHandler.prototype.open = function () {
         return true;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     ConsoleLogHandler.prototype.close = function () {
         return true;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Write a message
      * @param {Boolean} verbose - is the message verbose
@@ -61,6 +66,7 @@
         }
     };
 
+    //noinspection JSUnusedGlobalSymbols
     ConsoleLogHandler.getTimeString = function () {
         var pad10 = function (x) {
             return (x < 10) ? '0' + x : x;

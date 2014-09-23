@@ -130,6 +130,7 @@
         return agentId + " [" + this._getBaseAgentId() + "]";
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the host OS name - overrides the one in the agent string.
      *
@@ -139,6 +140,7 @@
         this._hostOS = hostOS;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {String} The host OS as set by the user.
      */
@@ -146,6 +148,7 @@
         return this._hostOS;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the test batch
      *
@@ -162,6 +165,7 @@
         };
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {Object} gets the test batch.
      */
@@ -288,6 +292,7 @@
         return this._matchLevel;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the branch name.
      *
@@ -297,6 +302,7 @@
         this._branchName = branchName;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {String} The branch name.
      */
@@ -304,6 +310,7 @@
         return this._branchName;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the parent branch name.
      *
@@ -313,6 +320,7 @@
         this._parentBranchName = parentBranchName;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {String} The parent branch name.
      */
@@ -354,6 +362,24 @@
             this._appName = appName;
             resolve();
         }.bind(this));
+    };
+
+    EyesBase.buildTestError = function (results, scenarioIdOrName, appIdOrName) {
+        var message;
+        if (results.isNew) {
+            var instructions = "Please approve the new baseline at " + results.url;
+            message = "[EYES: NEW TEST ENDED]: '" + scenarioIdOrName + "' of '" + appIdOrName
+                + "'. " + instructions;
+            return new Error(message + " results: " + JSON.stringify(results));
+        }
+
+        if (!results.isPassed) {
+            message = "[EYES: TEST FAILED]: '" + scenarioIdOrName + "' of '" + appIdOrName
+                + "'. See details at " + results.url;
+            return new Error(message + " results: " + JSON.stringify(results));
+        }
+
+        return null;
     };
 
     EyesBase.prototype.close = function (throwEx) {
@@ -399,28 +425,15 @@
                     this._runningSession = undefined;
                     this._logger.log('>> close:', results);
 
-                    var message;
-                    if (results.isNew) {
-                        var instructions = " Please approve the new baseline at " + results.url;
-                        this._logger.log('>> New test ended.', instructions);
+                    if (!results.isPassed) {
+                        var error = EyesBase.buildTestError(results, this._sessionStartInfo.scenarioIdOrName,
+                            this._sessionStartInfo.appIdOrName);
+
+                        this._logger.log(error.message);
 
                         if (throwEx) {
-                            message = "[EYES: NEW TEST]: '" + this._sessionStartInfo.scenarioIdOrName
-                                + "' of '" + this._sessionStartInfo.appIdOrName
-                                + "'. " + instructions;
                             this._logger.getLogHandler().close();
-                            reject(new Error(message + " results: " + JSON.stringify(results)));
-                            return;
-                        }
-                    } else if (!results.isPassed) {
-                        this._logger.log(">> Failed test ended. See details at", results.url);
-
-                        if (throwEx) {
-                            message = "[EYES: TEST FAILED]: '" + this._sessionStartInfo.scenarioIdOrName
-                                + "' of '" + this._sessionStartInfo.appIdOrName
-                                + "'. See details at " + results.url;
-                            this._logger.getLogHandler().close();
-                            reject(new Error(message + " results: " + JSON.stringify(results)));
+                            reject(error);
                             return;
                         }
                     } else {
@@ -461,6 +474,7 @@
         });
     }
 
+    //noinspection JSUnusedGlobalSymbols
     EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, region) {
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
@@ -584,7 +598,7 @@
     };
 
     EyesBase.prototype.abortIfNotClosed = function () {
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return PromiseFactory.makePromise(function (resolve) {
             if (this._isDisabled) {
                 this._logger.log("Eyes abortIfNotClosed ignored - disabled");
                 this._logger.getLogHandler().close();
@@ -626,7 +640,7 @@
             }
 
             // Even after we intersected the control, we need to make sure it's location
-            // is based on the last screenshot location (remember it might be offsetted).
+            // is based on the last screenShot location (remember it might be with offset).
             control.left -= sb.left;
             control.top -= sb.top;
         }
