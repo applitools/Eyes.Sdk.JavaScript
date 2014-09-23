@@ -342,16 +342,18 @@
                 errMsg = 'API key is missing! Please set it via Eyes.setApiKey';
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
-                reject(new Error(errMsg));
-                return;
+                throw new Error(errMsg);
             }
 
             if (this._isOpen) {
-                this.abortIfNotClosed();
                 errMsg = "A test is already running";
                 this._logger.log(errMsg);
-                this._logger.getLogHandler().close();
-                reject(new Error(errMsg));
+                this.abortIfNotClosed()
+                    .then(function () {
+                        this._logger.getLogHandler().close();
+                        reject(new Error(errMsg));
+                    }.bind(this));
+
                 return;
             }
 
@@ -373,7 +375,7 @@
             return new Error(message + " results: " + JSON.stringify(results));
         }
 
-        if (!results.isPassed) {
+        if ((!results.isPassed) || (!results.asExpected)) {
             message = "[EYES: TEST FAILED]: '" + scenarioIdOrName + "' of '" + appIdOrName
                 + "'. See details at " + results.url;
             return new Error(message + " results: " + JSON.stringify(results));
@@ -400,8 +402,7 @@
                 var errMsg = "close called with Eyes not open";
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
-                reject(new Error(errMsg));
-                return;
+                throw new Error(errMsg);
             }
 
             this._isOpen = false;
@@ -490,8 +491,7 @@
             if (!this._isOpen) {
                 var errMsg = "checkWindow called with Eyes not open";
                 this._logger.log(errMsg);
-                reject(new Error(errMsg));
-                return;
+                throw new Error(errMsg);
             }
 
             return this.startSession().then(function () {
@@ -520,9 +520,12 @@
                             }
 
                             if (this._failureReport === EyesBase.FailureReport.Immediate) {
-                                reject(new Error("[EYES: TEST FAILED]: Mismatch found in '" +
-                                    this._sessionStartInfo.scenarioIdOrName + "' of '" +
-                                    this._sessionStartInfo.appIdOrName + "'"));
+                                var error = EyesBase.buildTestError(result, this._sessionStartInfo.scenarioIdOrName,
+                                    this._sessionStartInfo.appIdOrName);
+
+                                this._logger.log(error.message);
+
+                                reject(error);
                             }
                         }
 
