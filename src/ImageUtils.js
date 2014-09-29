@@ -41,6 +41,12 @@
                 width: 0,
                 height: 0
             };
+            // When loading ImageUtils into the browser (i.e., when using this SDK in the Eyes extension),
+            // the 'fs' module will not be available.
+            if (!fs.open) {
+                resolve(result);
+                return;
+            }
             // 2. open a temp file
             temp.open('eyes-snap-', function (err1, info) {
                 temp.open('eyes-crop-', function (err2, cropInfo) {

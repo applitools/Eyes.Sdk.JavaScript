@@ -67,6 +67,8 @@
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
+            this._os = undefined;
+            this._hostingApp = undefined;
         }
     }
 
@@ -134,18 +136,36 @@
     /**
      * Sets the host OS name - overrides the one in the agent string.
      *
-     * @param hostOS {String} The host OS.
+     * @param os {String} The host OS.
      */
-    EyesBase.prototype.setHostOS = function (hostOS) {
-        this._hostOS = hostOS;
+    EyesBase.prototype.setOs = function (os) {
+        this._os = os;
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
      * @return {String} The host OS as set by the user.
      */
-    EyesBase.prototype.getHostOS = function () {
-        return this._hostOS;
+    EyesBase.prototype.getOs = function () {
+        return this._os;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the hosting application - overrides the one in the agent string.
+     *
+     * @param hostingApp {String} The hosting application.
+     */
+    EyesBase.prototype.setOs = function (hostingApp) {
+        this._hostingApp = hostingApp;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The hosting application as set by the user.
+     */
+    EyesBase.prototype.getHostingApp = function () {
+        return this._hostingApp;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -561,10 +581,12 @@
                     return this.name + " [" + this.id + "]" + " - " + this.startedAt;
                 };
 
+                // getInferredEnvironment is implemented in the wrapping SDK.
+                //noinspection JSUnresolvedFunction
                 return this.getInferredEnvironment().then(function (userAgent) {
                     var appEnv = {
-                        os: this._hostOS || null,
-                        hostingApp: this._appName || null,
+                        os: this._os || null,
+                        hostingApp: this._hostingApp|| null,
                         displaySize: this._viewportSize,
                         inferred: userAgent
                     };
