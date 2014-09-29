@@ -32,6 +32,7 @@
         EyesBase.call(this, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
         this._screenshot = undefined;
         this._title = undefined;
+        this._inferredEnvironment = undefined;
     }
 
     Eyes.prototype = new EyesBase();
@@ -39,7 +40,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.4';
+        return 'eyes.images/0.0.5';
     };
 
     /**
@@ -97,7 +98,7 @@
     /**
      * @return {Promise} An updated screenshot.
      */
-    Eyes.prototype.getScreenshot = function () {
+    Eyes.prototype.getScreenShot = function () {
         return PromiseFactory.makePromise(function (resolve) {
             resolve(this._screenshot);
         }.bind(this));
@@ -114,10 +115,22 @@
     };
 
     //noinspection JSUnusedGlobalSymbols
+    /**
+     * Set the inferred environment string.
+     * @param {string} inferredEnvironment The inferred environment string.
+     */
+    Eyes.prototype.setInferredEnvironment = function (inferredEnvironment) {
+        this._inferredEnvironment = inferredEnvironment;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {Promise} A promise which resolves to the inferred environment string.
+     */
     Eyes.prototype.getInferredEnvironment = function () {
         return PromiseFactory.makePromise(function (resolve) {
-            resolve('');
-        });
+            resolve(this._inferredEnvironment);
+        }.bind(this));
     };
 
     /**
