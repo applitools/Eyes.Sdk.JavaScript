@@ -145,7 +145,7 @@
                     if (response.statusCode === 200 || response.statusCode === 201) {
                         resolve({asExpected: data.asExpected});
                     } else {
-                        reject(new Error(JSON.parse(response)));
+                        reject(new Error(response));
                     }
                 }.bind(this));
         }.bind(this));

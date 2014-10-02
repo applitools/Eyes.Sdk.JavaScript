@@ -156,7 +156,7 @@
      *
      * @param hostingApp {String} The hosting application.
      */
-    EyesBase.prototype.setOs = function (hostingApp) {
+    EyesBase.prototype.setHostingApp = function (hostingApp) {
         this._hostingApp = hostingApp;
     };
 
