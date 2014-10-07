@@ -436,6 +436,7 @@
             this._logger.verbose('EyesBase.close - calling server connector to end the running session');
             var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
                 (!this._runningSession.isNewSession && this._saveFailedTests));
+            //noinspection JSUnresolvedFunction
             return this._serverConnector.endSession(this._runningSession, false, save)
                 .then(function (results) {
                     this._logger.log('=======================================');
@@ -462,6 +463,9 @@
                     }
                     this._logger.getLogHandler().close();
                     resolve(results);
+                }.bind(this), function (err) {
+                    this._logger.log(err);
+                    reject(err);
                 }.bind(this));
         }.bind(this));
     };
@@ -514,6 +518,7 @@
                 throw new Error(errMsg);
             }
 
+            //noinspection JSUnresolvedFunction
             return this.startSession().then(function () {
                 this._logger.verbose('EyesBase.checkWindow - session started - creating match window task');
                 this._matchWindowTask = new MatchWindowTask(this._serverConnector,
@@ -550,7 +555,13 @@
                         }
 
                         resolve(result);
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                        reject(err);
                     }.bind(this));
+            }.bind(this), function (err) {
+                this._logger.log(err);
+                reject(err);
             }.bind(this));
         }.bind(this));
     };
@@ -623,7 +634,7 @@
     };
 
     EyesBase.prototype.abortIfNotClosed = function () {
-        return PromiseFactory.makePromise(function (resolve) {
+        return PromiseFactory.makePromise(function (resolve, reject) {
             if (this._isDisabled) {
                 this._logger.log("Eyes abortIfNotClosed ignored - disabled");
                 this._logger.getLogHandler().close();
@@ -640,11 +651,16 @@
                 return;
             }
 
+            //noinspection JSUnresolvedFunction
             return this._serverConnector.endSession(this._runningSession, true, false).then(function () {
                 this._runningSession = undefined;
                 this._logger.getLogHandler().close();
                 resolve();
-            }.bind(this));
+            }.bind(this))
+                .catch(function (err) {
+                    this._logger.log(err);
+                    reject();
+                }.bind(this));
         }.bind(this));
     };
 
