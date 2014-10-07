@@ -72,7 +72,7 @@
      * @return {Promise}
      */
     Eyes.prototype.checkImage = function (image, tag, ignoreMismatch, retryTimeout) {
-        this._logger.verbose("checkImage(image, '%s', %s, %d)");
+        this._logger.verbose('checkRegion(image, "', tag, '", ', ignoreMismatch, ',', retryTimeout, ')');
         //noinspection JSCheckFunctionSignatures
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout);
     };
@@ -90,7 +90,7 @@
      * @return {Promise}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
-        this._logger.verbose("checkRegion([%o], image, '%s', %s, %d)");
+        this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout ,')');
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout, region);
     };
 
