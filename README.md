@@ -1,5 +1,5 @@
-eyes.images.javascript
-=======================
+eyes.images
+===========
 
 Applitools Eyes Javascript SDK for working directly with images.
 
@@ -13,8 +13,8 @@ eyes.setApiKey("<YOUR_API_KEY>");
 
 var image1 = fs.readFileSync('image1.png');
 var image2 = fs.readFileSync('image2.png');
-var image3 = fs.readFileSync('image2.png');
-var image4 = fs.readFileSync('image2.png');
+var image3 = fs.readFileSync('image3.png');
+var image4 = fs.readFileSync('image4.png');
 
 // First test
 var firstTestPromise = eyes.open("eyes.images.javascript", "First test", {width: 800, height: 600})
