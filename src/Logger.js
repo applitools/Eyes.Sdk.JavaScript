@@ -48,7 +48,7 @@
                 return JSON.stringify(arg);
             }
 
-            return arg.toString();
+            return arg;
         }).join(" ");
     }
 
