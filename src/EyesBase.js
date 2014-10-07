@@ -501,6 +501,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, region) {
+        ignoreMismatch = ignoreMismatch || false;
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
 
