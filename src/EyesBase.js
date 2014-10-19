@@ -17,6 +17,7 @@
     var ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
         GeneralUtils = require('./GeneralUtils'),
+        GeometryUtils = require('./GeometryUtils'),
         PromiseFactory = require('./EyesPromiseFactory'),
         ImageUtils = require('./ImageUtils'),
         Triggers = require('./Triggers'),
@@ -675,7 +676,7 @@
 
         if (control.width > 0 && control.height > 0) {
             var sb = this._matchWindowTask.getLastScreenShotBounds();
-            control = GeneralUtils.intersect(control, sb);
+            control = GeometryUtils.intersect(control, sb);
             if (control.width === 0 || control.height === 0) {
                 this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text:", text);
                 return;
@@ -701,12 +702,12 @@
         var sb = this._matchWindowTask.getLastScreenShotBounds();
         cursor.x += control.left;
         cursor.y += control.top;
-        if (!GeneralUtils.contains(sb, cursor)) {
+        if (!GeometryUtils.contains(sb, cursor)) {
             this._logger.verbose("AddMouseTrigger: out of bounds - ignoring mouse event");
             return;
         }
 
-        control = GeneralUtils.intersect(control, sb);
+        control = GeometryUtils.intersect(control, sb);
         if (control.width > 0 && control.height > 0) {
             cursor.x -= control.left;
             cursor.y -= control.top;
