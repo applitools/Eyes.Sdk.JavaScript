@@ -128,6 +128,29 @@
 
     //noinspection JSValidateJSDoc
     /**
+     * Creates a PNG instance from the given buffer.
+     * @param {Buffer} buffer A buffer containing PNG bytes.
+     * @return {Promise} A promise which resolves to the PNG instance.
+     */
+    ImageUtils.createPngFromBuffer = function (buffer) {
+        var deferred = PromiseFactory.makeDeferred();
+
+        // In order to create a PNG instance from part.image, we first need to create a stream from it.
+        var pngImageStream = new ReadableBufferStream(buffer);
+        // Create the PNG
+        var pngImage = new PNG({filterType: 4});
+        //noinspection JSUnresolvedFunction
+        pngImageStream.pipe(pngImage);
+        pngImage.on('parsed', function () {
+            deferred.resolve(pngImage);
+        });
+
+        //noinspection JSUnresolvedVariable
+        return deferred.promise;
+    };
+
+    //noinspection JSValidateJSDoc
+    /**
      * Stitches a part into the image.
      * @param stitchingPromise A promise which its "then" block will execute the stitching. T
      * @param {PNG} stitchedImage A PNG instance into which the part will be stitched.
@@ -140,17 +163,12 @@
         return stitchingPromise.then(function () {
             var deferred = PromiseFactory.makeDeferred();
 
-            // In order to create a PNG instance from part.image, we first need to create a stream from it.
-            var pngImageStream = new ReadableBufferStream(part.image);
-
-            // Create the PNG
-            var pngImage = new PNG({filterType: 4});
             //noinspection JSUnresolvedFunction
-            pngImageStream.pipe(pngImage);
-            pngImage.on('parsed', function () {
+            ImageUtils.createPngFromBuffer(part.image).then(function (pngImage) {
                 ImageUtils.copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
                 deferred.resolve(stitchedImage);
             });
+
             //noinspection JSUnresolvedVariable
             return deferred.promise;
         });
