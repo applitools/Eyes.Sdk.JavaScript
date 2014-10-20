@@ -80,6 +80,8 @@
             }
             currentTop += maxSubRegionSize.height;
         }
+
+        return subRegions;
     };
 
     //noinspection JSUnresolvedVariable
