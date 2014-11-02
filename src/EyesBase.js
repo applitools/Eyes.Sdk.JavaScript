@@ -16,12 +16,16 @@
 
     var ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
-        GeneralUtils = require('./GeneralUtils'),
-        GeometryUtils = require('./GeometryUtils'),
         PromiseFactory = require('./EyesPromiseFactory'),
-        ImageUtils = require('./ImageUtils'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
+
+    var EyesUtils = require('eyes.utils'),
+        GeneralUtils = EyesUtils.GeneralUtils,
+        GeometryUtils = EyesUtils.GeometryUtils,
+        ImageUtils = EyesUtils.ImageUtils;
+
+    EyesUtils.setPromiseFactory(PromiseFactory);
 
     var _MatchLevel = {
         // Images do not necessarily match.

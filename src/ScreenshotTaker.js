@@ -9,7 +9,7 @@
 (function () {
     "use strict";
 
-    var GeneralUtils = require('./GeneralUtils');
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
 
     /**
      *

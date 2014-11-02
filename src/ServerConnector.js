@@ -14,7 +14,7 @@
 (function () {
     "use strict";
 
-    var GeneralUtils = require('./GeneralUtils'),
+    var GeneralUtils = require('eyes.utils').GeneralUtils,
         PromiseFactory = require('./EyesPromiseFactory'),
         restler = require('restler');
 
@@ -77,6 +77,12 @@
             this._logger.verbose('ServerConnector.startSession will now post call');
             restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
                 .on('complete', function (data, response) {
+                    if (!response) {
+                        this._logger.verbose('ServerConnector.startSession - got empty response!');
+                        reject(new Error(response));
+                        return;
+                    }
+
                     this._logger.verbose('ServerConnector.startSession - start session result', data,
                         'status code ', response.statusCode);
                     if (response.statusCode === 200 || response.statusCode === 201) {
