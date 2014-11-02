@@ -5,9 +5,6 @@
 
  description: The main type - to be used by the users of the library to access all functionality.
 
- provides: [Eyes]
- requires: [eyes.sdk]
-
  ---
  */
 
@@ -15,11 +12,19 @@
     "use strict";
 
     //noinspection JSUnresolvedFunction
-    var EyesSDK = require('eyes.sdk');
-    //noinspection JSUnresolvedFunction
-    var RSVP  = require('rsvp');
-    var EyesBase = EyesSDK.EyesBase,
-        PromiseFactory = EyesSDK.EyesPromiseFactory;
+    var EyesSDK = require('eyes.sdk'),
+        RSVP  = require('rsvp'),
+        EyesBase = EyesSDK.EyesBase,
+        EyesUtils = require('eyes.utils'),
+        PromiseFactory = EyesUtils.PromiseFactory;
+
+    PromiseFactory.setFactoryMethods(function (asyncAction) {
+        return new RSVP.Promise(asyncAction);
+    }, function () {
+        return RSVP.defer();
+    });
+
+    EyesUtils.setPromiseFactory(PromiseFactory);
 
     /**
      * @constructor
@@ -29,7 +34,7 @@
      *
      **/
     function Eyes(serverUrl, isDisabled) {
-        EyesBase.call(this, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
+        EyesBase.call(this, PromiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
         this._screenshot = undefined;
         this._title = undefined;
         this._inferredEnvironment = undefined;
@@ -40,7 +45,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.10';
+        return 'eyes.images/0.0.11';
     };
 
     /**
@@ -52,11 +57,6 @@
      * @return {Promise}
      */
     Eyes.prototype.open = function (appName, testName, imageSize) {
-        PromiseFactory.setFactoryMethods(function (asyncAction) {
-            return new RSVP.Promise(asyncAction);
-        }, function () {
-            return RSVP.defer();
-        });
         return EyesBase.prototype.open.call(this, appName, testName, imageSize);
     };
 
@@ -178,6 +178,7 @@
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.setViewportSize = function (size) {
         return PromiseFactory.makePromise(function (resolve) {
+            //noinspection JSUnusedGlobalSymbols
             this._viewportSize = size;
             resolve();
         }.bind(this));
