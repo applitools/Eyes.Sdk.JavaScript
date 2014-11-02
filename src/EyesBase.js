@@ -5,9 +5,6 @@
 
  description: Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
 
- provides: [EyesBase]
- requires: [ServerConnector, MatchWindowTask, GeneralUtils, EyesPromiseFactory, ImageUtils, Logger, Triggers]
-
  ---
  */
 
@@ -16,7 +13,6 @@
 
     var ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
-        PromiseFactory = require('./EyesPromiseFactory'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
@@ -24,8 +20,6 @@
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageUtils = EyesUtils.ImageUtils;
-
-    EyesUtils.setPromiseFactory(PromiseFactory);
 
     var _MatchLevel = {
         // Images do not necessarily match.
@@ -52,15 +46,15 @@
     };
 
     /**
-     *
-     * C'tor = initializes the module settings
-     *
+     * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @param {String} serverUrl
      * @param {Boolean} isDisabled
-     *
+     * @constructor
      **/
-    function EyesBase(serverUrl, isDisabled) {
+    function EyesBase(promiseFactory, serverUrl, isDisabled) {
         if (serverUrl) {
+            this._promiseFactory = promiseFactory;
+            EyesUtils.setPromiseFactory(promiseFactory);
             this._logger = new Logger();
             this._serverUrl = serverUrl;
             this._matchLevel = EyesBase.MatchLevel.Strict;
@@ -68,7 +62,7 @@
             this._userInputs = [];
             this._saveNewTests = true;
             this._saveFailedTests = false;
-            this._serverConnector = new ServerConnector(this._serverUrl, this._logger);
+            this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
@@ -355,7 +349,7 @@
 
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
         this._logger.getLogHandler().open();
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             if (this._isDisabled) {
                 this._logger.log("Eyes Open ignored - disabled");
                 resolve();
@@ -414,7 +408,7 @@
             throwEx = true;
         }
 
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.close is running');
             if (this._isDisabled) {
                 this._logger.log("Eyes Close ignored - disabled");
@@ -478,7 +472,7 @@
     // lastScreenShot - notice it's an object with imageBuffer, width & height properties
     function _getAppData(region, lastScreenShot) {
         var that = this;
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
             var data = {appOutput: {}};
             return that.getScreenShot()
@@ -510,7 +504,7 @@
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
 
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.checkWindow - running');
             if (this._isDisabled) {
                 this._logger.verbose("Eyes checkWindow ignored - disabled");
@@ -527,7 +521,7 @@
             //noinspection JSUnresolvedFunction
             return this.startSession().then(function () {
                 this._logger.verbose('EyesBase.checkWindow - session started - creating match window task');
-                this._matchWindowTask = new MatchWindowTask(this._serverConnector,
+                this._matchWindowTask = new MatchWindowTask(this._promiseFactory, this._serverConnector,
                     this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this),
                     this._waitTimeout.bind(this), this._logger);
 
@@ -573,7 +567,7 @@
     };
 
     EyesBase.prototype.startSession = function () {
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
 
             if (this._runningSession) {
                 resolve();
@@ -640,7 +634,7 @@
     };
 
     EyesBase.prototype.abortIfNotClosed = function () {
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             if (this._isDisabled) {
                 this._logger.log("Eyes abortIfNotClosed ignored - disabled");
                 this._logger.getLogHandler().close();

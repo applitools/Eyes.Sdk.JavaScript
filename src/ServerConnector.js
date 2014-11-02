@@ -15,7 +15,6 @@
     "use strict";
 
     var GeneralUtils = require('eyes.utils').GeneralUtils,
-        PromiseFactory = require('./EyesPromiseFactory'),
         restler = require('restler');
 
 
@@ -26,13 +25,13 @@
 
     /**
      *
-     * C'tor = initializes the module settings
-     *
+     * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @param {String} serverUri
      * @param {Object} logger
-     *
+     * @constructor
      **/
-    function ServerConnector(serverUri, logger) {
+    function ServerConnector(promiseFactory, serverUri, logger) {
+        this._promiseFactory = promiseFactory;
         this._logger = logger;
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._httpOptions = {
@@ -73,7 +72,7 @@
      **/
     ServerConnector.prototype.startSession = function (sessionStartInfo) {
         this._logger.verbose('ServerConnector.startSession called with:', sessionStartInfo);
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('ServerConnector.startSession will now post call');
             restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
                 .on('complete', function (data, response) {
@@ -111,7 +110,7 @@
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         this._logger.verbose('ServerConnector.endSession called with isAborted:', isAborted,
             ', save:', save, 'for session:', runningSession);
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             this._logger.verbose("ServerConnector.endSession will now post:", data, "to:", url);
@@ -138,7 +137,7 @@
     };
 
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData) {
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             var options = Object.create(this._httpOptions);
             options.headers = Object.create(this._httpOptions.headers);

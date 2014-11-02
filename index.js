@@ -1,5 +1,4 @@
 exports.EyesBase = require('./src/EyesBase');
-exports.EyesPromiseFactory = require('./src/EyesPromiseFactory');
 exports.MatchWindowTask = require('./src/MatchWindowTask');
 exports.ScreenShotTaker = require('./src/ScreenShotTaker');
 exports.ServerConnector = require('./src/ServerConnector');

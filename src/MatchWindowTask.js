@@ -14,21 +14,19 @@
 (function () {
     "use strict";
 
-    var PromiseFactory = require('./EyesPromiseFactory');
-
     /**
      *
-     * C'tor = initializes the module settings
-     *
+     * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @param {Object} serverConnector
      * @param {Object} runningSession
      * @param {Number} retryTimeout
      * @param {Object} appOutputProvider
      * @param {Function} waitTimeout - a call back that provides timeout
      * @param {Object} logger
-     *
+     * @constructor
      **/
-    function MatchWindowTask(serverConnector, runningSession, retryTimeout, appOutputProvider, waitTimeout, logger) {
+    function MatchWindowTask(promiseFactory, serverConnector, runningSession, retryTimeout, appOutputProvider, waitTimeout, logger) {
+        this._promiseFactory = promiseFactory;
         this._serverConnector = serverConnector;
         this._runningSession = runningSession;
         this._defaultRetryTimeout = retryTimeout;
@@ -161,7 +159,7 @@
             retryTimeout = this._defaultRetryTimeout;
         }
 
-        return PromiseFactory.makePromise(function (resolve) {
+        return this._promiseFactory.makePromise(function (resolve) {
             this._logger.verbose('MatchWindowTask.matchWindow starting to perform the match process');
             if (shouldRunOnceOnRetryTimeout || (retryTimeout === 0)) {
                 if (retryTimeout > 0) {
