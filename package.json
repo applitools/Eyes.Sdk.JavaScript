@@ -17,6 +17,10 @@
     "chrome",
     "extension"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/applitools/eyes.utils.git"
+  },
   "author": "Applitools team",
   "license": "Apache License 2.0",
   "devDependencies": {
