@@ -78,7 +78,7 @@
             s = pad10(now.getUTCSeconds()),
             amPm = h >= 12 ? 'pm' : 'am',
             D = pad10(now.getUTCDate()),
-            M = pad10(now.getUTCMonth()),
+            M = pad10(now.getUTCMonth() + 1),
             Y = now.getUTCFullYear();
 
         if (h > 12) {
