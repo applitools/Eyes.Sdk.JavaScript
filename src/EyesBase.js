@@ -482,8 +482,8 @@
                 })
                 .then(function (processedImage) {
                     that._logger.verbose('cropped image returned - continuing');
-                    data.screenShot = processedImage;
-                    data.appOutput.screenShot64 = processedImage.imageBuffer.toString('base64'); //TODO: compress deltas
+                    data.screenShot = processedImage; //TODO: compress deltas
+                    data.appOutput.screenShot64 = processedImage.imageBuffer.toString('base64');
 
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
                     return that.getTitle();
@@ -563,6 +563,56 @@
                 this._logger.log(err);
                 reject(err);
             }.bind(this));
+        }.bind(this));
+    };
+
+    //noinspection JSValidateJSDoc
+    /**
+     * Replaces an actual image in the current running session.
+     * @param {number} stepIndex The zero based index of the step in which to replace the actual image.
+     * @param {Buffer} screenshot The PNG bytes of the updated screenshot.
+     * @param {string|undefined} tag The updated tag for the step.
+     * @param {string|undefined} title The updated title for the step.
+     * @param {Array|undefined} userInputs The updated userInputs for the step.
+     * @return {Promise} A promise which resolves when replacing is done, or rejects on error.
+     */
+    EyesBase.prototype.replaceWindow = function (stepIndex, screenshot, tag, title, userInputs) {
+        tag = tag || '';
+        title = title || '';
+        userInputs = userInputs || [];
+
+        return this._promiseFactory.makePromise(function (resolve, reject) {
+            this._logger.verbose('EyesBase.replaceWindow - running');
+            if (this._isDisabled) {
+                this._logger.verbose("Eyes replaceWindow ignored - disabled");
+                resolve();
+                return;
+            }
+
+            if (!this._isOpen) {
+                var errMsg = "replaceWindow called with Eyes not open";
+                this._logger.log(errMsg);
+                throw new Error(errMsg);
+            }
+
+            this._logger.verbose("EyesBase.replaceWindow - calling serverConnector.replaceWindow");
+            var screenshot64 = screenshot.toString('base64');
+            var replaceWindowData = {
+                userInputs: userInputs,
+                tag: tag,
+                appOutput: {
+                    title: title,
+                    screenshot64: screenshot64
+                }
+            };
+            return this._serverConnector.replaceWindow(this._runningSession, stepIndex, replaceWindowData, screenshot)
+                .then(function () {
+                    this._logger.verbose("EyesBase.replaceWindow done");
+                    resolve();
+                }.bind(this), function (err) {
+                    this._logger.log(err);
+                    reject(err);
+                }.bind(this));
         }.bind(this));
     };
 

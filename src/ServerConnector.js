@@ -15,7 +15,8 @@
     "use strict";
 
     var GeneralUtils = require('eyes.utils').GeneralUtils,
-        restler = require('restler');
+        restler = require('restler'),
+        fs = require('fs');
 
 
     // Constants
@@ -136,19 +137,68 @@
         }.bind(this));
     };
 
-    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData) {
+    /**
+     * Creates a bytes representation of the given JSON.
+     * @param {object} jsonData The data from for which to create the bytes representation.
+     * @return {Buffer} a buffer of bytes which represents the stringified JSON, prefixed with size.
+     * @private
+     */
+    function _createDataBytes(jsonData) {
+        var dataStr = JSON.stringify(jsonData);
+        var dataLen = Buffer.byteLength(dataStr, 'utf8');
+        // The result buffer will contain the length of the data + 4 bytes of size
+        var result = new Buffer(dataLen + 4);
+        result.writeUInt32BE(dataLen, 0);
+        result.write(dataStr, 4, dataLen);
+        return result;
+    }
+
+    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             var options = Object.create(this._httpOptions);
             options.headers = Object.create(this._httpOptions.headers);
-            options.headers['Content-Type'] = 'application/octet-stream';
+            // TODO Daniel - Use binary image instead of base64 (see line below)
+            //options.headers['Content-Type'] = 'application/octet-stream';
+            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
             restler.postJson(url, matchWindowData, options)
                 .on('complete', function (data, response) {
                     this._logger.verbose('ServerConnector.matchWindow result', data,
                         'status code', response.statusCode);
-                    if (response.statusCode === 200 || response.statusCode === 201) {
+                    if (response.statusCode === 200) {
                         resolve({asExpected: data.asExpected});
+                    } else {
+                        reject(new Error(response));
+                    }
+                }.bind(this));
+        }.bind(this));
+    };
+
+    //noinspection JSValidateJSDoc
+    /**
+     * Replaces an actual image in the current running session.
+     * @param {object} runningSession The currently running session.
+     * @param {number} stepIndex The zero based index of the step in which to replace the actual image.
+     * @param {object} replaceWindowData The updated window data (similar to matchWindowData only without ignoreMismatch).
+     * @param {Buffer} screenshot The PNG bytes of the updated image.
+     * @return {Promise} A promise which resolves when replacing is done, or rejects on error.
+     */
+    ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
+            var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
+            var options = Object.create(this._httpOptions);
+            options.headers = Object.create(this._httpOptions.headers);
+            // TODO Daniel - Use binary image instead of base64 (see line below)
+            //options.headers['Content-Type'] = 'application/octet-stream';
+            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
+            this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
+            restler.putJson(url, replaceWindowData, options)
+                .on('complete', function (data, response) {
+                    this._logger.verbose('ServerConnector.replaceWindow result', data,
+                        'status code', response.statusCode);
+                    if (response.statusCode === 200) {
+                        resolve();
                     } else {
                         reject(new Error(response));
                     }
