@@ -45,7 +45,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.13';
+        return 'eyes.images/0.0.14';
     };
 
     /**
@@ -92,6 +92,24 @@
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
         this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout ,')');
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout, region);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Replaces the actual image in a running session.
+     *
+     * @param {number} stepIndex The zero based index of the step in which to replace the image.
+     * @param {Buffer} image The updated image png bytes.
+     * @param {string|undefined} tag A tag to be associated with the validation checkpoint.
+     * @param {string|undefined} title A title to be associated with the validation checkpoint.
+     * @param {Array|undefined} userInputs An array of user inputs to which lead to the validation checkpoint.
+     *
+     * @return {Promise}
+     */
+    Eyes.prototype.replaceImage = function (stepIndex, image, tag, title, userInputs) {
+        this._logger.verbose('replaceImage(', stepIndex, 'image, "', tag, '", "', title, '", userInputs)');
+        //noinspection JSCheckFunctionSignatures
+        return EyesBase.prototype.replaceWindow.call(this, stepIndex, image, tag, title, userInputs);
     };
 
     //noinspection JSUnusedGlobalSymbols
