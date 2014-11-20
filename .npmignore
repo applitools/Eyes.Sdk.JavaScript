@@ -1,5 +1,4 @@
 .idea/*
 tests/*
 dist/*
-eyes-browser.min.js
 eyes-browser-loader.js
