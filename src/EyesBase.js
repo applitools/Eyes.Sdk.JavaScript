@@ -68,6 +68,7 @@
             this._agentId = undefined;
             this._os = undefined;
             this._hostingApp = undefined;
+            this._baselineName = undefined;
         }
     }
 
@@ -165,6 +166,24 @@
      */
     EyesBase.prototype.getHostingApp = function () {
         return this._hostingApp;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * If specified, determines the baseline to compare with and disables automatic baseline inference.
+     *
+     * @param baselineName {String} The hosting application.
+     */
+    EyesBase.prototype.setBaselineName = function (baselineName) {
+        this._baselineName = baselineName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The baseline name, if it was specified.
+     */
+    EyesBase.prototype.getBaselineName = function () {
+        return this._baselineName;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -657,6 +676,7 @@
                         appIdOrName: this._appName,
                         scenarioIdOrName: this._testName,
                         batchInfo: testBatch,
+                        envName: this._baselineName,
                         environment: appEnv,
                         matchLevel: this._matchLevel,
                         branchName: this._branchName || null,
