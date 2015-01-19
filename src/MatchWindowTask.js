@@ -117,7 +117,7 @@
                     tag: tag,
                     ignoreMismatch: true
                 };
-                this._logger.verbose('MatchWindowTask._retryMatch data', data);
+                this._logger.verbose('MatchWindowTask._retryMatch calls matchWindow');
                 return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
                     .then(function (result) {
                         this._logger.verbose(
