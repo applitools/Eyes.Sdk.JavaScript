@@ -2,3 +2,4 @@ exports.Eyes = require('./src/Eyes');
 var EyesSDK = require('eyes.sdk');
 exports.ConsoleLogHandler = EyesSDK.ConsoleLogHandler;
 exports.NullLogHandler  = EyesSDK.NullLogHandler;
+exports.Triggers = EyesSDK.Triggers;
