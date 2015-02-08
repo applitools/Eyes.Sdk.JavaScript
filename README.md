@@ -7,49 +7,67 @@ Example:
 __________________________
 
 ```javascript
+var https = require('https');
 var Eyes = require('eyes.images').Eyes;
+var Triggers = require('eyes.images').Triggers;
+// This example uses RSVP library for creating promises.
+var RSVP = require('rsvp');
+
+// Switch between the versions to generate test failure.
+var version = "0.1";
+//var version = "0.2";
+
 var eyes = new Eyes();
-eyes.setApiKey("<YOUR_API_KEY>");
+// This is your api key, make sure you use it in all your tests.
+eyes.setApiKey("YOUR_API_KEY");
+// Define the OS and hosting application to identify the baseline
+eyes.setOs("Windows 7");
+eyes.setHostingApp("My Maxthon browser");
 
-var image1 = fs.readFileSync('image1.png');
-var image2 = fs.readFileSync('image2.png');
-var image3 = fs.readFileSync('image3.png');
-var image4 = fs.readFileSync('image4.png');
 
-// First test
-var firstTestPromise = eyes.open("eyes.images.javascript", "First test", {width: 800, height: 600})
+// Start visual testing.
+var firstTestPromise = eyes.open("Applitools site", "Sanity Test", {width: 785, height: 1087})
     .then(function () {
-        // Notice since eyes.checkImage returns a promise, you need to call it with "return" in order for the wrapping
-        // "then" to wait on it.
-        return eyes.checkImage(image1, 'My first image');
+        // Load page image and validate.
+        return getImage("store.applitools.com","/download/contact_us.png/" + version).then(function (img) {
+            // Visual validation point #1
+            return eyes.checkImage(img, 'Contact-us page');
+        });
     })
     .then(function () {
-        return eyes.checkImage(image2, 'My second image');
+        // Simulate click on the "Resources" button".
+        eyes.addMouseTrigger(Triggers.MouseAction.Click, {left: 288, top: 44, width: 92, height: 36}, {x: 10, y: 10});
     })
-    .then(
-        function () {
-            // We're calling close with "false" so that the promise will resolve even if the test failed and not reject.
-            // This will make waiting on firstTestPromise simpler (we just handle "resolve" part of the "then").
-            return eyes.close(false);
-        }, function () {
-            return eyes.abortIfNotClosed();
-        }
-    );
+    .then(function () {
+        // Load another page image and validate
+        return getImage("store.applitools.com", "/download/resources.png/" + version).then(function (img) {
+            // Visual validation point #2
+            return eyes.checkImage(img);
+        });
+    })
+    .then(function () {
+        // End visual testing. Validate visual correctness.
+        return eyes.close(false);
+    }, function () {
+        return eyes.abortIfNotClosed();
+    }
+);
 
-// Handle first test results..
+// Handle test results.
 firstTestPromise = firstTestPromise.then(function (results) {
-   // do something with results
-   // ...
+    console.log("results", results);
 });
+
 
 // Second test
 var secondTestPromise = firstTestPromise.then(function () {
-    return eyes.open("eyes.images.javascript", "Second test", {width: 800, height: 600})
+    return eyes.open("Applitools ", "Second test", {width: 800, height: 600})
         .then(function () {
-            return eyes.checkImage(image3, 'My third image');
-        })
-        .then(function () {
-            return eyes.checkImage(image4, 'My 4th image');
+            // Load page image and validate
+            return getImage("store.applitools.com", "/download/resources.png/" + version).then(function (img) {
+                // Visual validation point #1
+                return eyes.checkImage(img);
+            });
         })
         .then(
             function () {
@@ -64,4 +82,32 @@ var secondTestPromise = firstTestPromise.then(function () {
 secondTestPromise.then(function (results) {
     // Do something with results.
 });
+
+function getImage(host, path) {
+    var options = {
+        host: host,
+        path: path
+    };
+
+    var deferred = RSVP.defer();
+
+    https.request(options, function (res) {
+        res.setEncoding('binary');
+
+        var data = "";
+        res.on('data', function(chunk) {
+            return data += chunk;
+        });
+        res.on('end', function() {
+            return deferred.resolve(new Buffer(data, 'binary'));
+        });
+        res.on('error', function(err) {
+            console.log("Error during HTTP request");
+            console.log(err.message);
+            deferred.reject();
+        });
+    }).end();
+
+    return deferred.promise;
+}
 ```
