@@ -3,6 +3,8 @@ eyes.images
 
 Applitools Eyes Javascript SDK for working directly with images.
 
+Additional information can be found on the Applitools website: http://www.applitools.com.
+
 Example:
 __________________________
 
@@ -26,7 +28,7 @@ eyes.setHostingApp("My Maxthon browser");
 
 
 // Start visual testing.
-var firstTestPromise = eyes.open("Applitools site", "Sanity Test", {width: 785, height: 1087})
+var testPromise = eyes.open("Applitools site", "Sanity Test", {width: 785, height: 1087})
     .then(function () {
         // Load page image and validate.
         return getImage("store.applitools.com","/download/contact_us.png/" + version).then(function (img) {
@@ -54,34 +56,10 @@ var firstTestPromise = eyes.open("Applitools site", "Sanity Test", {width: 785, 
 );
 
 // Handle test results.
-firstTestPromise = firstTestPromise.then(function (results) {
+testPromise.then(function (results) {
     console.log("results", results);
 });
 
-
-// Second test
-var secondTestPromise = firstTestPromise.then(function () {
-    return eyes.open("Applitools ", "Second test", {width: 800, height: 600})
-        .then(function () {
-            // Load page image and validate
-            return getImage("store.applitools.com", "/download/resources.png/" + version).then(function (img) {
-                // Visual validation point #1
-                return eyes.checkImage(img);
-            });
-        })
-        .then(
-            function () {
-                return eyes.close(false);
-            }, function () {
-                return eyes.abortIfNotClosed();
-            }
-        );
-});
-
-// Handle second test results
-secondTestPromise.then(function (results) {
-    // Do something with results.
-});
 
 function getImage(host, path) {
     var options = {
