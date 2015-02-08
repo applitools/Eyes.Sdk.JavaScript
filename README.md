@@ -20,12 +20,11 @@ var version = "0.1";
 //var version = "0.2";
 
 var eyes = new Eyes();
-// This is your api key, make sure you use it in all your tests.
+// Set your Applitools API key here.
 eyes.setApiKey("YOUR_API_KEY");
 // Define the OS and hosting application to identify the baseline
 eyes.setOs("Windows 7");
 eyes.setHostingApp("My Maxthon browser");
-
 
 // Start visual testing.
 var testPromise = eyes.open("Applitools site", "Sanity Test", {width: 785, height: 1087})
