@@ -28,6 +28,9 @@
         // Images have the same layout.
         Layout: 'Layout',
 
+        // Images have the same layout.
+        Layout2: 'Layout2',
+
         // Images have the same content.
         Content: 'Content',
 
@@ -138,12 +141,36 @@
      *
      * @param os {String} The host OS.
      */
+    EyesBase.prototype.setHostOS = function (os) {
+        this._os = os;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The host OS as set by the user.
+     */
+    EyesBase.prototype.getHostOS = function () {
+        return this._os;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @deprecated
+     * This function is deprecated, please use {@link setHostOS} instead.
+     *
+     * Sets the host OS name - overrides the one in the agent string.
+     *
+     * @param os {String} The host OS.
+     */
     EyesBase.prototype.setOs = function (os) {
         this._os = os;
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @deprecated
+     * This function is deprecated, please use {@link getHostOS} instead.
+     *
      * @return {String} The host OS as set by the user.
      */
     EyesBase.prototype.getOs = function () {
@@ -300,26 +327,7 @@
      * @param {EyesBase.MatchLevel} level The match level setting.
      */
     EyesBase.prototype.setMatchLevel = function (level) {
-        switch (level) {
-        case EyesBase.MatchLevel.None:
-            this._matchLevel = EyesBase.MatchLevel.None;
-            break;
-        case EyesBase.MatchLevel.Content:
-            this._matchLevel = EyesBase.MatchLevel.Content;
-            break;
-        case EyesBase.MatchLevel.Strict:
-            this._matchLevel = EyesBase.MatchLevel.Strict;
-            break;
-        case EyesBase.MatchLevel.Layout:
-            this._matchLevel = EyesBase.MatchLevel.Layout;
-            break;
-        case EyesBase.MatchLevel.Exact:
-            this._matchLevel = EyesBase.MatchLevel.Exact;
-            break;
-        default:
-            this._matchLevel = EyesBase.MatchLevel.Strict;
-            break;
-        }
+        this._matchLevel = level;
     };
 
     //noinspection JSUnusedGlobalSymbols
