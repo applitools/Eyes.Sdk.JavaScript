@@ -12,7 +12,7 @@
     "use strict";
 
     var StreamUtils = require('./StreamUtils'),
-        PNG = require('pngjs').PNG,
+        PNG = require('node-png').PNG,
         fs = require('fs');
     var ReadableBufferStream = StreamUtils.ReadableBufferStream;
     var WritableBufferStream = StreamUtils.WritableBufferStream;

@@ -1,6 +1,6 @@
 {
   "name": "eyes.utils",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "General purpose Javascript utilities.",
   "main": "index.js",
   "scripts": {
@@ -24,6 +24,6 @@
   "author": "Applitools team",
   "license": "Apache License 2.0",
   "dependencies": {
-    "pngjs": "^0.4.0"
+    "node-png": "0.4.3"
   }
 }
