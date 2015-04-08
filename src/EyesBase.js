@@ -18,8 +18,7 @@
 
     var EyesUtils = require('eyes.utils'),
         GeneralUtils = EyesUtils.GeneralUtils,
-        GeometryUtils = EyesUtils.GeometryUtils,
-        ImageUtils = EyesUtils.ImageUtils;
+        GeometryUtils = EyesUtils.GeometryUtils;
 
     var _MatchLevel = {
         // Images do not necessarily match.
@@ -502,16 +501,21 @@
         return this._promiseFactory.makePromise(function (resolve, reject) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
             var data = {appOutput: {}};
+            var parsedImage;
             return that.getScreenShot()
                 .then(function (image) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
-                    return ImageUtils.processImage(image, region);
+                    parsedImage = image;
+                    return parsedImage.cropImage(region);
                 })
-                .then(function (processedImage) {
-                    that._logger.verbose('cropped image returned - continuing');
-                    data.screenShot = processedImage; //TODO: compress deltas
-                    data.appOutput.screenShot64 = processedImage.imageBuffer.toString('base64');
-
+                .then(function () {
+                    that._logger.verbose('cropped image returned - packing');
+                    return parsedImage.asObject();
+                })
+                .then(function (imageObj) {
+                    that._logger.verbose('image is ready');
+                    data.screenShot = imageObj; //TODO: compress deltas
+                    data.appOutput.screenShot64 = imageObj.imageBuffer.toString('base64');
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
                     return that.getTitle();
                 })
