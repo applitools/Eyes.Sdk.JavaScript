@@ -3,6 +3,7 @@ exports.ImageUtils = require('./src/ImageUtils');
 exports.GeometryUtils = require('./src/GeometryUtils');
 exports.StreamUtils = require('./src/StreamUtils');
 exports.PromiseFactory = require('./src/PromiseFactory');
+exports.BrowserUtils = require('./src/BrowserUtils');
 
 /**
  * Set the promise factory to all modules which require it.
