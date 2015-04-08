@@ -15,6 +15,7 @@
     var EyesSDK = require('eyes.sdk'),
         RSVP  = require('rsvp'),
         EyesBase = EyesSDK.EyesBase,
+        MutableImage = EyesSDK.MutableImage,
         EyesUtils = require('eyes.utils'),
         PromiseFactory = EyesUtils.PromiseFactory;
 
@@ -45,7 +46,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.18';
+        return 'eyes.images/0.0.20';
     };
 
     /**
@@ -117,8 +118,9 @@
      * @return {Promise} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
+        var parsedImage = new MutableImage(this._screenshot, PromiseFactory);
         return PromiseFactory.makePromise(function (resolve) {
-            resolve(this._screenshot);
+            resolve(parsedImage);
         }.bind(this));
     };
 
