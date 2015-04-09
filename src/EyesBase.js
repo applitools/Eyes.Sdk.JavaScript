@@ -454,7 +454,21 @@
             if (!this._runningSession) {
                 this._logger.log("Close: Server session was not started");
                 this._logger.getLogHandler().close();
-                resolve();
+                resolve({
+                    steps: 0,
+                    matches: 0,
+                    mismatches: 0,
+                    missing: 0,
+                    exactMatches: 0,
+                    strictMatches: 0,
+                    contentMatches: 0,
+                    layoutMatches: 0,
+                    noneMatches: 0,
+                    isNew: false,
+                    url: '',
+                    isPassed: true,
+                    asExpected: true
+                });
                 return;
             }
 
