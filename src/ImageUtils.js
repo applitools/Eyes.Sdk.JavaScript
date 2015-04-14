@@ -418,7 +418,7 @@
      *
      * cropImage - crops a parsed image - the image is changed
      *
-     * @param {Object} image BMP
+     * @param {Object} imageBmp BMP
      * @param {Object} region to crop (left,top,width,height)
      *
      * @returns {Object} - Promise - empty, just indicating completion
@@ -431,8 +431,8 @@
                 return;
             }
 
-            if (region.top >= imageBmp.height || region.left >= imageBmp.width) {
-                reject(new Error('region is not contained in screen shot'));
+            if (region.top < 0 || region.top >= imageBmp.height || region.left < 0 || region.left >= imageBmp.width) {
+                reject(new Error('region is outside the image bounds!'));
                 return;
             }
 
