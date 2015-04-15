@@ -16,29 +16,14 @@
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
+    var MatchSettings = require('./MatchSettings'),
+        MatchLevel = MatchSettings.MatchLevel,
+        ImageMatchSettings = MatchSettings.ImageMatchSettings,
+        ExactMatchSettings = MatchSettings.ExactMatchSettings;
+
     var EyesUtils = require('eyes.utils'),
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils;
-
-    var _MatchLevel = {
-        // Images do not necessarily match.
-        None: 'None',
-
-        // Images have the same layout.
-        Layout: 'Layout',
-
-        // Images have the same layout.
-        Layout2: 'Layout2',
-
-        // Images have the same content.
-        Content: 'Content',
-
-        // Images are nearly identical.
-        Strict: 'Strict',
-
-        // Images are identical.
-        Exact: 'Exact'
-    };
 
     var _FailureReport = {
         // Failures are reported immediately when they are detected.
@@ -59,7 +44,7 @@
             EyesUtils.setPromiseFactory(promiseFactory);
             this._logger = new Logger();
             this._serverUrl = serverUrl;
-            this._matchLevel = EyesBase.MatchLevel.Strict;
+            this._defaultMatchSettings = new ImageMatchSettings(MatchLevel.Strict);
             this._failureReport = EyesBase.FailureReport.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
@@ -222,6 +207,7 @@
      *   For advanced use cases - it is possible to pass ID and start date in that order - as 2nd and 3rd args
      */
     EyesBase.prototype.setBatch = function (name) {
+        //noinspection JSLint
         this._batch = {
             id: arguments[1] || GeneralUtils.guid(),
             name: name,
@@ -322,19 +308,43 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * The test-wide match level to use when checking application screenShot with the expected output.
-     * @param {EyesBase.MatchLevel} level The match level setting.
+     * @deprecated
+     * This function is superseded by {@link setDefaultMatchSettings}.
+     *
+     * @param {MatchLevel} level The test-wide match level to use when checking application screenshot with the
+     *                           expected output.
      */
     EyesBase.prototype.setMatchLevel = function (level) {
-        this._matchLevel = level;
+        this._defaultMatchSettings.setMatchLevel(level);
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {EyesBase.MatchLevel} The test-wide match level.
+     * @deprecated
+     * This function is superseded by {@link getDefaultMatchSettings}
+     *
+     * @return {MatchLevel} The test-wide match level.
      */
     EyesBase.prototype.getMatchLevel = function () {
-        return this._matchLevel;
+        //noinspection JSValidateTypes
+        return this._defaultMatchSettings.getMatchLevel();
+    };
+
+    /**
+     *
+     * @param {ImageMatchSettings} defaultMatchSettings The match settings for the session.
+     */
+    EyesBase.prototype.setDefaultMatchSettings = function (defaultMatchSettings) {
+        this._defaultMatchSettings = defaultMatchSettings;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @return {ImageMatchSettings} The match settings for the session.
+     */
+    EyesBase.prototype.getDefaultMatchSettings = function () {
+        return this._defaultMatchSettings;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -697,6 +707,20 @@
                         inferred: userAgent
                     };
 
+                    var exactObj = this._defaultMatchSettings.getExact();
+                    var exact = null;
+                    if (exactObj) {
+                        exact = {
+                            minDiffIntensity: exactObj.getMinDiffIntensity(),
+                            minDiffWidth: exactObj.getMinDiffWidth(),
+                            minDiffHeight: exactObj.getMinDiffHeight(),
+                            matchThreshold: exactObj.getMatchThreshold()
+                        };
+                    }
+                    var defaultMatchSettings = {
+                        matchLevel: this._defaultMatchSettings.getMatchLevel(),
+                        exact: exact
+                    };
                     this._sessionStartInfo = {
                         agentId: this._getFullAgentId(),
                         appIdOrName: this._appName,
@@ -704,7 +728,7 @@
                         batchInfo: testBatch,
                         envName: this._baselineName,
                         environment: appEnv,
-                        matchLevel: this._matchLevel,
+                        defaultMatchSettings: defaultMatchSettings,
                         branchName: this._branchName || null,
                         parentBranchName: this._parentBranchName || null
                     };
@@ -819,7 +843,6 @@
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com';
-    EyesBase.MatchLevel = Object.freeze(_MatchLevel);
     EyesBase.FailureReport = Object.freeze(_FailureReport);
 
     module.exports = EyesBase;
