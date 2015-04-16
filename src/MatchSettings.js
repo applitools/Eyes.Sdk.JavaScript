@@ -54,7 +54,7 @@
     /**
      *
      * @param {number} [minDiffIntensity=0] The minimum intensity difference of pixel to be considered a change. Valid
-     *                                      values are 0-255
+     *                                      values are 0-255.
      */
     ExactMatchSettings.prototype.setMinDiffIntensity = function (minDiffIntensity) {
         this._minDiffIntensity = minDiffIntensity;
@@ -73,7 +73,7 @@
     /**
      *
      * @param {number} [minDiffWidth=0] The minimum width of an intensity filtered pixels cluster to be considered a
-     *                                  change. Must be >= 0
+     *                                  change. Must be >= 0.
      */
     ExactMatchSettings.prototype.setMinDiffWidth = function (minDiffWidth) {
         this._minDiffWidth = minDiffWidth;
@@ -92,7 +92,7 @@
     /**
      *
      * @param {number} [minDiffHeight=0] The minimum height of an intensity filtered pixels cluster to be considered a
-     *                                  change. Must be >= 0
+     *                                  change. Must be >= 0.
      */
     ExactMatchSettings.prototype.setMinDiffHeight = function (minDiffHeight) {
         this._minDiffHeight = minDiffHeight;
@@ -173,7 +173,8 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @param {ExactMatchSettings|null} exact The additional threshold parameters when the {@code Exact} match level is used.
+     * @param {ExactMatchSettings|null} exact The additional threshold parameters when the {@code Exact} match level
+     *                                  is used.
      */
     ImageMatchSettings.prototype.setExact = function (exact) {
         this._exact = exact;
