@@ -33,11 +33,11 @@
      * Encapsulate threshold settings for the "Exact" match level.
      *
      * @param {number} [minDiffIntensity=0] The minimum intensity difference of pixel to be considered a change. Valid
-     *                                      values are 0-255
+     *                                      values are 0-255.
      * @param {number} [minDiffWidth=0] The minimum width of an intensity filtered pixels cluster to be considered a
-     *                                  change. Must be >= 0
+     *                                  change. Must be >= 0.
      * @param {number} [minDiffHeight=0] The minimum height of an intensity filtered pixels cluster to be considered a
-     *                                  change. Must be >= 0
+     *                                  change. Must be >= 0.
      * @param {number} [matchThreshold=0] The maximum percentage(!) of different pixels (after intensity, width
      *                                      and height filtering) which is still considered as a match. Valid values
      *                                      are fractions between 0-1.
