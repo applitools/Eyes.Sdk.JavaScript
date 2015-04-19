@@ -11,7 +11,10 @@
 (function () {
     "use strict";
 
-    var PromiseFactory = {};
+    "use strict";
+
+    function PromiseFactory() {
+    }
 
     /**
      * Sets the factory methods which will be used to create promises and deferred-s.
@@ -19,17 +22,25 @@
      *                          constructor.
      * @param deferredFactoryFunc A function which returns a deferred.
      */
-    PromiseFactory.setFactoryMethods = function (promiseFactoryFunc, deferredFactoryFunc) {
+    PromiseFactory.prototype.setFactoryMethods = function (promiseFactoryFunc, deferredFactoryFunc) {
         this._promiseFactoryFunc = promiseFactoryFunc;
         this._deferredFactoryFunc = deferredFactoryFunc;
     };
 
-    PromiseFactory.makePromise = function (asyncAction) {
-        return this._promiseFactoryFunc(asyncAction);
+    PromiseFactory.prototype.makePromise = function (asyncAction) {
+        if (this._promiseFactoryFunc) {
+            return this._promiseFactoryFunc(asyncAction);
+        }
+
+        throw new Error('Promise factory was not initialized with proper callback');
     };
 
-    PromiseFactory.makeDeferred = function () {
-        return this._deferredFactoryFunc();
+    PromiseFactory.prototype.makeDeferred = function () {
+        if (this._deferredFactoryFunc) {
+            return this._deferredFactoryFunc();
+        }
+
+        throw new Error('Promise factory was not initialized with proper callback');
     };
 
     module.exports = PromiseFactory;

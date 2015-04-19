@@ -17,26 +17,17 @@
     var ReadableBufferStream = StreamUtils.ReadableBufferStream;
     var WritableBufferStream = StreamUtils.WritableBufferStream;
 
-    var promiseFactory;
-
-    /**
-     * Set the promise factory used for creating promises to be returned from methods.
-     * @param PromiseFactory The promise factory to set.
-     */
-    var setPromiseFactory = function (PromiseFactory) {
-        promiseFactory = PromiseFactory;
-    };
-
     /**
      *
      * parseImage - processes a PNG buffer - returns it as BMP.
      *
      * @param {Buffer} image
+     * @param {Object} promiseFactory
      *
      * @returns {Object} - Promise
      *
      **/
-    var parseImage = function (image) {
+    var parseImage = function (image, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
             if (!fs.open) {
                 return resolve(image);
@@ -57,12 +48,13 @@
      *
      * packImage - repacks a parsed image to a PNG buffer.
      *
-     * @param {Object} parsed image as returned from parseImage
+     * @param {Object} imageBmp - parsed image as returned from parseImage
+     * @param {Object} promiseFactory
      *
      * @returns {Object} - Promise - when resolved contains a buffer
      *
      **/
-    var packImage = function (imageBmp) {
+    var packImage = function (imageBmp, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
 
             // Write back to a temp png file
@@ -78,13 +70,14 @@
      *
      * scaleImage - scaled a parsed image by a given factor.
      *
-     * @param {Object} image BMP - will be modified
+     * @param {Object} imageBmp - will be modified
      * @param {Float} scale factor to multiply the image dimensions by (lower than 1 for scale down)
+     * @param {Object} promiseFactory
      *
      * @returns {Object} - Promise - empty
      *
      **/
-    var scaleImage = function (imageBmp, scale) {
+    var scaleImage = function (imageBmp, scale, promiseFactory) {
         // two-dimensional array coordinates to a vector index
         function xytoi(ix, iy, w) {
             // byte array, r,g,b,a
@@ -420,11 +413,12 @@
      *
      * @param {Object} imageBmp BMP
      * @param {Object} region to crop (left,top,width,height)
+     * @param {Object} promiseFactory
      *
      * @returns {Object} - Promise - empty, just indicating completion
      *
      **/
-    var cropImage = function (imageBmp, region) {
+    var cropImage = function (imageBmp, region, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             if (!region) {
                 resolve(imageBmp);
@@ -495,9 +489,11 @@
     /**
      * Creates a PNG instance from the given buffer.
      * @param {Buffer} buffer A buffer containing PNG bytes.
+     * @param {Object} promiseFactory
+     *
      * @return {Promise} A promise which resolves to the PNG instance.
      */
-    var createPngFromBuffer = function (buffer) {
+    var createPngFromBuffer = function (buffer, promiseFactory) {
         var deferred = promiseFactory.makeDeferred();
 
         // In order to create a PNG instance from part.image, we first need to create a stream from it.
@@ -520,16 +516,18 @@
      * @param stitchingPromise A promise which its "then" block will execute the stitching. T
      * @param {PNG} stitchedImage A PNG instance into which the part will be stitched.
      * @param  {object} part A "part" object given in the {@code parts} argument of {@link ImageUtils.stitchImage}.
+     * @param {Object} promiseFactory
+     *
      * @return {Promise} A promise which is resolved when the stitching is done.
      * @private
      */
-    var _stitchPart = function (stitchingPromise, stitchedImage, part) {
+    var _stitchPart = function (stitchingPromise, stitchedImage, part, promiseFactory) {
         //noinspection JSUnresolvedFunction
         return stitchingPromise.then(function () {
             var deferred = promiseFactory.makeDeferred();
 
             //noinspection JSUnresolvedFunction
-            createPngFromBuffer(part.image).then(function (pngImage) {
+            createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
                 copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
                 deferred.resolve(stitchedImage);
             });
@@ -546,9 +544,11 @@
      * @param {Array} parts The parts to stitch into an image. Each part should have: 'position'
      *                      (which includes top/left), 'size' (which includes width/height) and image
      *                      (a buffer containing PNG bytes) properties.
+     * @param {Object} promiseFactory
+     *
      * @return {Promise} A promise which resolves to the stitched image.
      */
-    var stitchImage = function (fullSize, parts) {
+    var stitchImage = function (fullSize, parts, promiseFactory) {
         var deferred = promiseFactory.makeDeferred();
         var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
         var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
@@ -556,7 +556,7 @@
         //noinspection JSLint
         for (var i = 0; i < parts.length; ++i) {
             //noinspection JSUnresolvedFunction
-            stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i]);
+            stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i], promiseFactory);
         }
 
         //noinspection JSUnresolvedFunction
@@ -580,7 +580,6 @@
     ImageUtils.copyPixels = copyPixels;
     ImageUtils.stitchImage = stitchImage;
     ImageUtils.createPngFromBuffer = createPngFromBuffer;
-    ImageUtils.setPromiseFactory = setPromiseFactory;
     //noinspection JSUnresolvedVariable
     module.exports = ImageUtils;
 }());
