@@ -19,14 +19,6 @@
         EyesUtils = require('eyes.utils'),
         PromiseFactory = EyesUtils.PromiseFactory;
 
-    PromiseFactory.setFactoryMethods(function (asyncAction) {
-        return new RSVP.Promise(asyncAction);
-    }, function () {
-        return RSVP.defer();
-    });
-
-    EyesUtils.setPromiseFactory(PromiseFactory);
-
     /**
      * @constructor
      *
@@ -35,7 +27,12 @@
      *
      **/
     function Eyes(serverUrl, isDisabled) {
-        EyesBase.call(this, PromiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
+        this._promiseFactory = new PromiseFactory(function (asyncAction) {
+            return new RSVP.Promise(asyncAction);
+        }, function () {
+            return RSVP.defer();
+        });
+        EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
         this._screenshot = undefined;
         this._title = undefined;
         this._inferredEnvironment = undefined;
@@ -46,7 +43,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.20';
+        return 'eyes.images/0.0.21';
     };
 
     /**
@@ -118,8 +115,8 @@
      * @return {Promise} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
-        var parsedImage = new MutableImage(this._screenshot, PromiseFactory);
-        return PromiseFactory.makePromise(function (resolve) {
+        var parsedImage = new MutableImage(this._screenshot, this._promiseFactory);
+        return this._promiseFactory.makePromise(function (resolve) {
             resolve(parsedImage);
         }.bind(this));
     };
@@ -129,7 +126,7 @@
      * @return {Promise} The current title of of the AUT.
      */
     Eyes.prototype.getTitle = function () {
-        return PromiseFactory.makePromise(function (resolve) {
+        return this._promiseFactory.makePromise(function (resolve) {
             resolve(this._title);
         }.bind(this));
     };
@@ -148,7 +145,7 @@
      * @return {Promise} A promise which resolves to the inferred environment string.
      */
     Eyes.prototype.getInferredEnvironment = function () {
-        return PromiseFactory.makePromise(function (resolve) {
+        return this._promiseFactory.makePromise(function (resolve) {
             resolve(this._inferredEnvironment);
         }.bind(this));
     };
@@ -176,7 +173,7 @@
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._waitTimeout = function (ms) {
         // Notice we have to use deferred here, since we want the setTimeout to call resolve..
-        var deferred = PromiseFactory.makeDeferred();
+        var deferred = this._promiseFactory.makeDeferred();
         var logger = this._logger;
         logger.log('waiting' + ms + 'ms');
         setTimeout(function () {
@@ -190,14 +187,14 @@
     Eyes.prototype.getViewportSize = function () {
         // FIXME Replace this with getting the image size.
         //noinspection JSLint
-        return PromiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
             reject(new Error("Automatic viewport size not implemented yet!"));
         }.bind(this));
     };
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.setViewportSize = function (size) {
-        return PromiseFactory.makePromise(function (resolve) {
+        return this._promiseFactory.makePromise(function (resolve) {
             //noinspection JSUnusedGlobalSymbols
             this._viewportSize = size;
             resolve();
