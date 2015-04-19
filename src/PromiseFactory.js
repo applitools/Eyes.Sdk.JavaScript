@@ -13,7 +13,9 @@
 
     "use strict";
 
-    function PromiseFactory() {
+    function PromiseFactory(promiseFactoryFunc, deferredFactoryFunc) {
+        this._promiseFactoryFunc = promiseFactoryFunc;
+        this._deferredFactoryFunc = deferredFactoryFunc;
     }
 
     /**
