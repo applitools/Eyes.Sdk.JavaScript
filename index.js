@@ -1,4 +1,8 @@
 exports.EyesBase = require('./src/EyesBase');
+var MatchSettings = require('./src/MatchSettings');
+exports.MatchLevel = MatchSettings.MatchLevel;
+exports.ExactMatchSettings = MatchSettings.ExactMatchSettings;
+exports.ImageMatchSettings = MatchSettings.ImageMatchSettings;
 exports.MatchWindowTask = require('./src/MatchWindowTask');
 exports.ScreenShotTaker = require('./src/ScreenshotTaker');
 exports.ServerConnector = require('./src/ServerConnector');
