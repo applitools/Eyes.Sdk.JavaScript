@@ -29,7 +29,7 @@
                 return resolve();
             }
 
-            return ImageUtils.parseImage(that._imageBuffer)
+            return ImageUtils.parseImage(that._imageBuffer, that._promiseFactory)
                 .then(function(bmp) {
                     that._imageBmp = bmp;
                     that._width = bmp.width;
@@ -52,7 +52,7 @@
                 return resolve();
             }
 
-            return ImageUtils.packImage(that._imageBmp)
+            return ImageUtils.packImage(that._imageBmp, that._promiseFactory)
                 .then(function(buffer) {
                     that._imageBuffer = buffer;
                     resolve();
@@ -158,7 +158,7 @@
         return _parseImage(that)
             .then(function () {
                 if (that._isParsed) {
-                    return ImageUtils.scaleImage(that._imageBmp, scale)
+                    return ImageUtils.scaleImage(that._imageBmp, scale, that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;
@@ -188,7 +188,7 @@
                             height: region.height
                         };
                     }
-                    return ImageUtils.cropImage(that._imageBmp, region)
+                    return ImageUtils.cropImage(that._imageBmp, region, that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;

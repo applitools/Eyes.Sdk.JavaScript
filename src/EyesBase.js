@@ -56,7 +56,6 @@
     function EyesBase(promiseFactory, serverUrl, isDisabled) {
         if (serverUrl) {
             this._promiseFactory = promiseFactory;
-            EyesUtils.setPromiseFactory(promiseFactory);
             this._logger = new Logger();
             this._serverUrl = serverUrl;
             this._matchLevel = EyesBase.MatchLevel.Strict;
