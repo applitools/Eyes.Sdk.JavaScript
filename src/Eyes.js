@@ -15,8 +15,8 @@
     var EyesSDK = require('eyes.sdk'),
         RSVP  = require('rsvp'),
         EyesBase = EyesSDK.EyesBase,
-        MutableImage = EyesSDK.MutableImage,
         EyesUtils = require('eyes.utils'),
+        MutableImage = EyesUtils.MutableImage,
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
