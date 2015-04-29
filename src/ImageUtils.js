@@ -494,20 +494,17 @@
      * @return {Promise} A promise which resolves to the PNG instance.
      */
     var createPngFromBuffer = function (buffer, promiseFactory) {
-        var deferred = promiseFactory.makeDeferred();
-
-        // In order to create a PNG instance from part.image, we first need to create a stream from it.
-        var pngImageStream = new ReadableBufferStream(buffer);
-        // Create the PNG
-        var pngImage = new PNG({filterType: 4});
-        //noinspection JSUnresolvedFunction
-        pngImageStream.pipe(pngImage);
-        pngImage.on('parsed', function () {
-            deferred.resolve(pngImage);
+        return promiseFactory.makePromise(function(resolve) {
+            // In order to create a PNG instance from part.image, we first need to create a stream from it.
+            var pngImageStream = new ReadableBufferStream(buffer);
+            // Create the PNG
+            var pngImage = new PNG({filterType: 4});
+            //noinspection JSUnresolvedFunction
+            pngImageStream.pipe(pngImage);
+            pngImage.on('parsed', function () {
+                resolve(pngImage);
+            });
         });
-
-        //noinspection JSUnresolvedVariable
-        return deferred.promise;
     };
 
     //noinspection JSValidateJSDoc
@@ -524,16 +521,13 @@
     var _stitchPart = function (stitchingPromise, stitchedImage, part, promiseFactory) {
         //noinspection JSUnresolvedFunction
         return stitchingPromise.then(function () {
-            var deferred = promiseFactory.makeDeferred();
-
-            //noinspection JSUnresolvedFunction
-            createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
-                copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
-                deferred.resolve(stitchedImage);
+            return promiseFactory.makePromise(function(resolve) {
+                //noinspection JSUnresolvedFunction
+                createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
+                    copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
+                    resolve(stitchedImage);
+                });
             });
-
-            //noinspection JSUnresolvedVariable
-            return deferred.promise;
         });
     };
 
@@ -549,27 +543,26 @@
      * @return {Promise} A promise which resolves to the stitched image.
      */
     var stitchImage = function (fullSize, parts, promiseFactory) {
-        var deferred = promiseFactory.makeDeferred();
-        var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
-        var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
+        return promiseFactory.makePromise(function(resolve) {
+            var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
+            var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
 
-        //noinspection JSLint
-        for (var i = 0; i < parts.length; ++i) {
-            //noinspection JSUnresolvedFunction
-            stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i], promiseFactory);
-        }
+            //noinspection JSLint
+            for (var i = 0; i < parts.length; ++i) {
+                //noinspection JSUnresolvedFunction
+                stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i], promiseFactory);
+            }
 
-        //noinspection JSUnresolvedFunction
-        stitchingPromise.then(function () {
-            var stitchedImageStream = new WritableBufferStream();
             //noinspection JSUnresolvedFunction
-            stitchedImage.pack().pipe(stitchedImageStream)
-                .on('finish', function () {
-                    deferred.resolve(stitchedImageStream.getBuffer());
-                });
+            stitchingPromise.then(function () {
+                var stitchedImageStream = new WritableBufferStream();
+                //noinspection JSUnresolvedFunction
+                stitchedImage.pack().pipe(stitchedImageStream)
+                    .on('finish', function () {
+                        resolve(stitchedImageStream.getBuffer());
+                    });
+            });
         });
-        //noinspection JSUnresolvedVariable
-        return deferred.promise;
     };
 
     var ImageUtils = {};
