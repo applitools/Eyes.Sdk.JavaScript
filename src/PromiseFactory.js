@@ -37,6 +37,10 @@
         throw new Error('Promise factory was not initialized with proper callback');
     };
 
+    /**
+     * @deprecated
+     * @returns {*}
+     */
     PromiseFactory.prototype.makeDeferred = function () {
         if (this._deferredFactoryFunc) {
             return this._deferredFactoryFunc();
