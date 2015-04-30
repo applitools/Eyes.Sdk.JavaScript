@@ -255,10 +255,7 @@
                     return scrollTo(browser, originalScrollPosition);
                 })
                 .then(function() {
-                    return screenshot.asObject();
-                })
-                .then(function (screenshotObj) {
-                    return resolve(screenshotObj.imageBuffer.toString('base64'));
+                    return resolve(screenshot);
                 });
         });
     };
