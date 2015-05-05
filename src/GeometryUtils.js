@@ -47,36 +47,37 @@
     /**
      *
      * @param region The region from which we want to extract the sub regions. {left, top, width, height}
-     * @param maxSubRegionSize The max size of a sub region {width, height}
+     * @param subRegionSize The max size of a sub region {width, height}
      */
-    GeometryUtils.getSubRegions = function (region, maxSubRegionSize) {
+    GeometryUtils.getSubRegions = function (region, subRegionSize) {
         var subRegions = [];
         var currentTop = region.top;
         var bottom = region.top + region.height;
         var right = region.left + region.width;
+        var subRegionWidth = Math.min(region.width, subRegionSize.width);
+        var subRegionHeight = Math.min(region.height, subRegionSize.height);
 
-        var currentBottom, currentLeft, currentRight, currentWidth, currentHeight;
+        var currentBottom, currentLeft, currentRight;
         while (currentTop < bottom) {
-            currentBottom = currentTop + maxSubRegionSize.height;
+            currentBottom = currentTop + subRegionHeight;
             if (currentBottom > bottom) {
                 currentBottom = bottom;
+                currentTop = currentBottom - subRegionHeight;
             }
 
             currentLeft = region.left;
             while (currentLeft < right) {
-                currentRight = currentLeft + maxSubRegionSize.width;
+                currentRight = currentLeft + subRegionWidth;
                 if (currentRight > right) {
                     currentRight = right;
+                    currentLeft = currentRight - subRegionWidth;
                 }
 
-                currentHeight = currentBottom - currentTop;
-                currentWidth = currentRight - currentLeft;
+                subRegions.push({left: currentLeft, top: currentTop, width: subRegionWidth, height: subRegionHeight});
 
-                subRegions.push({left: currentLeft, top: currentTop, width: currentWidth, height: currentHeight});
-
-                currentLeft += maxSubRegionSize.width;
+                currentLeft += subRegionWidth;
             }
-            currentTop += maxSubRegionSize.height;
+            currentTop += subRegionHeight;
         }
 
         return subRegions;
