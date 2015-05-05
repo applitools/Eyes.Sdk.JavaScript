@@ -140,7 +140,7 @@
     var scrollTo = function (browser, point, promiseFactory) {
         return executeScript(browser,
             'window.scrollTo(' + parseInt(point.left, 10) + ', ' + parseInt(point.top, 10) + ');',
-            promiseFactory, 100);
+            promiseFactory, 250);
     };
 
     /**
