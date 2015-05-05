@@ -267,8 +267,8 @@
     }
 
     var getFullPageScreenshot = function (browser, promiseFactory, viewportSize, hideScrollbars, useCssTransition) {
-        var MAX_SCROLL_BAR_SIZE = 50; // This should cover all scroll bars (and some fixed position footer elements :).
         var MIN_SCREENSHOT_PART_HEIGHT = 10;
+        var maxScrollbarSize = useCssTransition ? 0 : 50; // This should cover all scroll bars (and some fixed position footer elements :).
         var sizeFactor = 1;
         var originalScrollPosition,
             originalOverflow,
@@ -341,7 +341,7 @@
                         // of bottom scroll bars, as well as footer-like elements with fixed position.
                         var screenshotPartSize = {
                             width: imageObject.width,
-                            height: Math.max(imageObject.height - (MAX_SCROLL_BAR_SIZE * sizeFactor),
+                            height: Math.max(imageObject.height - (maxScrollbarSize * sizeFactor),
                                 MIN_SCREENSHOT_PART_HEIGHT * sizeFactor)
                         };
 
