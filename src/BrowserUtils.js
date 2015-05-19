@@ -264,7 +264,7 @@
                 });
             });
         });
-    }
+    };
 
     var getFullPageScreenshot = function (browser, promiseFactory, viewportSize, hideScrollbars, useCssTransition) {
         var MIN_SCREENSHOT_PART_HEIGHT = 10;
