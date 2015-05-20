@@ -456,6 +456,17 @@
         });
     };
 
+    /**
+     *
+     * rotateImage - rotates a parsed image - the image is changed
+     *
+     * @param {Object} imageBmp BMP
+     * @param {Object} deg how many degrees to rotate (in actuallity it's only by multipliers of 90)
+     * @param {Object} promiseFactory
+     *
+     * @returns {Object} - Promise - empty, just indicating completion
+     *
+     **/
     ImageUtils.rotateImage = function rotateImage(imageBmp, deg, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             if (typeof deg != "number") {
@@ -485,7 +496,7 @@
                 i--;
             }
 
-            resolve(imageBmp);
+            resolve();
         });
     };
 
