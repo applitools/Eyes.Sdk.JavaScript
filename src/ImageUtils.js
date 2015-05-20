@@ -568,8 +568,8 @@
         return stitchingPromise.then(function () {
             return promiseFactory.makePromise(function(resolve) {
                 //noinspection JSUnresolvedFunction
-                createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
-                    copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
+                ImageUtils.createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
+                    ImageUtils.copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
                     resolve(stitchedImage);
                 });
             });

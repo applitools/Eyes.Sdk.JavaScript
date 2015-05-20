@@ -44,7 +44,7 @@
         return browser.executeScript(script)
             .then(function(result) {
                 if (stabilizationTimeMs) {
-                    return sleep(stabilizationTimeMs, promiseFactory)
+                    return BrowserUtils.sleep(stabilizationTimeMs, promiseFactory)
                         .then(function() {
                             return result;
                         });
@@ -63,7 +63,7 @@
      */
     BrowserUtils.getDevicePixelRatio = function getDevicePixelRatio(browser, promiseFactory) {
         //noinspection JSUnresolvedVariable
-        return executeScript(browser, 'return window.devicePixelRatio', promiseFactory, undefined)
+        return BrowserUtils.executeScript(browser, 'return window.devicePixelRatio', promiseFactory, undefined)
             .then(function (results) {
                 return parseFloat(results);
             });
@@ -78,7 +78,7 @@
      */
     BrowserUtils.getCurrentScrollPosition = function getCurrentScrollPosition(browser, promiseFactory) {
         //noinspection JSUnresolvedVariable
-        return executeScript(browser,
+        return BrowserUtils.executeScript(browser,
             'var doc = document.documentElement; ' +
                 'var x = (window.scrollX || window.pageXOffset || doc.scrollLeft) - (doc.clientLeft || 0); ' +
                 'var y = (window.scrollY || window.pageYOffset || doc.scrollTop)  - (doc.clientTop || 0); ' +
@@ -98,7 +98,7 @@
      * @return {Promise} A promise which resolves to the current transform value.
      */
     BrowserUtils.getCurrentTransform = function getCurrentTransform(browser, promiseFactory) {
-        return executeScript(browser, "return document.body.style.transform", promiseFactory);
+        return BrowserUtils.executeScript(browser, "return document.body.style.transform", promiseFactory);
     };
 
     /**
@@ -113,7 +113,7 @@
         if (!transformToSet) {
             transformToSet = '';
         }
-        return executeScript(browser,
+        return BrowserUtils.executeScript(browser,
             "var originalTransform = document.body.style.transform; " +
             "document.body.style.transform = '" + transformToSet + "'; " +
             "originalTransform",
@@ -128,7 +128,7 @@
      * @return {Promise} A promise which resolves to the previous transfrom when the scroll is executed.
      */
     BrowserUtils.translateTo = function translateTo(browser, point, promiseFactory) {
-        return setTransform(browser, 'translate(-' + point.left + 'px, -' + point.top + 'px)', promiseFactory);
+        return BrowserUtils.setTransform(browser, 'translate(-' + point.left + 'px, -' + point.top + 'px)', promiseFactory);
     };
 
     /**
@@ -140,7 +140,7 @@
      * @return {Promise} A promise which resolves after the action is perfromed and timeout passed.
      */
     BrowserUtils.scrollTo = function scrollTo(browser, point, promiseFactory) {
-        return executeScript(browser,
+        return BrowserUtils.executeScript(browser,
             'window.scrollTo(' + parseInt(point.left, 10) + ', ' + parseInt(point.top, 10) + ');',
             promiseFactory, 250);
     };
@@ -158,7 +158,7 @@
         // element's width and its content width, scrollHeight might be
         // smaller (!) than the clientHeight, which is why we take the
         // maximum between them.
-        return executeScript(browser,
+        return BrowserUtils.executeScript(browser,
             'return [document.documentElement.scrollWidth, document.body.scrollWidth, '
             + 'document.documentElement.clientHeight, document.body.clientHeight, '
             + 'document.documentElement.scrollHeight, document.body.scrollHeight];',
@@ -190,7 +190,7 @@
      * @return {Promise|*} A promise which resolves to the original overflow of the document.
      */
     BrowserUtils.setOverflow = function setOverflow(browser, overflowValue, promiseFactory) {
-        return executeScript(browser,
+        return BrowserUtils.executeScript(browser,
             'var origOF = document.documentElement.style.overflow; document.documentElement.style.overflow = "'
                 + overflowValue + '"; origOF', promiseFactory, 100);
     };
@@ -207,13 +207,13 @@
      * @return {Promise} A promise which resolves to the normalization factor (float).
      */
     BrowserUtils.findImageNormalizationFactor = function findImageNormalizationFactor(browser, imageSize, viewportSize, promiseFactory) {
-        return getEntirePageSize(browser, promiseFactory)
+        return BrowserUtils.getEntirePageSize(browser, promiseFactory)
             .then(function (entirePageSize) {
                 if (imageSize.width === viewportSize.width || imageSize.width === entirePageSize.width) {
                     return 1;
                 }
 
-                return getDevicePixelRatio(browser, promiseFactory)
+                return BrowserUtils.getDevicePixelRatio(browser, promiseFactory)
                     .then(function (ratio) {
                         return 1 / ratio;
                     });
@@ -240,11 +240,11 @@
                 var partCoords = {left: part.left, top: part.top};
                 var partCoordsNormalized = {left: part.left / sizeFactor, top: part.top / sizeFactor};
                 var promise = useCssTransition ?
-                    translateTo(browser, partCoordsNormalized, promiseFactory).then(function () {
+                    BrowserUtils.translateTo(browser, partCoordsNormalized, promiseFactory).then(function () {
                         currentPosition = partCoords;
                     }) :
-                    scrollTo(browser, partCoordsNormalized, promiseFactory).then(function () {
-                        return getCurrentScrollPosition(browser, promiseFactory).then(function (position) {
+                    BrowserUtils.scrollTo(browser, partCoordsNormalized, promiseFactory).then(function () {
+                        return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (position) {
                             currentPosition = {left: position.left * sizeFactor, top: position.top * sizeFactor};
                         });
                     });
@@ -281,10 +281,10 @@
             screenshot;
 
         return promiseFactory.makePromise(function (resolve) {
-            return getCurrentScrollPosition(browser, promiseFactory).then(function(point) {
+            return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function(point) {
                     originalScrollPosition = point;
-                    return scrollTo(browser, {left: 0, top: 0}, promiseFactory).then(function() {
-                        return getCurrentScrollPosition(browser, promiseFactory).then(function(point) {
+                    return BrowserUtils.scrollTo(browser, {left: 0, top: 0}, promiseFactory).then(function() {
+                        return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function(point) {
                             if (point.left != 0 || point.top != 0) {
                                 throw new Error("Could not scroll to the top/left corner of the screen");
                             }
@@ -293,22 +293,22 @@
                 })
                 .then(function() {
                     if (useCssTransition) {
-                        return getCurrentTransform(browser, promiseFactory).then(function(transform) {
+                        return BrowserUtils.getCurrentTransform(browser, promiseFactory).then(function(transform) {
                             originalTransform = transform;
                             // Translating to "top/left" of the page (notice this is different from Javascript scrolling).
-                            return translateTo(browser, {left: 0, top: 0}, promiseFactory);
+                            return BrowserUtils.translateTo(browser, {left: 0, top: 0}, promiseFactory);
                         });
                     }
                 })
                 .then(function() {
                     if (hideScrollbars) {
-                        setOverflow(browser, "hidden", promiseFactory).then(function(originalVal) {
+                        BrowserUtils.setOverflow(browser, "hidden", promiseFactory).then(function(originalVal) {
                             originalOverflow = originalVal;
                         });
                     }
                 })
                 .then(function() {
-                    return getEntirePageSize(browser, promiseFactory).then(function(pageSize) {
+                    return BrowserUtils.getEntirePageSize(browser, promiseFactory).then(function(pageSize) {
                         entirePageSize = pageSize;
                     });
                 })
@@ -322,7 +322,7 @@
                     });
                 })
                 .then(function() {
-                    return findImageNormalizationFactor(browser, imageObject, viewportSize, promiseFactory)
+                    return BrowserUtils.findImageNormalizationFactor(browser, imageObject, viewportSize, promiseFactory)
                         .then(function(factor) {
                             if (factor === 0.5) {
                                 sizeFactor = 2;
@@ -370,16 +370,16 @@
                 })
                 .then(function() {
                     if (hideScrollbars) {
-                        return setOverflow(browser, originalOverflow, promiseFactory);
+                        return BrowserUtils.setOverflow(browser, originalOverflow, promiseFactory);
                     }
                 })
                 .then(function () {
                     if (useCssTransition) {
-                        return setTransform(browser, originalTransform, promiseFactory).then(function() {
-                            return scrollTo(browser, originalScrollPosition, promiseFactory);
+                        return BrowserUtils.setTransform(browser, originalTransform, promiseFactory).then(function() {
+                            return BrowserUtils.scrollTo(browser, originalScrollPosition, promiseFactory);
                         });
                     } else {
-                        return scrollTo(browser, originalScrollPosition, promiseFactory);
+                        return BrowserUtils.scrollTo(browser, originalScrollPosition, promiseFactory);
                     }
 
                 })
