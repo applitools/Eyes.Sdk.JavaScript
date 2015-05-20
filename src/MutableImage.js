@@ -196,5 +196,27 @@
             });
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * rotates the image according to the given degrees.
+     *
+     * @param {Number} degrees
+     * @return {Object} promise - resolves without any value
+     */
+    MutableImage.prototype.rotateImage = function (degrees) {
+        var that = this;
+        return _parseImage(that)
+            .then(function () {
+                if (that._isParsed) {
+                    // If the region's coordinates are relative to the image, we convert them to absolute coordinates.
+                    return ImageUtils.rotateImage(that._imageBmp, degrees, that._promiseFactory)
+                        .then(function () {
+                            that._width = that._imageBmp.width;
+                            that._height = that._imageBmp.height;
+                        });
+                }
+            });
+    };
+
     module.exports = MutableImage;
 }());
