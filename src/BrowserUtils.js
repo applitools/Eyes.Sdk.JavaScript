@@ -15,12 +15,14 @@
     var GeometryUtils = require('./GeometryUtils');
     var ImageUtils = require('./ImageUtils');
 
+    var BrowserUtils = {};
+
     /**
      * Waits a specified amount of time before resolving the returned promise.
      * @param {int} ms The amount of time to sleep in milliseconds.
      * @return {Promise} A promise which is resolved when sleep is done.
      */
-    var sleep = function (ms, promiseFactory) {
+    BrowserUtils.sleep = function sleep(ms, promiseFactory) {
         return promiseFactory.makePromise(function(resolve) {
             setTimeout(function() {
                 resolve();
@@ -38,7 +40,7 @@
      *
      * @return {Promise} A promise which resolves to the result of the script's execution on the tab.
      */
-    var executeScript = function (browser, script, promiseFactory, stabilizationTimeMs) {
+    BrowserUtils.executeScript = function executeScript(browser, script, promiseFactory, stabilizationTimeMs) {
         return browser.executeScript(script)
             .then(function(result) {
                 if (stabilizationTimeMs) {
@@ -59,7 +61,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves to the device pixel ratio (float type).
      */
-    var getDevicePixelRatio = function (browser, promiseFactory) {
+    BrowserUtils.getDevicePixelRatio = function getDevicePixelRatio(browser, promiseFactory) {
         //noinspection JSUnresolvedVariable
         return executeScript(browser, 'return window.devicePixelRatio', promiseFactory, undefined)
             .then(function (results) {
@@ -74,7 +76,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves to the current scroll position ({top: *, left: *}).
      */
-    var getCurrentScrollPosition = function (browser, promiseFactory) {
+    BrowserUtils.getCurrentScrollPosition = function getCurrentScrollPosition(browser, promiseFactory) {
         //noinspection JSUnresolvedVariable
         return executeScript(browser,
             'var doc = document.documentElement; ' +
@@ -95,7 +97,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves to the current transform value.
      */
-    var getCurrentTransform = function (browser, promiseFactory) {
+    BrowserUtils.getCurrentTransform = function getCurrentTransform(browser, promiseFactory) {
         return executeScript(browser, "return document.body.style.transform", promiseFactory);
     };
 
@@ -107,7 +109,7 @@
      *
      * @return {Promise} A promise which resolves to the previous transform once the updated transform is set.
      */
-    var setTransform = function (browser, transformToSet, promiseFactory) {
+    BrowserUtils.setTransform = function setTransform(browser, transformToSet, promiseFactory) {
         if (!transformToSet) {
             transformToSet = '';
         }
@@ -125,7 +127,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves to the previous transfrom when the scroll is executed.
      */
-    var translateTo = function (browser, point, promiseFactory) {
+    BrowserUtils.translateTo = function translateTo(browser, point, promiseFactory) {
         return setTransform(browser, 'translate(-' + point.left + 'px, -' + point.top + 'px)', promiseFactory);
     };
 
@@ -137,7 +139,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves after the action is perfromed and timeout passed.
      */
-    var scrollTo = function (browser, point, promiseFactory) {
+    BrowserUtils.scrollTo = function scrollTo(browser, point, promiseFactory) {
         return executeScript(browser,
             'window.scrollTo(' + parseInt(point.left, 10) + ', ' + parseInt(point.top, 10) + ');',
             promiseFactory, 250);
@@ -150,7 +152,7 @@
      * @param {Object} - promiseFactory
      * @return {Promise} A promise which resolves to an object containing the width/height of the page.
      */
-    var getEntirePageSize = function (browser, promiseFactory) {
+    BrowserUtils.getEntirePageSize = function getEntirePageSize(browser, promiseFactory) {
         // IMPORTANT: Notice there's a major difference between scrollWidth
         // and scrollHeight. While scrollWidth is the maximum between an
         // element's width and its content width, scrollHeight might be
@@ -187,7 +189,7 @@
      * @param {string} overflowValue The values of the overflow to set.
      * @return {Promise|*} A promise which resolves to the original overflow of the document.
      */
-    var setOverflow = function (browser, overflowValue, promiseFactory) {
+    BrowserUtils.setOverflow = function setOverflow(browser, overflowValue, promiseFactory) {
         return executeScript(browser,
             'var origOF = document.documentElement.style.overflow; document.documentElement.style.overflow = "'
                 + overflowValue + '"; origOF', promiseFactory, 100);
@@ -200,10 +202,11 @@
      *
      * @param {WebDriver} browser The driver used to update the web page.
      * @param {Object} imageSize The width and height.
-     * @param {Object} - promiseFactory
+     * @param {Object} viewportSize
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to the normalization factor (float).
      */
-    var findImageNormalizationFactor = function (browser, imageSize, viewportSize, promiseFactory) {
+    BrowserUtils.findImageNormalizationFactor = function findImageNormalizationFactor(browser, imageSize, viewportSize, promiseFactory) {
         return getEntirePageSize(browser, promiseFactory)
             .then(function (entirePageSize) {
                 if (imageSize.width === viewportSize.width || imageSize.width === entirePageSize.width) {
@@ -266,7 +269,7 @@
         });
     };
 
-    var getFullPageScreenshot = function (browser, promiseFactory, viewportSize, hideScrollbars, useCssTransition) {
+    BrowserUtils.getFullPageScreenshot = function getFullPageScreenshot(browser, promiseFactory, viewportSize, hideScrollbars, useCssTransition) {
         var MIN_SCREENSHOT_PART_HEIGHT = 10;
         var maxScrollbarSize = useCssTransition ? 0 : 50; // This should cover all scroll bars (and some fixed position footer elements :).
         var sizeFactor = 1;
@@ -386,20 +389,5 @@
         });
     };
 
-    //noinspection JSLint
-    var BrowserUtils = {};
-    BrowserUtils.getDevicePixelRatio = getDevicePixelRatio;
-    BrowserUtils.getCurrentScrollPosition = getCurrentScrollPosition;
-    BrowserUtils.getCurrentTransform = getCurrentTransform;
-    BrowserUtils.sleep = sleep;
-    BrowserUtils.executeScript = executeScript;
-    BrowserUtils.setTransform = setTransform;
-    BrowserUtils.translateTo = translateTo;
-    BrowserUtils.scrollTo = scrollTo;
-    BrowserUtils.getEntirePageSize = getEntirePageSize;
-    BrowserUtils.setOverflow = setOverflow;
-    BrowserUtils.findImageNormalizationFactor = findImageNormalizationFactor;
-    BrowserUtils.getFullPageScreenshot = getFullPageScreenshot;
-    //noinspection JSUnresolvedVariable
     module.exports = BrowserUtils;
 }());
