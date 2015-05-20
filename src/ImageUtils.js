@@ -426,8 +426,7 @@
             }
 
             if (region.top < 0 || region.top >= imageBmp.height || region.left < 0 || region.left >= imageBmp.width) {
-                reject(new Error('region is outside the image bounds!'));
-                return;
+                return reject(new Error('region is outside the image bounds!'));
             }
 
             // process the pixels - crop
@@ -452,6 +451,39 @@
             imageBmp.height = yEnd - yStart;
 
             resolve();
+        });
+    };
+
+    var rotateImage = function (imageBmp, deg, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            if (typeof deg != "number") {
+                return reject(new Error('deg must be a number!'));
+            }
+
+            var i = Math.round(deg / 90) % 4;
+            if (i < 0) i += 4;
+
+            while (i > 0) {
+                var bitmap = new Buffer(imageBmp.data.length);
+                var offset = 0;
+                for (var x = 0; x < imageBmp.width; x++) {
+                    for (var y = imageBmp.height - 1; y >= 0; y--) {
+                        var idx = (imageBmp.width * y + x) << 2;
+                        var data = imageBmp.data.readUInt32BE(idx, true);
+                        bitmap.writeUInt32BE(data, offset, true);
+                        offset += 4;
+                    }
+                }
+
+                imageBmp.data = new Buffer(bitmap);
+                var tmp = imageBmp.width;
+                imageBmp.width = imageBmp.height;
+                imageBmp.height = tmp;
+
+                i--;
+            }
+
+            resolve(imageBmp);
         });
     };
 
@@ -571,6 +603,7 @@
     ImageUtils.cropImage = cropImage;
     ImageUtils.scaleImage = scaleImage;
     ImageUtils.copyPixels = copyPixels;
+    ImageUtils.rotateImage = rotateImage;
     ImageUtils.stitchImage = stitchImage;
     ImageUtils.createPngFromBuffer = createPngFromBuffer;
     //noinspection JSUnresolvedVariable
