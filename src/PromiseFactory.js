@@ -18,6 +18,7 @@
         this._deferredFactoryFunc = deferredFactoryFunc;
     }
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the factory methods which will be used to create promises and deferred-s.
      * @param promiseFactoryFunc A function which receives as a parameter the same function you would pass to a Promise
@@ -29,6 +30,7 @@
         this._deferredFactoryFunc = deferredFactoryFunc;
     };
 
+    //noinspection JSUnusedGlobalSymbols
     PromiseFactory.prototype.makePromise = function (asyncAction) {
         if (this._promiseFactoryFunc) {
             return this._promiseFactoryFunc(asyncAction);
@@ -37,6 +39,7 @@
         throw new Error('Promise factory was not initialized with proper callback');
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
      * @deprecated
      * @returns {*}
