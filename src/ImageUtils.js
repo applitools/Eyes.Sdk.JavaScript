@@ -17,6 +17,8 @@
     var ReadableBufferStream = StreamUtils.ReadableBufferStream;
     var WritableBufferStream = StreamUtils.WritableBufferStream;
 
+    var ImageUtils = {};
+
     /**
      *
      * parseImage - processes a PNG buffer - returns it as BMP.
@@ -27,7 +29,7 @@
      * @returns {Object} - Promise
      *
      **/
-    var parseImage = function (image, promiseFactory) {
+    ImageUtils.parseImage = function parseImage(image, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
             if (!fs.open) {
                 return resolve(image);
@@ -54,7 +56,7 @@
      * @returns {Object} - Promise - when resolved contains a buffer
      *
      **/
-    var packImage = function (imageBmp, promiseFactory) {
+    ImageUtils.packImage = function packImage(imageBmp, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
 
             // Write back to a temp png file
@@ -77,7 +79,7 @@
      * @returns {Object} - Promise - empty
      *
      **/
-    var scaleImage = function (imageBmp, scale, promiseFactory) {
+    ImageUtils.scaleImage = function scaleImage(imageBmp, scale, promiseFactory) {
         // two-dimensional array coordinates to a vector index
         function xytoi(ix, iy, w) {
             // byte array, r,g,b,a
@@ -418,7 +420,7 @@
      * @returns {Object} - Promise - empty, just indicating completion
      *
      **/
-    var cropImage = function (imageBmp, region, promiseFactory) {
+    ImageUtils.cropImage = function cropImage(imageBmp, region, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             if (!region) {
                 resolve(imageBmp);
@@ -454,7 +456,7 @@
         });
     };
 
-    var rotateImage = function (imageBmp, deg, promiseFactory) {
+    ImageUtils.rotateImage = function rotateImage(imageBmp, deg, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             if (typeof deg != "number") {
                 return reject(new Error('deg must be a number!'));
@@ -495,7 +497,7 @@
      * @param srcPosition An object containing the top/left values of the pixel from which to start copying.
      * @param size An object containing width/height of the region to be copied.
      */
-    var copyPixels = function (dst, dstPosition, src, srcPosition, size) {
+    ImageUtils.copyPixels = function copyPixels(dst, dstPosition, src, srcPosition, size) {
         var y, dstY, srcY, x, dstX, srcX, dstIndex, srcIndex;
         for (y = 0; y < size.height; ++y) {
             dstY = dstPosition.top + y;
@@ -525,7 +527,7 @@
      *
      * @return {Promise} A promise which resolves to the PNG instance.
      */
-    var createPngFromBuffer = function (buffer, promiseFactory) {
+    ImageUtils.createPngFromBuffer = function createPngFromBuffer(buffer, promiseFactory) {
         return promiseFactory.makePromise(function(resolve) {
             // In order to create a PNG instance from part.image, we first need to create a stream from it.
             var pngImageStream = new ReadableBufferStream(buffer);
@@ -574,7 +576,7 @@
      *
      * @return {Promise} A promise which resolves to the stitched image.
      */
-    var stitchImage = function (fullSize, parts, promiseFactory) {
+    ImageUtils.stitchImage = function stitchImage(fullSize, parts, promiseFactory) {
         return promiseFactory.makePromise(function(resolve) {
             var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
             var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
@@ -597,15 +599,5 @@
         });
     };
 
-    var ImageUtils = {};
-    ImageUtils.parseImage = parseImage;
-    ImageUtils.packImage = packImage;
-    ImageUtils.cropImage = cropImage;
-    ImageUtils.scaleImage = scaleImage;
-    ImageUtils.copyPixels = copyPixels;
-    ImageUtils.rotateImage = rotateImage;
-    ImageUtils.stitchImage = stitchImage;
-    ImageUtils.createPngFromBuffer = createPngFromBuffer;
-    //noinspection JSUnresolvedVariable
     module.exports = ImageUtils;
 }());
