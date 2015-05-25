@@ -404,7 +404,7 @@
             imageBmp.width = scaledBmp.width;
             imageBmp.height = scaledBmp.height;
 
-            resolve();
+            resolve(imageBmp);
 
         });
     };
@@ -452,7 +452,7 @@
             imageBmp.width = xEnd - xStart;
             imageBmp.height = yEnd - yStart;
 
-            resolve();
+            resolve(imageBmp);
         });
     };
 
@@ -496,7 +496,7 @@
                 i--;
             }
 
-            resolve();
+            resolve(imageBmp);
         });
     };
 

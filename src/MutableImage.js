@@ -161,6 +161,7 @@
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;
+                            return that;
                         });
                 }
             });
@@ -191,6 +192,7 @@
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;
+                            return that;
                         });
                 }
             });
@@ -213,6 +215,7 @@
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;
+                            return that;
                         });
                 }
             });
