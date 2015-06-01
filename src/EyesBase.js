@@ -776,7 +776,7 @@
                 this._logger.getLogHandler().close();
                 resolve();
             }.bind(this))
-                .catch(function (err) {
+                .thenCatch(function (err) {
                     this._logger.log(err);
                     reject();
                 }.bind(this));
