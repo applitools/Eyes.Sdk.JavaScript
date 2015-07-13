@@ -474,6 +474,7 @@
                     layoutMatches: 0,
                     noneMatches: 0,
                     isNew: false,
+                    sessionId: null,
                     url: '',
                     isPassed: true,
                     asExpected: true
@@ -490,6 +491,7 @@
                     this._logger.log('=======================================');
                     this._logger.log('>> EyesBase.close - session ended');
                     results.isNew = this._runningSession.isNewSession;
+                    results.sessionId = this._runningSession.sessionId.toString();
                     results.url = this._runningSession.sessionUrl;
                     results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
                     this._runningSession = undefined;
