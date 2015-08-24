@@ -35,6 +35,7 @@
         this._promiseFactory = promiseFactory;
         this._logger = logger;
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
+        this._runKey = undefined;
         this._httpOptions = {
             rejectUnauthorized: false,
             headers: DEFAULT_HEADERS,
@@ -46,18 +47,41 @@
     /**
      * Sets the API key of your applitools Eyes account.
      *
-     * @param apiKey {String} The api key to be used.
+     * @param runKey {String} The run key to be used.
+     * @param newAuthScheme {boolean} Whether or not the server uses the new authentication scheme.
      */
-    ServerConnector.prototype.setApiKey = function (apiKey) {
-        this._httpOptions.query.apiKey = apiKey;
+    ServerConnector.prototype.setApiKey = function (runKey, newAuthScheme) {
+        if (newAuthScheme) {
+            this._httpOptions.query.accessKey = runKey;
+        } else {
+            this._httpOptions.query.apiKey = runKey;
+        }
+        this._runKey = runKey;
     };
 
     /**
      *
-     * @return {String} The currently set API key.
+     * @return {String} The current run key.
      */
     ServerConnector.prototype.getApiKey = function () {
-        return this._httpOptions.query.apiKey;
+        return this._runKey;
+    };
+
+    /**
+     * Whether sessions are removed immediately after they are finished.
+     *
+     * @param shouldRemove {boolean}
+     */
+    ServerConnector.prototype.setRemoveSession = function (shouldRemove) {
+        this._httpOptions.query.removeSession = shouldRemove;
+    };
+
+    /**
+     *
+     * @return {boolean} Whether sessions are removed immediately after they are finished.
+     */
+    ServerConnector.prototype.getRemoveSession = function () {
+        return !!this._httpOptions.query.removeSession;
     };
 
     /**

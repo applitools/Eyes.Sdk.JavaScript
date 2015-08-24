@@ -71,9 +71,10 @@
      * Sets the API key of your applitools Eyes account.
      *
      * @param apiKey {String} The api key to be used.
+     * @param [newAuthScheme] {boolean} Whether or not the server uses the new authentication scheme.
      */
-    EyesBase.prototype.setApiKey = function (apiKey) {
-        this._serverConnector.setApiKey(apiKey);
+    EyesBase.prototype.setApiKey = function (apiKey, newAuthScheme) {
+        this._serverConnector.setApiKey(apiKey, newAuthScheme);
     };
 
     /**
@@ -81,6 +82,22 @@
      */
     EyesBase.prototype.getApiKey = function () {
         return this._serverConnector.getApiKey();
+    };
+
+    /**
+     * Whether sessions are removed immediately after they are finished.
+     *
+     * @param shouldRemove {boolean}
+     */
+    EyesBase.prototype.setRemoveSession = function (shouldRemove) {
+        this._serverConnector.setRemoveSession(shouldRemove);
+    };
+
+    /**
+     * @return {boolean} Whether sessions are removed immediately after they are finished.
+     */
+    EyesBase.prototype.getRemoveSession = function () {
+        return this._serverConnector.getRemoveSession();
     };
 
     //noinspection JSUnusedGlobalSymbols
