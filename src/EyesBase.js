@@ -399,6 +399,14 @@
         return this._parentBranchName;
     };
 
+    /**
+     *
+     * @return {Object} An object containing data about the currently running session.
+     */
+    EyesBase.prototype.getRunningSession = function () {
+        return this._runningSession;
+    };
+
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
         this._logger.getLogHandler().open();
         return this._promiseFactory.makePromise(function (resolve, reject) {
@@ -492,6 +500,7 @@
                     noneMatches: 0,
                     isNew: false,
                     sessionId: null,
+                    legacySessionId: null,
                     url: '',
                     isPassed: true,
                     asExpected: true
@@ -509,6 +518,7 @@
                     this._logger.log('>> EyesBase.close - session ended');
                     results.isNew = this._runningSession.isNewSession;
                     results.sessionId = this._runningSession.sessionId.toString();
+                    results.legacySessionId = this._runningSession.legacySessionId || null;
                     results.url = this._runningSession.sessionUrl;
                     results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
                     this._runningSession = undefined;
