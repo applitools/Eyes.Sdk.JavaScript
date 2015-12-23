@@ -1,6 +1,7 @@
 exports.GeneralUtils = require('./src/GeneralUtils');
 exports.ImageUtils = require('./src/ImageUtils');
 exports.GeometryUtils = require('./src/GeometryUtils');
+exports.TestResultsUtils = require('./src/TestResultsUtils');
 exports.StreamUtils = require('./src/StreamUtils');
 exports.PromiseFactory = require('./src/PromiseFactory');
 exports.BrowserUtils = require('./src/BrowserUtils');
