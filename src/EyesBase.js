@@ -489,6 +489,8 @@
                 this._logger.log("Close: Server session was not started");
                 this._logger.getLogHandler().close();
                 resolve({
+                    testName: null,
+                    appName: null,
                     steps: 0,
                     matches: 0,
                     mismatches: 0,
@@ -503,6 +505,7 @@
                     legacySessionId: null,
                     url: '',
                     isPassed: true,
+                    isSaved: false,
                     asExpected: true
                 });
                 return;
@@ -521,6 +524,9 @@
                     results.legacySessionId = this._runningSession.legacySessionId || null;
                     results.url = this._runningSession.sessionUrl;
                     results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
+                    results.isSaved = save;
+                    results.testName = this._testName;
+                    results.appName = this._appName;
                     this._runningSession = undefined;
                     this._logger.log('>> close:', results);
 
