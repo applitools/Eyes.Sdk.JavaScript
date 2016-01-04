@@ -33,6 +33,70 @@
     };
 
     /**
+     * Utility function for creating the test results object
+     *
+     * @param {Logger} logger The logger to use.
+     * @param {string} testName The test's name.
+     * @param {string} appName The application name
+     * @param {Object} runningSession The running session data received from the server.
+     * @param {Object} serverResults The tests results data received from the server.
+     * @param {boolean} isSaved Whether or not the test was automatically saved.
+     * @param {boolean} isAborted Whether or not the test was aborted.
+     * @returns {Object} A test results object.
+     * @private
+     */
+    var _buildTestResults = function (logger, testName, appName, runningSession, serverResults, isSaved, isAborted) {
+            // It's possible that the test wasn't ever started.
+            if (!runningSession) {
+                logger.log("No running session. Creating empty test results.");
+                return { testName: testName,
+                    appName: appName,
+                    steps: 0,
+                    matches: 0,
+                    mismatches: 0,
+                    missing: 0,
+                    exactMatches: 0,
+                    strictMatches: 0,
+                    contentMatches: 0,
+                    layoutMatches: 0,
+                    noneMatches: 0,
+                    isNew: false,
+                    sessionId: null,
+                    legacySessionId: null,
+                    url: '',
+                    isPassed: !isAborted,
+                    isAborted: isAborted,
+                    isSaved: false
+                    };
+            }
+
+            // If we're here, the test was actually started, and we have results from the server.
+            var missing = serverResults.missing;
+            var mismatches = serverResults.mismatches;
+            var isNew = runningSession.isNewSession;
+            var isPassed = (!isAborted && !isNew && mismatches === 0 && missing === 0);
+            return { testName: testName,
+                appName: appName,
+                steps: serverResults.steps,
+                matches: serverResults.matches,
+                mismatches: mismatches,
+                missing: missing,
+                exactMatches: serverResults.exactMatches,
+                strictMatches: serverResults.strictMatches,
+                contentMatches: serverResults.contentMatches,
+                layoutMatches: serverResults.layoutMatches,
+                noneMatches: serverResults.noneMatches,
+                isNew: isNew,
+                sessionId: runningSession.sessionId.toString(),
+                legacySessionId: runningSession.legacySessionId || null,
+                url: runningSession.sessionUrl,
+                isPassed: isPassed,
+                isAborted: isAborted,
+                isSaved: isSaved
+                };
+        };
+
+    /**
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @param {String} serverUrl
      * @param {Boolean} isDisabled
@@ -55,6 +119,8 @@
             this._os = undefined;
             this._hostingApp = undefined;
             this._baselineName = undefined;
+            this._testName = null;
+            this._appName = null;
         }
     }
 
@@ -399,6 +465,23 @@
         return this._parentBranchName;
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {?String} The name of the currently running test.
+     */
+    EyesBase.prototype.getTestName = function () {
+        return this._testName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {?String} The name of the currently tested application.
+     */
+    EyesBase.prototype.getAppName = function () {
+        return this._appName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
     /**
      *
      * @return {Object} An object containing data about the currently running session.
@@ -445,24 +528,105 @@
         }.bind(this));
     };
 
-    EyesBase.buildTestError = function (results, scenarioIdOrName, appIdOrName) {
-        var message;
-        if (results.isNew) {
-            var instructions = "Please approve the new baseline at " + results.url;
-            message = "[EYES: NEW TEST ENDED]: '" + scenarioIdOrName + "' of '" + appIdOrName
-                + "'. " + instructions;
-            return new Error(message + " results: " + JSON.stringify(results));
+    // TODO - Separate this method to 2 methods, one to be used by "_endTest" and one to be used by "checkWindow".
+    /**
+     * Creates an error object based on the test results. This method is also used by wrapper SDKs (which is why it is
+     * defined as a method) for creating an error for immediate failure reports (i.e., when the user wants
+     * to know immediately when a checkWindow returns false).
+     *
+     * @param results The TestResults object.
+     * @param testName The test name.
+     * @param appName The application name
+     * @returns {Error|null} An error object representing the tets.
+     */
+    EyesBase.buildTestError = function (results, testName, appName) {
+        var message, header;
+        var instructions = 'See details at'; // Default
+
+        // Specifically handle the build test error
+        if (results.asExpected === false) {
+            return new Error('[EYES: TEST FAILED (Immediate failure report on mismatch)]');
         }
 
-        if ((!results.isPassed) || (!results.asExpected)) {
-            message = "[EYES: TEST FAILED]: '" + scenarioIdOrName + "' of '" + appIdOrName
-                + "'. See details at " + results.url;
-            return new Error(message + " results: " + JSON.stringify(results));
-        }
+        if (results.isAborted) {
+            header = "[EYES: TEST ABORTED]";
+        } else if (results.isNew) {
+            header = "[EYES: NEW TEST ENDED]";
+            instructions = "It is recommended to review the new baseline at";
 
-        return null;
+        // We explicitly check 'asExpected' as this method is also called by "checkWindow" in wrapper SDKs.
+        } else if ((!results.isPassed) && (results.asExpected === undefined)) {
+            header = "[EYES: TEST FAILED]";
+        } else {
+            // TODO - Do we really need this? (Is there a case when this function is called when a test is not failed/all the above?)
+            return null;
+        }
+        message = header + " '" + testName + "' of '" + appName + "'. " + instructions + ' ' + results.url + '.';
+        var error = new Error(message + "\r\nResults: " + JSON.stringify(results));
+        error.results = results;
+        return error;
     };
 
+    //noinspection JSValidateJSDoc
+    /**
+     * Utility function for ending a session on the server.
+     *
+     * @param {Logger} logger The logger to use.
+     * @param {string} testName The test's name.
+     * @param {string} appName The application name
+     * @param {Object} runningSession The running session data received from the server.
+     * @param {boolean} isAborted Whether or not the test was aborted.
+     * @param {boolean} save Whether or not the test should automatically be saved.
+     * @param {function} endSession The function which actually performs the 'end session' on the server.
+     * @param {boolean} throwEx Whether 'reject' should be called if the results returned from the server
+     *                          indicate a test failure.
+     * @param {function} resolve A function to call with the test results as a parameter if the test passed, or if it
+     *                              failed but 'throwEx' is set to 'false'.
+     * @param {function} reject A function to call with the test results as a parameter if the test failed and
+     *                              'throwEx' is set to 'true'.
+     * @returns {Promise} A promise which resolves after calling on of the functions 'resolve'/'reject' passed as
+     *                      arguments.
+     * @private
+     */
+    var _endSession = function (logger, testName, appName, runningSession, isAborted, save, endSession, throwEx,
+                                resolve, reject) {
+            var testResults;
+            logger.verbose('Ending server session...');
+            //noinspection JSUnresolvedFunction
+            return endSession(runningSession, isAborted, save)
+                .then(function (serverResults) {
+                    testResults = _buildTestResults(logger, testName, appName, runningSession, serverResults, save,
+                        isAborted);
+                    runningSession = undefined;
+                    logger.log('Results:', testResults);
+
+                    if (!testResults.isPassed) {
+                        var error = EyesBase.buildTestError(testResults, testName, appName);
+
+                        logger.log(error.message);
+
+                        if (throwEx) {
+                            reject(error);
+                            return;
+                        }
+                    } else {
+                        logger.log("[EYES: TEST PASSED]: See details at", testResults.url);
+                    }
+                    resolve(testResults);
+
+                }, function (err) {
+                    logger.log(err);
+                    reject(err);
+                });
+        };
+
+    //noinspection JSValidateJSDoc
+    /**
+     * Ends the currently running test.
+     *
+     * @param {boolean} throwEx If true, then the returned promise will 'reject' for failed/aborted tests.
+     * @returns {Promise} A promise which resolves/rejects to the test results (depending on the value of 'throwEx').
+     */
     EyesBase.prototype.close = function (throwEx) {
         if (throwEx === undefined) {
             throwEx = true;
@@ -485,70 +649,54 @@
             }
 
             this._isOpen = false;
+            this._matchWindowTask = undefined;
+
             if (!this._runningSession) {
                 this._logger.log("Close: Server session was not started");
                 this._logger.getLogHandler().close();
-                resolve({
-                    testName: null,
-                    appName: null,
-                    steps: 0,
-                    matches: 0,
-                    mismatches: 0,
-                    missing: 0,
-                    exactMatches: 0,
-                    strictMatches: 0,
-                    contentMatches: 0,
-                    layoutMatches: 0,
-                    noneMatches: 0,
-                    isNew: false,
-                    sessionId: null,
-                    legacySessionId: null,
-                    url: '',
-                    isPassed: true,
-                    isSaved: false,
-                    asExpected: true
-                });
+                var testResults = _buildTestResults(this._logger, this._testName, this._appName, undefined, undefined,
+                    false, false);
+                resolve(testResults);
                 return;
             }
 
-            this._logger.verbose('EyesBase.close - calling server connector to end the running session');
             var save = ((this._runningSession.isNewSession && this._saveNewTests) ||
                 (!this._runningSession.isNewSession && this._saveFailedTests));
+
             //noinspection JSUnresolvedFunction
-            return this._serverConnector.endSession(this._runningSession, false, save)
-                .then(function (results) {
-                    this._logger.log('=======================================');
-                    this._logger.log('>> EyesBase.close - session ended');
-                    results.isNew = this._runningSession.isNewSession;
-                    results.sessionId = this._runningSession.sessionId.toString();
-                    results.legacySessionId = this._runningSession.legacySessionId || null;
-                    results.url = this._runningSession.sessionUrl;
-                    results.isPassed = ((!results.isNew) && results.mismatches === 0 && results.missing === 0);
-                    results.isSaved = save;
-                    results.testName = this._testName;
-                    results.appName = this._appName;
+            return _endSession(this._logger, this._testName, this._appName, this._runningSession, false, save,
+                this._serverConnector.endSession.bind(this._serverConnector), throwEx, resolve, reject)
+                .then(function () {
                     this._runningSession = undefined;
-                    this._logger.log('>> close:', results);
-
-                    if (!results.isPassed) {
-                        var error = EyesBase.buildTestError(results, this._sessionStartInfo.scenarioIdOrName,
-                            this._sessionStartInfo.appIdOrName);
-
-                        this._logger.log(error.message);
-
-                        if (throwEx) {
-                            this._logger.getLogHandler().close();
-                            reject(error);
-                            return;
-                        }
-                    } else {
-                        this._logger.log(">> Test passed. See details at", results.url);
-                    }
                     this._logger.getLogHandler().close();
-                    resolve(results);
-                }.bind(this), function (err) {
-                    this._logger.log(err);
-                    reject(err);
+                }.bind(this));
+        }.bind(this));
+    };
+
+    EyesBase.prototype.abortIfNotClosed = function () {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
+            if (this._isDisabled) {
+                this._logger.log("Eyes abortIfNotClosed ignored - disabled");
+                this._logger.getLogHandler().close();
+                resolve();
+                return;
+            }
+
+            if (!this._isOpen) {
+                resolve();
+                this._logger.getLogHandler().close();
+                return;
+            }
+
+            this._isOpen = false;
+            this._matchWindowTask = undefined;
+
+            //noinspection JSUnresolvedFunction
+            return _endSession(this._logger, this._testName, this._appName, this._runningSession, true, false,
+                this._serverConnector.endSession.bind(this._serverConnector), false, resolve, reject)
+                .then(function () {
+                    this._runningSession = undefined;
+                    this._logger.getLogHandler().close();
                 }.bind(this));
         }.bind(this));
     };
@@ -557,12 +705,12 @@
     function _getAppData(region, lastScreenShot) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve, reject) {
-            that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screen shot');
+            that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             var data = {appOutput: {}};
             var parsedImage;
             return that.getScreenShot()
                 .then(function (image) {
-                    that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screen shot');
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                     parsedImage = image;
                     return parsedImage.cropImage(region);
                 })
@@ -784,37 +932,6 @@
                 this._logger.log(err);
                 reject(err);
             }.bind(this));
-        }.bind(this));
-    };
-
-    EyesBase.prototype.abortIfNotClosed = function () {
-        return this._promiseFactory.makePromise(function (resolve, reject) {
-            if (this._isDisabled) {
-                this._logger.log("Eyes abortIfNotClosed ignored - disabled");
-                this._logger.getLogHandler().close();
-                resolve();
-                return;
-            }
-
-            this._isOpen = false;
-            this._matchWindowTask = undefined;
-
-            if (!this._runningSession) {
-                resolve();
-                this._logger.getLogHandler().close();
-                return;
-            }
-
-            //noinspection JSUnresolvedFunction
-            return this._serverConnector.endSession(this._runningSession, true, false).then(function () {
-                this._runningSession = undefined;
-                this._logger.getLogHandler().close();
-                resolve();
-            }.bind(this))
-                .thenCatch(function (err) {
-                    this._logger.log(err);
-                    reject();
-                }.bind(this));
         }.bind(this));
     };
 
