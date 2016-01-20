@@ -993,7 +993,7 @@
         this._logger.verbose("AddMouseTrigger: Added", trigger);
     };
 
-    EyesBase.DEFAULT_EYES_SERVER = 'https://eyessdk.applitools.com';
+    EyesBase.DEFAULT_EYES_SERVER = 'https://eyesapi.applitools.com';
     EyesBase.FailureReport = Object.freeze(_FailureReport);
 
     module.exports = EyesBase;
