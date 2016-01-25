@@ -122,7 +122,7 @@
                         'status code ', response.statusCode);
                     if (response.statusCode === 200 || response.statusCode === 201) {
                         this._logger.verbose('ServerConnector.startSession - post succeeded');
-                        resolve({sessionId: data.id, sessionUrl: data.url,
+                        resolve({sessionId: data.id, legacySessionId: data.legacySessionId, sessionUrl: data.url,
                             isNewSession: response.statusCode === 201});
                     } else {
                         this._logger.log('ServerConnector.startSession - post failed');
