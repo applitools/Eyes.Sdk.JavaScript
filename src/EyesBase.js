@@ -729,8 +729,10 @@
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
                     data.appOutput.title = title;
                     resolve(data);
-                }, function (err) {
-                    reject(err);
+                }, function () {
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput failed to get title. Using "" instead.');
+                    data.appOutput.title = '';
+                    resolve(data);
                 });
         });
     }
