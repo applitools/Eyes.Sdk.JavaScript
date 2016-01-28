@@ -44,6 +44,17 @@
         };
     }
 
+    var httpRequestWrapper = function (restlerRequest, onComplete, onError) {
+        restlerRequest.on('complete', onComplete)
+            .on('error', function (err) {
+                console.log('error: ', err);
+                onError(err);
+            }).on('timeout', function (err) {
+                console.log('timeout error: ', err);
+                onError(err);
+            });
+    }
+
     /**
      * Sets the API key of your applitools Eyes account.
      *
@@ -99,8 +110,8 @@
         this._logger.verbose('ServerConnector.startSession called with:', sessionStartInfo);
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('ServerConnector.startSession will now post call');
-            restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions)
-                .on('complete', function (data, response) {
+            httpRequestWrapper(restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions),
+                function (data, response) {
                     if (!response) {
                         this._logger.verbose('ServerConnector.startSession - got empty response!');
                         reject(new Error(response));
@@ -117,7 +128,9 @@
                         this._logger.log('ServerConnector.startSession - post failed');
                         reject(new Error(response));
                     }
-                }.bind(this));
+                }.bind(this), function (err) {
+                    reject(new Error(err));
+                });
         }.bind(this));
     };
 
@@ -139,8 +152,8 @@
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             this._logger.verbose("ServerConnector.endSession will now post:", data, "to:", url);
-            restler.json(url, data, this._httpOptions, 'DELETE')
-                .on('complete', function (data, response) {
+            httpRequestWrapper(restler.json(url, data, this._httpOptions, 'DELETE'),
+                function (data, response) {
                     this._logger.verbose('ServerConnector.endSession result', data, 'status code', response.statusCode);
                     if (response.statusCode === 200 || response.statusCode === 201) {
                         resolve({
@@ -157,7 +170,9 @@
                     } else {
                         reject(new Error("error on server connector endSession"));
                     }
-                }.bind(this));
+                }.bind(this), function (err) {
+                    reject(new Error(err));
+                });
         }.bind(this));
     };
 
@@ -186,8 +201,9 @@
             //options.headers['Content-Type'] = 'application/octet-stream';
             //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
-            restler.postJson(url, matchWindowData, options)
-                .on('complete', function (data, response) {
+
+            httpRequestWrapper(restler.postJson(url, matchWindowData, options),
+                function (data, response) {
                     this._logger.verbose('ServerConnector.matchWindow result', data,
                         'status code', response.statusCode);
                     if (response.statusCode === 200) {
@@ -195,7 +211,9 @@
                     } else {
                         reject(new Error(response));
                     }
-                }.bind(this));
+                }.bind(this), function (err) {
+                    reject(new Error(err));
+                });
         }.bind(this));
     };
 
@@ -217,16 +235,17 @@
             //options.headers['Content-Type'] = 'application/octet-stream';
             //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
-            restler.putJson(url, replaceWindowData, options)
-                .on('complete', function (data, response) {
-                    this._logger.verbose('ServerConnector.replaceWindow result', data,
-                        'status code', response.statusCode);
-                    if (response.statusCode === 200) {
-                        resolve();
-                    } else {
-                        reject(new Error(response));
-                    }
-                }.bind(this));
+            httpRequestWrapper(restler.putJson(url, replaceWindowData, options), function (data, response) {
+                this._logger.verbose('ServerConnector.replaceWindow result', data,
+                    'status code', response.statusCode);
+                if (response.statusCode === 200) {
+                    resolve();
+                } else {
+                    reject(new Error(response));
+                }
+            }.bind(this), function (err) {
+                reject(new Error(err));
+            });
         }.bind(this));
     };
 
