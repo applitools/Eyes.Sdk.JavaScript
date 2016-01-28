@@ -34,7 +34,7 @@
      * Executes a script using the browser's executeScript function - and optionally waits a timeout.
      * @param {Object} browser - The driver using which to execute the script.
      * @param {string} script - The code to execute on the given driver.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      * @param {number|undefined} stabilizationTimeMs (optional) The amount of time to wait after script execution to
      *                            let the browser a chance to stabilize (e.g., finish rendering).
      *
@@ -58,7 +58,7 @@
      * Gets the device pixel ratio.
      *
      * @param {WebDriver} browser The driver which will execute the script to get the ratio.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to the device pixel ratio (float type).
      */
     BrowserUtils.getDevicePixelRatio = function getDevicePixelRatio(browser, promiseFactory) {
@@ -73,7 +73,7 @@
      * Gets the current scroll position.
      *
      * @param {WebDriver} browser The driver which will execute the script to get the scroll position.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to the current scroll position ({top: *, left: *}).
      */
     BrowserUtils.getCurrentScrollPosition = function getCurrentScrollPosition(browser, promiseFactory) {
@@ -94,7 +94,7 @@
     /**
      * Get the current transform of page.
      * @param {WebDriver} browser The driver which will execute the script to get the scroll position.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to the current transform value.
      */
     BrowserUtils.getCurrentTransform = function getCurrentTransform(browser, promiseFactory) {
@@ -105,7 +105,7 @@
      * Set the current transform of the current page.
      * @param {WebDriver} browser The driver which will execute the script to set the transform.
      * @param {string} transformToSet The transform to set.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      *
      * @return {Promise} A promise which resolves to the previous transform once the updated transform is set.
      */
@@ -123,8 +123,8 @@
     /**
      * CSS translate the document to a given location.
      * @param {WebDriver} browser The driver which will execute the script to set the transform.
-     * @param {Object} Point - left; top;.
-     * @param {Object} - promiseFactory
+     * @param {Object} Point left; top;.
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to the previous transfrom when the scroll is executed.
      */
     BrowserUtils.translateTo = function translateTo(browser, point, promiseFactory) {
@@ -135,8 +135,8 @@
      * Scroll to the specified position.
      *
      * @param {WebDriver} browser - The driver which will execute the script to set the scroll position.
-     * @param {Object} - point to scroll to
-     * @param {Object} - promiseFactory
+     * @param {Object} point Point to scroll to
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves after the action is perfromed and timeout passed.
      */
     BrowserUtils.scrollTo = function scrollTo(browser, point, promiseFactory) {
@@ -149,7 +149,7 @@
      * Get the entire page size.
      *
      * @param {WebDriver} browser The driver used to query the web page.
-     * @param {Object} - promiseFactory
+     * @param {Object} promiseFactory
      * @return {Promise} A promise which resolves to an object containing the width/height of the page.
      */
     BrowserUtils.getEntirePageSize = function getEntirePageSize(browser, promiseFactory) {
@@ -316,7 +316,10 @@
             if (isViewportScreenshot) {
                 return BrowserUtils.getCurrentScrollPosition(browser).then(function (scrollPosition) {
                     return parsedImage.setCoordinates(scrollPosition);
-                });
+                }, function () {
+					// Failed to get Scroll position, setting coordinates to default.
+					return parsedImage.setCoordinates({left: 0, top: 0});
+				});
             }
         })
         .then(function () {
@@ -348,12 +351,18 @@
         // step #1 - get entire page size for future use (scaling and stitching)
         return BrowserUtils.getEntirePageSize(browser, promiseFactory).then(function(pageSize) {
             entirePageSize = pageSize;
+        }, function () {
+            // Couldn't get entire page size, using viewport size as default.
+            entirePageSize = viewportSize;
         })
         .then(function() {
             // step #2 - get the device pixel ratio (scaling)
             return BrowserUtils.getDevicePixelRatio(browser, promiseFactory)
                 .then(function (ratio) {
                     pixelRatio = ratio;
+                }, function (err) {
+                    // Couldn't get pixel ratio, using 1 as default.
+                    pixelRatio = 1;
                 });
         })
         .then(function() {
