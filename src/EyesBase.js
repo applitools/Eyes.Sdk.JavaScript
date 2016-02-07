@@ -55,11 +55,6 @@
                     matches: 0,
                     mismatches: 0,
                     missing: 0,
-                    exactMatches: 0,
-                    strictMatches: 0,
-                    contentMatches: 0,
-                    layoutMatches: 0,
-                    noneMatches: 0,
                     isNew: false,
                     sessionId: null,
                     legacySessionId: null,
@@ -81,11 +76,6 @@
                 matches: serverResults.matches,
                 mismatches: mismatches,
                 missing: missing,
-                exactMatches: serverResults.exactMatches,
-                strictMatches: serverResults.strictMatches,
-                contentMatches: serverResults.contentMatches,
-                layoutMatches: serverResults.layoutMatches,
-                noneMatches: serverResults.noneMatches,
                 isNew: isNew,
                 sessionId: runningSession.sessionId.toString(),
                 legacySessionId: runningSession.legacySessionId || null,
@@ -358,6 +348,23 @@
      */
     EyesBase.prototype.getDefaultMatchTimeout = function () {
         return this._defaultMatchTimeout;
+    };
+
+
+    /**
+     * Activate/Deactivate HTTP client debugging.
+     *
+     * @param {boolean} isDebug Whether or not debug mode is active.
+     */
+    EyesBase.prototype.setDebugMode = function (isDebug) {
+        this._serverConnector.setDebugMode(isDebug);
+    };
+
+    /**
+     * @return {boolean} Whether or not HTTP client debugging mode is active.
+     */
+    ServerConnector.prototype.getIsDebugMode = function () {
+        return this._serverConnector.getIsDebugMode();
     };
 
     //noinspection JSUnusedGlobalSymbols
