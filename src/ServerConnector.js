@@ -15,9 +15,8 @@
     "use strict";
 
     var GeneralUtils = require('eyes.utils').GeneralUtils,
-        restler = require('restler'),
+        request = require('request'),
         fs = require('fs');
-
 
     // Constants
     var CONNECTION_TIMEOUT_MS = 5 * 60 * 1000,
@@ -37,23 +36,28 @@
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._runKey = undefined;
         this._httpOptions = {
-            rejectUnauthorized: false,
+            strictSSL: false,
             headers: DEFAULT_HEADERS,
             timeout: CONNECTION_TIMEOUT_MS,
-            query: {}
+            qs: {}
         };
     }
 
-    var httpRequestWrapper = function (restlerRequest, onComplete, onError) {
-        restlerRequest.on('complete', onComplete)
-            .on('error', function (err) {
-                console.log('error: ', err);
-                onError(err);
-            }).on('timeout', function (err) {
-                console.log('timeout error: ', err);
-                onError(err);
-            });
-    }
+    /**
+     * Activate/Deactivate HTTP client debugging.
+     *
+     * @param {boolean} isDebug Whether or not to activate debugging.
+     */
+    ServerConnector.prototype.setDebugMode = function (isDebug) {
+        request.debug = isDebug;
+    };
+
+    /**
+     * @return {boolean} Whether or not debug mode is active.
+     */
+    ServerConnector.prototype.getIsDebugMode = function () {
+        return request.debug;
+    };
 
     /**
      * Sets the API key of your applitools Eyes account.
@@ -63,9 +67,9 @@
      */
     ServerConnector.prototype.setApiKey = function (runKey, newAuthScheme) {
         if (newAuthScheme) {
-            this._httpOptions.query.accessKey = runKey;
+            this._httpOptions.qs.accessKey = runKey;
         } else {
-            this._httpOptions.query.apiKey = runKey;
+            this._httpOptions.qs.apiKey = runKey;
         }
         this._runKey = runKey;
     };
@@ -84,7 +88,7 @@
      * @param shouldRemove {boolean}
      */
     ServerConnector.prototype.setRemoveSession = function (shouldRemove) {
-        this._httpOptions.query.removeSession = shouldRemove;
+        this._httpOptions.qs.removeSession = shouldRemove;
     };
 
     /**
@@ -92,7 +96,7 @@
      * @return {boolean} Whether sessions are removed immediately after they are finished.
      */
     ServerConnector.prototype.getRemoveSession = function () {
-        return !!this._httpOptions.query.removeSession;
+        return !!this._httpOptions.qs.removeSession;
     };
 
     /**
@@ -110,27 +114,28 @@
         this._logger.verbose('ServerConnector.startSession called with:', sessionStartInfo);
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('ServerConnector.startSession will now post call');
-            httpRequestWrapper(restler.postJson(this._serverUri, {startInfo: sessionStartInfo}, this._httpOptions),
-                function (data, response) {
-                    if (!response) {
-                        this._logger.verbose('ServerConnector.startSession - got empty response!');
-                        reject(new Error(response));
-                        return;
-                    }
 
-                    this._logger.verbose('ServerConnector.startSession - start session result', data,
-                        'status code ', response.statusCode);
-                    if (response.statusCode === 200 || response.statusCode === 201) {
-                        this._logger.verbose('ServerConnector.startSession - post succeeded');
-                        resolve({sessionId: data.id, legacySessionId: data.legacySessionId, sessionUrl: data.url,
-                            isNewSession: response.statusCode === 201});
-                    } else {
-                        this._logger.log('ServerConnector.startSession - post failed');
-                        reject(new Error(response));
-                    }
-                }.bind(this), function (err) {
+            var options = Object.create(this._httpOptions);
+            options.uri = this._serverUri;
+            options.body = {startInfo: sessionStartInfo};
+            options.json = true;
+            options.method = "post";
+            request(options, function (err, response, body) {
+                if (err) {
+                    this._logger.log('ServerConnector.startSession - post failed');
                     reject(new Error(err));
-                });
+                    return;
+                }
+
+                this._logger.verbose('ServerConnector.startSession - start session result', body,
+                    'status code ', response.statusCode);
+
+                if (response.statusCode === 200 || response.statusCode === 201) {
+                    this._logger.verbose('ServerConnector.startSession - post succeeded');
+                    resolve({sessionId: body.id, legacySessionId: body.legacySessionId, sessionUrl: body.url,
+                        isNewSession: response.statusCode === 201});
+                }
+            }.bind(this));
         }.bind(this));
     };
 
@@ -152,27 +157,31 @@
             var data = {aborted: isAborted, updateBaseline: save};
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             this._logger.verbose("ServerConnector.endSession will now post:", data, "to:", url);
-            httpRequestWrapper(restler.json(url, data, this._httpOptions, 'DELETE'),
-                function (data, response) {
-                    this._logger.verbose('ServerConnector.endSession result', data, 'status code', response.statusCode);
-                    if (response.statusCode === 200 || response.statusCode === 201) {
-                        resolve({
-                            steps: data.steps,
-                            matches: data.matches,
-                            mismatches: data.mismatches,
-                            missing: data.missing,
-                            exactMatches: data.exactMatches,
-                            strictMatches: data.strictMatches,
-                            contentMatches: data.contentMatches,
-                            layoutMatches: data.layoutMatches,
-                            noneMatches: data.noneMatches
-                        });
-                    } else {
-                        reject(new Error("error on server connector endSession"));
-                    }
-                }.bind(this), function (err) {
+            var options = Object.create(this._httpOptions);
+            options.uri = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
+            options.qs.aborted = isAborted;
+            options.qs.updateBaseline = save;
+            options.json = true;
+            options.method = 'delete';
+            request(options, function (err, response, body) {
+                if (err) {
+                    this._logger.log('ServerConnector.endSession - delete failed');
                     reject(new Error(err));
-                });
+                    return;
+                }
+
+                this._logger.verbose('ServerConnector.endSession result', body, 'status code', response.statusCode);
+                if (response.statusCode === 200) {
+                    resolve({
+                        steps: body.steps,
+                        matches: body.matches,
+                        mismatches: body.mismatches,
+                        missing: body.missing
+                    });
+                } else {
+                    reject(new Error(response));
+                }
+            }.bind(this));
         }.bind(this));
     };
 
@@ -195,25 +204,30 @@
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            var options = Object.create(this._httpOptions);
-            options.headers = Object.create(this._httpOptions.headers);
             // TODO Daniel - Use binary image instead of base64 (see line below)
             //options.headers['Content-Type'] = 'application/octet-stream';
             //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
 
-            httpRequestWrapper(restler.postJson(url, matchWindowData, options),
-                function (data, response) {
-                    this._logger.verbose('ServerConnector.matchWindow result', data,
-                        'status code', response.statusCode);
-                    if (response.statusCode === 200) {
-                        resolve({asExpected: data.asExpected});
-                    } else {
-                        reject(new Error(response));
-                    }
-                }.bind(this), function (err) {
+            var options = Object.create(this._httpOptions);
+            options.uri = url;
+            options.body = matchWindowData;
+            options.json = true;
+            options.method = "post";
+            request(options, function (err, response, body) {
+                if (err) {
+                    this._logger.log('ServerConnector.matchWindow - post failed');
                     reject(new Error(err));
-                });
+                    return;
+                }
+
+                this._logger.verbose('ServerConnector.matchWindow result', body, 'status code', response.statusCode);
+                if (response.statusCode === 200) {
+                    resolve({asExpected: body.asExpected});
+                } else {
+                    reject(new Error(response));
+                }
+            }.bind(this));
         }.bind(this));
     };
 
@@ -229,23 +243,29 @@
     ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
-            var options = Object.create(this._httpOptions);
-            options.headers = Object.create(this._httpOptions.headers);
             // TODO Daniel - Use binary image instead of base64 (see line below)
             //options.headers['Content-Type'] = 'application/octet-stream';
             //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
-            httpRequestWrapper(restler.putJson(url, replaceWindowData, options), function (data, response) {
-                this._logger.verbose('ServerConnector.replaceWindow result', data,
-                    'status code', response.statusCode);
+            var options = Object.create(this._httpOptions);
+            options.uri = url;
+            options.body = replaceWindowData;
+            options.json = true;
+            options.method = "put";
+            request(options, function (err, response, body) {
+                if (err) {
+                    this._logger.log('ServerConnector.replaceWindow - put failed');
+                    reject(new Error(err));
+                    return;
+                }
+
+                this._logger.verbose('ServerConnector.replaceWindow result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
                     resolve();
                 } else {
                     reject(new Error(response));
                 }
-            }.bind(this), function (err) {
-                reject(new Error(err));
-            });
+            }.bind(this));
         }.bind(this));
     };
 
