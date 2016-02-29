@@ -172,12 +172,7 @@
 
                 this._logger.verbose('ServerConnector.endSession result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
-                    resolve({
-                        steps: body.steps,
-                        matches: body.matches,
-                        mismatches: body.mismatches,
-                        missing: body.missing
-                    });
+                    resolve(body);
                 } else {
                     reject(new Error(response));
                 }

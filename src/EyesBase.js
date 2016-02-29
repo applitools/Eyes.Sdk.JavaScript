@@ -46,45 +46,32 @@
      * @private
      */
     var _buildTestResults = function (logger, testName, appName, runningSession, serverResults, isSaved, isAborted) {
-            // It's possible that the test wasn't ever started.
-            if (!runningSession) {
-                logger.log("No running session. Creating empty test results.");
-                return { testName: testName,
-                    appName: appName,
-                    steps: 0,
-                    matches: 0,
-                    mismatches: 0,
-                    missing: 0,
-                    isNew: false,
-                    sessionId: null,
-                    legacySessionId: null,
-                    url: '',
-                    isPassed: !isAborted,
-                    isAborted: isAborted,
-                    isSaved: false
-                    };
-            }
-
-            // If we're here, the test was actually started, and we have results from the server.
-            var missing = serverResults.missing;
-            var mismatches = serverResults.mismatches;
-            var isNew = runningSession.isNewSession;
-            var isPassed = (!isAborted && !isNew && mismatches === 0 && missing === 0);
-            return { testName: testName,
+        // It's possible that the test wasn't ever started.
+        if (!runningSession) {
+            logger.log("No running session. Creating empty test results.");
+            return { name: testName,
                 appName: appName,
-                steps: serverResults.steps,
-                matches: serverResults.matches,
-                mismatches: mismatches,
-                missing: missing,
-                isNew: isNew,
-                sessionId: runningSession.sessionId.toString(),
-                legacySessionId: runningSession.legacySessionId || null,
-                url: runningSession.sessionUrl,
-                isPassed: isPassed,
+                steps: 0,
+                matches: 0,
+                mismatches: 0,
+                missing: 0,
+                isNew: false,
+                sessionId: null,
+                legacySessionId: null,
+                appUrls: null,
+                isPassed: !isAborted,
                 isAborted: isAborted,
-                isSaved: isSaved
+                isSaved: false,
+                stepsInfo: []
                 };
-        };
+        }
+
+        // If we're here, the test was actually started, and we have results from the server.
+        var results = Object.create(serverResults);
+        results.isPassed = (!results.isAborted && !results.isNew && results.mismatches === 0 && results.missing === 0);
+        results.isSaved = isSaved;
+        return results;
+    };
 
     /**
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
@@ -568,7 +555,8 @@
             // TODO - Do we really need this? (Is there a case when this function is called when a test is not failed/all the above?)
             return null;
         }
-        message = header + " '" + testName + "' of '" + appName + "'. " + instructions + ' ' + results.url + '.';
+        var url = results.appUrls && results.appUrls.session ? results.appUrls.session : '';
+        message = header + " '" + testName + "' of '" + appName + "'. " + instructions + ' ' + url + '.';
         var error = new Error(message + "\r\nResults: " + JSON.stringify(results));
         error.results = results;
         return error;
@@ -605,7 +593,11 @@
                     testResults = _buildTestResults(logger, testName, appName, runningSession, serverResults, save,
                         isAborted);
                     runningSession = undefined;
-                    logger.log('Results:', testResults);
+                    var flattenedResults = {};
+                    for (var p in testResults) {
+                        flattenedResults[p] = testResults[p];
+                    }
+                    logger.log('Results:', flattenedResults);
 
                     if (!testResults.isPassed) {
                         var error = EyesBase.buildTestError(testResults, testName, appName);
@@ -617,7 +609,7 @@
                             return;
                         }
                     } else {
-                        logger.log("[EYES: TEST PASSED]: See details at", testResults.url);
+                        logger.log("[EYES: TEST PASSED]: See details at", testResults.appUrls.session);
                     }
                     resolve(testResults);
 
