@@ -47,14 +47,24 @@
         return JSON.stringify(o);
     };
 
+    // follow the prototype chain and apply form root to current - but skip the top (Object)
     GeneralUtils.mixin = function (to, from) {
-        var method;
-        for (method in from) {
-            //noinspection JSUnfilteredForInLoop
-            if (!to[method] && typeof from[method] === 'function') {
+        var index;
+        var protos = [];
+        var proto = Object.getPrototypeOf(from);
+        while (!!proto) {
+            protos.push(proto);
+            proto = Object.getPrototypeOf(proto);
+        }
+
+        for (index = protos.length - 2; index >= 0; index--) {
+            Object.getOwnPropertyNames(protos[index]).forEach(function(method) {
                 //noinspection JSUnfilteredForInLoop
-                _mixin(to, from, method);
-            }
+                if (!to[method] && typeof from[method] === 'function' && method !== 'constructor') {
+                    //noinspection JSUnfilteredForInLoop
+                    _mixin(to, from, method);
+                }
+            });
         }
     };
 
