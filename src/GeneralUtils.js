@@ -49,16 +49,14 @@
 
     // follow the prototype chain and apply form root to current - but skip the top (Object)
     GeneralUtils.mixin = function (to, from) {
-        var index;
-        var protos = [];
-        var proto = Object.getPrototypeOf(from);
+        var index, protos = [], proto = from;
         while (!!proto) {
-            protos.push(proto);
+            protos.push(Object.getOwnPropertyNames(proto));
             proto = Object.getPrototypeOf(proto);
         }
 
         for (index = protos.length - 2; index >= 0; index--) {
-            Object.getOwnPropertyNames(protos[index]).forEach(function(method) {
+            protos[index].forEach(function(method) {
                 //noinspection JSUnfilteredForInLoop
                 if (!to[method] && typeof from[method] === 'function' && method !== 'constructor') {
                     //noinspection JSUnfilteredForInLoop
