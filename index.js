@@ -1,3 +1,4 @@
+exports.ArgumentGuard = require('./src/ArgumentGuard');
 exports.GeneralUtils = require('./src/GeneralUtils');
 exports.ImageUtils = require('./src/ImageUtils');
 exports.GeometryUtils = require('./src/GeometryUtils');
