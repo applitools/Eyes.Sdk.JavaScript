@@ -862,15 +862,20 @@
                 return;
             }
 
-            var promise;
+			var autSessionId;
+            var vpSizePromise;
             if (!this._viewportSize) {
-                promise = this.getViewportSize();
+                vpSizePromise = this.getViewportSize();
             } else {
-                promise = this.setViewportSize(this._viewportSize);
+                vpSizePromise = this.setViewportSize(this._viewportSize);
             }
 
-            return promise.then(function (result) {
-                this._viewportSize = this._viewportSize || result;
+            return vpSizePromise.then(function (result) {
+				this._viewportSize = this._viewportSize || result;
+			}.bind(this)).then(function () {
+				return this.getAUTSessionId();
+			}.bind(this)).then(function(autSessionId_) {
+				autSessionId = autSessionId_;
                 var testBatch = this._batch;
                 if (!testBatch) {
                     testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
@@ -913,7 +918,8 @@
                         environment: appEnv,
                         defaultMatchSettings: defaultMatchSettings,
                         branchName: this._branchName || null,
-                        parentBranchName: this._parentBranchName || null
+                        parentBranchName: this._parentBranchName || null,
+                        autSessionId: autSessionId
                     };
 
                     return this._serverConnector.startSession(this._sessionStartInfo)
