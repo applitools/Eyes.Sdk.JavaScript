@@ -82,25 +82,27 @@
         /**
          * Called after a session had ended.
          *
-         * @param autSessionID {string} The AUT session ID.
+         * @param autSessionId {string} The AUT session ID.
          * @param testResults {Object} The test results.
          */
-        testEnded: function (autSessionID, testResults) { },
+        testEnded: function (autSessionId, testResults) { },
 
         /**
          * Called before a new validation will be started.
          *
+         * @param autSessionId {string} The AUT session ID.
          * @param validationInfo {ValidationInfo} The validation parameters.
          */
-        validationWillStart: function (validationInfo) { },
+        validationWillStart: function (autSessionId, validationInfo) { },
 
         /**
          * Called when a validation had ended.
          *
+         * @param autSessionId {string} The AUT session ID.
          * @param validationId {string} The ID of the validation which had ended.
          * @param validationResult {ValidationResult} The validation results.
          */
-        validationEnded: function (validationId, validationResult) { }
+        validationEnded: function (autSessionId, validationId, validationResult) { }
     };
 
     // Factory
