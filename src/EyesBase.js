@@ -13,6 +13,8 @@
 
     var ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
+        SessionEventHandler = require('./SessionEventHandler'),
+        RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
@@ -98,8 +100,15 @@
             this._baselineName = undefined;
             this._testName = null;
             this._appName = null;
+            this.validationId = -1;
+            this._sessionEventHandlers = [];
         }
     }
+
+    EyesBase.prototype.addSessionEventHandler = function (eventHandler) {
+    	eventHandler.promiseFactory = this._promiseFactory;
+        this._sessionEventHandlers.push(eventHandler);
+    };
 
     /**
      * Set the log handler
@@ -518,6 +527,7 @@
             this._viewportSize = viewportSize;
             this._testName = testName;
             this._appName = appName;
+            this._validationId = -1;
             resolve();
         }.bind(this));
     };
@@ -570,6 +580,8 @@
      * @param {string} testName The test's name.
      * @param {string} appName The application name
      * @param {Object} runningSession The running session data received from the server.
+     * @param {string} autSessionId The AUT session ID.
+     * @param {SessionEventHandler[]} sessionEventHandlers The list of session event handlers.
      * @param {boolean} isAborted Whether or not the test was aborted.
      * @param {boolean} save Whether or not the test should automatically be saved.
      * @param {function} endSession The function which actually performs the 'end session' on the server.
@@ -583,13 +595,17 @@
      *                      arguments.
      * @private
      */
-    var _endSession = function (logger, testName, appName, runningSession, isAborted, save, endSession, throwEx,
-                                resolve, reject) {
+    var _endSession = function (logger, testName, appName, runningSession, autSessionId, sessionEventHandlers,
+                                isAborted, save, endSession, throwEx, resolve, reject) {
             var testResults;
             logger.verbose('Ending server session...');
             //noinspection JSUnresolvedFunction
             return endSession(runningSession, isAborted, save)
                 .then(function (serverResults) {
+                    //noinspection JSLint
+                    for (var i = 0; i < sessionEventHandlers.length; ++i) {
+                        sessionEventHandlers[i].testEnded(autSessionId,serverResults);
+                    }
                     testResults = _buildTestResults(logger, testName, appName, runningSession, serverResults, save,
                         isAborted);
                     runningSession = undefined;
@@ -663,7 +679,8 @@
                 (!this._runningSession.isNewSession && this._saveFailedTests));
 
             //noinspection JSUnresolvedFunction
-            return _endSession(this._logger, this._testName, this._appName, this._runningSession, false, save,
+            return _endSession(this._logger, this._testName, this._appName,
+               this._runningSession, this._sessionStartInfo.autSessionId, this._sessionEventHandlers, false, save,
                 this._serverConnector.endSession.bind(this._serverConnector), throwEx, resolve, reject)
                 .then(function () {
                     this._runningSession = undefined;
@@ -691,7 +708,8 @@
             this._matchWindowTask = undefined;
 
             //noinspection JSUnresolvedFunction
-            return _endSession(this._logger, this._testName, this._appName, this._runningSession, true, false,
+            return _endSession(this._logger, this._testName, this._appName, this._runningSession,
+				this._sessionStartInfo.autSessionId, this._sessionEventHandlers, true, false,
                 this._serverConnector.endSession.bind(this._serverConnector), false, resolve, reject)
                 .then(function () {
                     this._runningSession = undefined;
@@ -763,12 +781,27 @@
                     this._runningSession, this._defaultMatchTimeout, _getAppData.bind(this),
                     this._waitTimeout.bind(this), this._logger);
 
+                //noinspection JSLint
+                var validationInfo = new SessionEventHandler.ValidationInfo();
+                validationInfo.validationId = ++this._validationId;
+                validationInfo.tag = tag;
+                for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
+                    this._sessionEventHandlers[i].validationWillStart(this._sessionStartInfo.autSessionId,
+                        validationInfo);
+                }
                 this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                 return this._matchWindowTask.matchWindow(this._userInputs, region, tag,
                     this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
                     .then(function (result) {
                         this._logger.verbose("EyesBase.checkWindow - match window returned result:",
                             JSON.stringify(result));
+
+                        var validationResult = new SessionEventHandler.ValidationResult();
+                        validationResult.asExpected = result.asExpected;
+                        for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
+                            this._sessionEventHandlers[i].validationEnded(this._sessionStartInfo.autSessionId,
+                                validationInfo.validationId, validationResult);
+                        }
 
                         if (!ignoreMismatch) {
                             this._userInputs = [];
@@ -926,6 +959,9 @@
                         .then(function (result) {
                             this._runningSession = result;
                             this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
+							for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
+								this._sessionEventHandlers[i].testStarted(this._sessionStartInfo);
+							}
                             resolve();
                         }.bind(this), function (err) {
                             this._logger.log(err);
