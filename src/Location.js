@@ -63,8 +63,8 @@
             this.x += amount.getX();
             this.y += amount.getY();
         } else if (Array.isArray(amount) && amount.length == 2) {
-            this.setX(amount[0]);
-            this.setY(amount[1]);
+            this.x += parseInt(amount[0], 10);
+            this.y += parseInt(amount[1], 10);
         } else {
             throw new Error("IllegalArgument: amount have to be Location or Array instance");
         }
