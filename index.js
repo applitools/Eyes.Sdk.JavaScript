@@ -17,3 +17,7 @@ exports.EyesScreenshot = require('./src/EyesScreenshot');
 exports.PositionMemento = require('./src/PositionMemento');
 exports.PositionProvider = require('./src/PositionProvider');
 exports.ScaleProvider = require('./src/ScaleProvider');
+var BaseSessionEventHandler = require('./src/BaseSessionEventHandler');
+exports.ValidationInfo = BaseSessionEventHandler.ValidationInfo;
+exports.ValidationResult = BaseSessionEventHandler.ValidationResult;
+exports.createSessionEventHandler = BaseSessionEventHandler.createSessionEventHandler;
