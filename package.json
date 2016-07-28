@@ -22,7 +22,7 @@
     "main": "index",
     "dependencies": {
         "request": "^2.69.0",
-        "eyes.utils": "0.0.16"
+        "eyes.utils": "0.0.17"
     },
     "devDependencies": {
         "mocha": "*",

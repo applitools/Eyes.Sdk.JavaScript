@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+	var GeneralUtils = require('eyes.utils').GeneralUtils;
+
     /**
      * Encapsulates the information for the validation about to execute.
      *
@@ -11,31 +13,19 @@
         this._tag = null;
     }
 
-    ValidationInfo.prototype.getValidationId = function () {
-        return this._validationId;
-    };
+	// get/set validationId
+	GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "validationId");
 
-    //noinspection JSUnusedGlobalSymbols
-    ValidationInfo.prototype.setValidationId  = function (validationId){
-        this._validationId = validationId;
-    };
+    // get/set tag
+	GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "tag");
 
-    ValidationInfo.prototype.getTag = function () {
-        return this._tag;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ValidationInfo.prototype.setTag = function (tag) {
-        this._tag = tag;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ValidationInfo.prototype.toObject  = function (){
-        return {
-            validationId: this.getValidationId(),
-            tag: this.getTag()
-        };
-    };
+	//noinspection JSUnusedGlobalSymbols
+	ValidationInfo.prototype.toObject  = function (){
+		return {
+			validationId: this.validationId,
+			tag: this.tag
+		};
+	};
 
     /**
      * Encapsulates the information for the validation about to execute.
@@ -46,21 +36,9 @@
         this._asExpected = null;
     }
 
-    ValidationResult.prototype.isAsExpected = function () {
-        return this._asExpected;
-    };
+	// get/set asExpected
+	GeneralUtils.defineStandardProperty(ValidationResult.prototype, "asExpected");
 
-    //noinspection JSUnusedGlobalSymbols
-    ValidationResult.prototype.setAsExpected = function (asExpected) {
-        this._asExpected = asExpected;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ValidationResult.prototype.toObject  = function (){
-        return {
-            asExpected: this.isAsExpected()
-        };
-    };
 
 
     //noinspection JSLint
@@ -104,6 +82,9 @@
          */
         validationEnded: function (autSessionId, validationId, validationResult) { }
     };
+
+	// get/set promiseFactory
+	GeneralUtils.defineStandardProperty(_baseSessionEventHandler, "promiseFactory");
 
     // Factory
     var createSessionEventHandler = function () {
