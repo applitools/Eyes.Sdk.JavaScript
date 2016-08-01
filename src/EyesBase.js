@@ -604,7 +604,11 @@
                 .then(function (serverResults) {
                     //noinspection JSLint
                     for (var i = 0; i < sessionEventHandlers.length; ++i) {
-                        sessionEventHandlers[i].testEnded(autSessionId,serverResults);
+                        sessionEventHandlers[i].testEnded(autSessionId,serverResults)
+							.then(function () {},
+								function (err) {
+									logger.verbose("'testEnded' notification handler returned an error: " + err);
+								});
                     }
                     testResults = _buildTestResults(logger, testName, appName, runningSession, serverResults, save,
                         isAborted);
@@ -787,7 +791,12 @@
                 validationInfo.tag = tag;
                 for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
                     this._sessionEventHandlers[i].validationWillStart(this._sessionStartInfo.autSessionId,
-                        validationInfo);
+                        validationInfo)
+						.then(function () {},
+							function (err) {
+								this._logger.verbose("'validationWillStart' notification handler returned an error: "
+									+ err);
+							}.bind(this));
                 }
                 this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                 return this._matchWindowTask.matchWindow(this._userInputs, region, tag,
@@ -800,7 +809,13 @@
                         validationResult.asExpected = result.asExpected;
                         for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
                             this._sessionEventHandlers[i].validationEnded(this._sessionStartInfo.autSessionId,
-                                validationInfo.validationId, validationResult);
+                                validationInfo.validationId, validationResult)
+								.then(function () {},
+									function (err) {
+                                		this._logger.verbose(
+                                			"'validationEnded' notification handler returned an error: "
+											+ err);
+									}.bind(this));
                         }
 
                         if (!ignoreMismatch) {
@@ -960,7 +975,13 @@
                             this._runningSession = result;
                             this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
 							for (var i = 0; i < this._sessionEventHandlers.length; ++i) {
-								this._sessionEventHandlers[i].testStarted(this._sessionStartInfo);
+								this._sessionEventHandlers[i].testStarted(this._sessionStartInfo)
+									.then(function () {},
+										function (err) {
+											this._logger.verbose(
+												"'testStarted' notification handler returned an error: "
+												+ err);
+										}.bind(this));
 							}
                             resolve();
                         }.bind(this), function (err) {
