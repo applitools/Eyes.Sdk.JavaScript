@@ -30,7 +30,7 @@
         "if (window.innerWidth) { width = window.innerWidth; } " +
         "else if (document.documentElement && document.documentElement.clientWidth) { width = document.documentElement.clientWidth; } " +
         "else { var b = document.getElementsByTagName('body')[0]; if (b.clientWidth) { width = b.clientWidth;} }; " +
-        "return [width, height];";
+        "return {width: width, height: height};";
 
     /**
      * @private
@@ -232,7 +232,7 @@
      *
      * @param {WebDriver} browser The driver used to query the web page.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<{width: int, height: int}>} A promise which resolves to an object containing the width/height of the page.
+     * @return {Promise<{width: number, height: number}>} A promise which resolves to an object containing the width/height of the page.
      */
     BrowserUtils.getEntirePageSize = function getEntirePageSize(browser, promiseFactory) {
         // IMPORTANT: Notice there's a major difference between scrollWidth
@@ -284,58 +284,122 @@
     };
 
     /**
+     * Tries to get the viewport size using Javascript. If fails, gets the entire browser window size!
+     *
      * @param {WebDriver} browser The browser to use.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<{width: int, height: int}>} The viewport size.
+     * @return {Promise<{width: number, height: number}>} The viewport size.
      */
-    BrowserUtils.executeViewportSizeExtraction = function (browser, promiseFactory) {
-        return BrowserUtils.executeScript(browser, JS_GET_VIEWPORT_SIZE, promiseFactory, undefined).then(function (results) {
-            var w = parseInt(results[0], 10) || 0;
-            var h = parseInt(results[1], 10) || 0;
-            return {width: w, height: h};
-        });
+    BrowserUtils.getViewportSize = function (browser, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve) {
+            try {
+                return BrowserUtils.executeScript(browser, JS_GET_VIEWPORT_SIZE, promiseFactory, undefined).then(function (size) {
+                    resolve(size);
+                }, function () {
+                    browser.manage().window().getSize().then(function (size) {
+                        resolve(size);
+                    });
+                });
+            } catch (err) {
+                browser.manage().window().getSize().then(function (size) {
+                    resolve(size);
+                });
+            }
+        }.bind(this));
     };
 
     /**
-     * @param {Logger} logger The logger to use.
-     * @param {WebDriver} browser The web driver to use.
+     * Tries to set the viewport
+     *
+     * @param {WebDriver} browser The browser to use.
+     * @param {{width: number, height: number}} size The viewport size.
      * @param {PromiseFactory} promiseFactory
-     * @param {boolean} isLandscape
-     * @return {Promise<{width: int, height: int}>} The viewport size of the current context.
+     * @param {Logger} logger
+     * @param {boolean|undefined} lastRetry
+     * @returns {Promise<void>}
      */
-    BrowserUtils.extractViewportSize = function (logger, browser, promiseFactory, isLandscape) {
-        var that = this;
-        return promiseFactory.makePromise(function (resolve) {
-            logger.verbose("extractViewportSize()");
+    BrowserUtils.setViewportSize = function (browser, size, promiseFactory, logger, lastRetry) {
+        // First we will set the window size to the required size.
+        // Then we'll check the viewport size and increase the window size accordingly.
+        return promiseFactory.makePromise(function (resolve, reject) {
             try {
-                that.executeViewportSizeExtraction(browser, promiseFactory).then(function (viewportSize) {
-                    resolve(viewportSize);
-                });
-            } catch (err) {
-                logger.verbose("Failed to extract viewport size using Javascript: " + err);
-
-                // If we failed to extract the viewport size using JS, will use the window size instead.
-                logger.verbose("Using window size as viewport size.");
-                return browser.manage().window().getSize().then(function (windowSize) {
-                    var width = windowSize.width;
-                    var height = windowSize.height;
-                    try {
-                        //BrowserUtils.isLandscapeOrientation(driver)
-                        if (isLandscape && height > width) {
-                            var temp = width;
-                            width = height;
-                            height = temp;
-                        }
-                    } catch (err) {
-                        // Not every WebDriver supports querying for orientation.
+                BrowserUtils.getViewportSize(browser, promiseFactory).then(function (actualViewportSize) {
+                    if (actualViewportSize.width === size.width && actualViewportSize.height === size.height) {
+                        resolve();
+                        return;
                     }
 
-                    logger.verbose("Done! Size " + width + " x %d" + height);
-                    resolve({width: width, height: height});
+                    browser.manage().window().getSize().then(function (browserSize) {
+                        // Edge case.
+                        if (browserSize.height < actualViewportSize.height || browserSize.width < actualViewportSize.width) {
+                            logger.log("Browser window size is smaller than the viewport! Using current viewport size as is.");
+                            resolve();
+                            return;
+                        }
+
+                        var requiredBrowserSize = {
+                            height: browserSize.height + (size.height - actualViewportSize.height),
+                            width: browserSize.width + (size.width - actualViewportSize.width)
+                        };
+
+                        logger.log("Trying to set browser size to: " + requiredBrowserSize.width + "x" + requiredBrowserSize.height);
+                        _setWindowSize(browser, requiredBrowserSize, 3, promiseFactory, logger).then(function () {
+                            BrowserUtils.getViewportSize(browser, promiseFactory).then(function (updatedViewportSize) {
+                                if (updatedViewportSize.width === size.width &&
+                                    updatedViewportSize.height === size.height) {
+                                    resolve();
+                                    return;
+                                }
+
+                                if (lastRetry) {
+                                    reject(new Error("Failed to set viewport size! " +
+                                        "(Got " + updatedViewportSize.width + "x" + updatedViewportSize.height + ") " +
+                                        "Please try using a smaller viewport size."));
+                                } else {
+                                    BrowserUtils.setViewportSize(browser, size, promiseFactory, logger, true).then(function () {
+                                        resolve();
+                                    }, function (err) {
+                                        reject(err);
+                                    });
+                                }
+                            });
+                        }, function () {
+                            reject(new Error("Failed to set browser size! Please try using a smaller viewport size."));
+                        });
+                    });
                 });
+            } catch (err) {
+                reject(new Error(err));
             }
-        });
+        }.bind(this));
     };
+
+    function _setWindowSize(driver, size, retries, promiseFactory, logger) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            return driver.manage().window().setSize(size.width, size.height).then(function () {
+                return BrowserUtils.sleep(1000, promiseFactory);
+            }).then(function () {
+                return driver.manage().window().getSize();
+            }).then(function (browserSize) {
+                logger.log("Current browser size: " + browserSize.width + "x" + browserSize.height);
+                if (browserSize.width === size.width && browserSize.height === size.height) {
+                    resolve();
+                    return;
+                }
+
+                if (retries === 0) {
+                    reject();
+                    return;
+                }
+
+                _setWindowSize(driver, size, retries - 1, promiseFactory, logger).then(function () {
+                    resolve();
+                }, function () {
+                    reject();
+                });
+            });
+        });
+    }
 
     /**
      * Queries the current page's size and pixel ratio to figure out what is the normalization factor of a screenshot
@@ -343,8 +407,8 @@
      * (e.g., when the screenshot is a full page screenshot).
      *
      * @param {WebDriver} browser The driver used to update the web page.
-     * @param {{width: int, height: int}} imageSize
-     * @param {{width: int, height: int}} viewportSize
+     * @param {{width: number, height: number}} imageSize
+     * @param {{width: number, height: number}} viewportSize
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<number>} A promise which resolves to the normalization factor (float).
      */
@@ -484,7 +548,7 @@
      *
      * @param {WebDriver} browser
      * @param {PromiseFactory} promiseFactory
-     * @param {{width: int, height: int}} viewportSize
+     * @param {{width: number, height: number}} viewportSize
      * @param {boolean} fullPage
      * @param {boolean} hideScrollbars
      * @param {boolean} useCssTransition
@@ -493,7 +557,7 @@
      * @param {number} automaticRotationDegrees
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
-     * @param {{left: int, top: int, width: int, height: int}} regionToCheck
+     * @param {{left: int, top: int, width: number, height: number}} regionToCheck
      * @returns {Promise<MutableImage>}
      */
     BrowserUtils.getScreenshot = function getScreenshot(browser,
