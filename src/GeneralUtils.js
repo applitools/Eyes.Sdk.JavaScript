@@ -74,5 +74,36 @@
         });
     };
 
+	/**
+	 * Creates a property with default configuration (writable, enumerable, configurable).
+	 *
+	 * @param {object} obj The object to create the property on.
+	 * @param {string} name The name of the property
+	 * @param {Function} getFunc The getter of the property
+	 * @param {Function} setFunc The setter of the property
+     */
+    GeneralUtils.definePropertyWithDefaultConfig = function (obj, name, getFunc, setFunc) {
+		Object.defineProperty(obj, name, {
+			enumerable: true,
+			configurable: true,
+			get: getFunc,
+			set: setFunc
+		});
+	}
+
+	/**
+	 * Creates a property with default configuration (writable, enumerable, configurable) and default getter/setter.
+	 *
+	 * @param {object} obj The object to create the property on.
+	 * @param {string} name The name of the property
+	 */
+	GeneralUtils.defineStandardProperty = function (obj, name) {
+
+		var getFunc = function () { return this["_" + name]; }
+		var setFunc = function (v) { this["_" + name] = v; }
+
+		GeneralUtils.definePropertyWithDefaultConfig(obj, name, getFunc, setFunc);
+	}
+
     module.exports = GeneralUtils;
 }());
