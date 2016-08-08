@@ -11,9 +11,9 @@
 (function () {
     "use strict";
 
-    var MutableImage = require('./MutableImage');
-    var GeometryUtils = require('./GeometryUtils');
-    var ImageUtils = require('./ImageUtils');
+    var MutableImage = require('./MutableImage'),
+        GeometryUtils = require('./GeometryUtils'),
+        ImageUtils = require('./ImageUtils');
 
     var BrowserUtils = {};
 
@@ -60,6 +60,20 @@
         "return [totalWidth, totalHeight];";
 
     /**
+     * @return {string}
+     */
+    var JS_GET_COMPUTED_STYLE_FORMATTED_STR = function (propStyle) {
+        return "var elem = arguments[0]; var styleProp = '" + propStyle + "'; " +
+            "if (window.getComputedStyle) { " +
+            "return window.getComputedStyle(elem, null).getPropertyValue(styleProp);" +
+            "} else if (elem.currentStyle) { " +
+            "return elem.currentStyle[styleProp];" +
+            "} else { " +
+            "return null;" +
+            "}";
+    };
+
+    /**
      * @private
      * @type {string[]}
      */
@@ -104,6 +118,92 @@
     };
 
     /**
+     * Returns the computed value of the style property for the current element.
+     *
+     * @param {WebDriver} browser The driver which will execute the script to get computed style.
+     * @param {WebElement|EyesRemoteWebElement} element
+     * @param {string} propStyle The style property which value we would like to extract.
+     * @return {Promise<string>} The value of the style property of the element, or {@code null}.
+     */
+    BrowserUtils.getComputedStyle = function (browser, element, propStyle) {
+        var scriptToExec = JS_GET_COMPUTED_STYLE_FORMATTED_STR(propStyle);
+        return browser.executeScript(scriptToExec, element).then(function(computedStyle) {
+            return computedStyle;
+        });
+    };
+
+    /**
+     * Returns a location based on the given location.
+     *
+     * @param {Object} logger The logger to use.
+     * @param {WebElement|EyesRemoteWebElement} element The element for which we want to find the content's location.
+     * @param {{x: number, y: number}} location The location of the element.
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<{x: number, y: number}>} The location of the content of the element.
+     */
+    BrowserUtils.getLocationWithBordersAddition = function (logger, element, location, promiseFactory) {
+        logger.verbose("BordersAdditionFrameLocationProvider(logger, element, [" + location.x + "," + location.y + "])");
+        var leftBorderWidth, topBorderWidth;
+        return _getLeftBorderWidth(logger, promiseFactory, element).then(function (val) {
+            leftBorderWidth = val;
+            return _getTopBorderWidth(logger, promiseFactory, element);
+        }).then(function (val) {
+            topBorderWidth = val;
+            logger.verbose("Done!");
+            // Frame borders also have effect on the frame's location.
+            return GeometryUtils.locationOffset(location, {x: leftBorderWidth, y: topBorderWidth});
+        });
+    };
+
+    function _getLeftBorderWidth(logger, promiseFactory, element) {
+        return promiseFactory.makePromise(function (resolve) {
+            logger.verbose("Get element border left width...");
+
+            try {
+                return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-left-width").then(function (styleValue) {
+                    return styleValue;
+                }, function (error) {
+                    logger.verbose("Using getComputedStyle failed: " + error + ".");
+                    logger.verbose("Using getCssValue...");
+                    return element.getCssValue("border-left-width");
+                }).then(function (propValue) {
+                    logger.verbose("Done!");
+                    var leftBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
+                    logger.verbose("border-left-width: " + leftBorderWidth);
+                    resolve(leftBorderWidth);
+                });
+            } catch (err) {
+                logger.verbose("Couldn't get the element's border-left-width: " + err + ". Falling back to default");
+                resolve(0);
+            }
+        });
+    }
+
+    function _getTopBorderWidth(logger, promiseFactory, element) {
+        return promiseFactory.makePromise(function (resolve) {
+            logger.verbose("Get element's border top width...");
+
+            try {
+                return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-top-width").then(function (styleValue) {
+                    return styleValue;
+                }, function (err) {
+                    logger.verbose("Using getComputedStyle failed: " + err + ".");
+                    logger.verbose("Using getCssValue...");
+                    return element.getCssValue("border-top-width");
+                }).then(function (propValue) {
+                    logger.verbose("Done!");
+                    var topBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
+                    logger.verbose("border-top-width: " + topBorderWidth);
+                    resolve(topBorderWidth);
+                });
+            } catch (err) {
+                logger.verbose("Couldn't get the element's border-top-width: " + err + ". Falling back to default");
+                resolve(0);
+            }
+        });
+    }
+
+    /**
      * Gets the device pixel ratio.
      *
      * @param {WebDriver} browser The driver which will execute the script to get the ratio.
@@ -114,34 +214,6 @@
         return BrowserUtils.executeScript(browser, 'return window.devicePixelRatio', promiseFactory, undefined).then(function (results) {
             return parseFloat(results);
         });
-    };
-
-    /**
-     * Gets the current scroll position.
-     *
-     * @param {WebDriver} browser The driver which will execute the script to get the scroll position.
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<{left: int, top: int}>} A promise which resolves to the current scroll position ({top: *, left: *}).
-     */
-    BrowserUtils.getCurrentScrollPosition = function getCurrentScrollPosition(browser, promiseFactory) {
-        return BrowserUtils.executeScript(browser, JS_GET_CURRENT_SCROLL_POSITION, promiseFactory, undefined).then(function (results) {
-            // If we can't find the current scroll position, we use 0 as default.
-            var x = parseInt(results[0], 10) || 0;
-            var y = parseInt(results[1], 10) || 0;
-            return {left: x, top: y};
-        });
-    };
-
-    /**
-     * Sets the scroll position of the current frame.
-     *
-     * @param {WebDriver} browser The browser to use.
-     * @param {{left: int, top: int}} point The position to be set.
-     * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<void>}
-     */
-    BrowserUtils.setCurrentScrollPosition = function (browser, point, promiseFactory) {
-        return BrowserUtils.executeScript(browser, "window.scrollTo(" + point.left + "," + point.top + ")", promiseFactory, 250);
     };
 
     /**
@@ -205,26 +277,42 @@
      * CSS translate the document to a given location.
      *
      * @param {WebDriver} browser The driver which will execute the script to set the transform.
-     * @param {{left: int, top: int}} point
+     * @param {{x: number, y: number}} point
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<void>} A promise which resolves to the previous transform when the scroll is executed.
      */
     BrowserUtils.translateTo = function translateTo(browser, point, promiseFactory) {
-        return BrowserUtils.setTransform(browser, 'translate(-' + point.left + 'px, -' + point.top + 'px)', promiseFactory);
+        return BrowserUtils.setTransform(browser, 'translate(-' + point.x + 'px, -' + point.y + 'px)', promiseFactory);
     };
 
     /**
      * Scroll to the specified position.
      *
      * @param {WebDriver} browser - The driver which will execute the script to set the scroll position.
-     * @param {{left: int, top: int}} point Point to scroll to
+     * @param {{x: number, y: number}} point Point to scroll to
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>} A promise which resolves after the action is perfromed and timeout passed.
+     * @return {Promise<void>} A promise which resolves after the action is performed and timeout passed.
      */
     BrowserUtils.scrollTo = function scrollTo(browser, point, promiseFactory) {
         return BrowserUtils.executeScript(browser,
-            'window.scrollTo(' + parseInt(point.left, 10) + ', ' + parseInt(point.top, 10) + ');',
+            'window.scrollTo(' + parseInt(point.x, 10) + ', ' + parseInt(point.y, 10) + ');',
             promiseFactory, 250);
+    };
+
+    /**
+     * Gets the current scroll position.
+     *
+     * @param {WebDriver} browser The driver which will execute the script to get the scroll position.
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<{x: number, y: number}>} A promise which resolves to the current scroll position.
+     */
+    BrowserUtils.getCurrentScrollPosition = function getCurrentScrollPosition(browser, promiseFactory) {
+        return BrowserUtils.executeScript(browser, JS_GET_CURRENT_SCROLL_POSITION, promiseFactory, undefined).then(function (results) {
+            // If we can't find the current scroll position, we use 0 as default.
+            var x = parseInt(results[0], 10) || 0;
+            var y = parseInt(results[1], 10) || 0;
+            return {x: x, y: y};
+        });
     };
 
     /**
@@ -438,7 +526,7 @@
                     parts.push({
                         image: imageObj.imageBuffer,
                         size: {width: imageObj.width, height: imageObj.height},
-                        position: {left: 0, top: 0}
+                        position: {x: 0, y: 0}
                     });
 
                     resolve();
@@ -446,14 +534,14 @@
                 }
 
                 var currentPosition;
-                var partCoords = {left: part.left, top: part.top};
+                var partCoords = {x: part.left, y: part.top};
                 var promise = useCssTransition ?
                     BrowserUtils.translateTo(browser, partCoords, promiseFactory).then(function () {
                         currentPosition = partCoords;
                     }) :
                     BrowserUtils.scrollTo(browser, partCoords, promiseFactory).then(function () {
                         return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (position) {
-                            currentPosition = {left: position.left, top: position.top};
+                            currentPosition = {x: position.x, y: position.y};
                         });
                     });
 
@@ -467,7 +555,7 @@
                             parts.push({
                                 image: partObj.imageBuffer,
                                 size: {width: partObj.width, height: partObj.height},
-                                position: {left: currentPosition.left, top: currentPosition.top}
+                                position: {x: currentPosition.x, y: currentPosition.y}
                             });
 
                             resolve();
@@ -533,7 +621,7 @@
                             return parsedImage.setCoordinates(scrollPosition);
                         }, function () {
                             // Failed to get Scroll position, setting coordinates to default.
-                            return parsedImage.setCoordinates({left: 0, top: 0});
+                            return parsedImage.setCoordinates({x: 0, y: 0});
                         });
                     }
                 })
@@ -557,7 +645,7 @@
      * @param {number} automaticRotationDegrees
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
-     * @param {{left: int, top: int, width: number, height: number}} regionToCheck
+     * @param {{left: number, top: number, width: number, height: number}} regionToCheck
      * @returns {Promise<MutableImage>}
      */
     BrowserUtils.getScreenshot = function getScreenshot(browser,
@@ -612,10 +700,10 @@
                 if (fullPage) {
                     return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (point) {
                         originalScrollPosition = point;
-                        return BrowserUtils.scrollTo(browser, {left: 0, top: 0}, promiseFactory).then(function () {
+                        return BrowserUtils.scrollTo(browser, {x: 0, y: 0}, promiseFactory).then(function () {
                             return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (point) {
-                                if (point.left != 0 || point.top != 0) {
-                                    throw new Error("Could not scroll to the top/left corner of the screen");
+                                if (point.x != 0 || point.y != 0) {
+                                    throw new Error("Could not scroll to the x/y corner of the screen");
                                 }
                             });
                         });
@@ -624,8 +712,8 @@
                             if (useCssTransition) {
                                 return BrowserUtils.getCurrentTransform(browser, promiseFactory).then(function (transform) {
                                     originalTransform = transform;
-                                    // Translating to "top/left" of the page (notice this is different from Javascript scrolling).
-                                    return BrowserUtils.translateTo(browser, {left: 0, top: 0}, promiseFactory);
+                                    // Translating to "x/y" of the page (notice this is different from Javascript scrolling).
+                                    return BrowserUtils.translateTo(browser, {x: 0, y: 0}, promiseFactory);
                                 });
                             }
                         })
@@ -665,7 +753,7 @@
                     var screenshotParts = GeometryUtils.getSubRegions({
                         left: 0, top: 0, width: entirePageSize.width,
                         height: entirePageSize.height
-                    }, screenshotPartSize);
+                    }, screenshotPartSize, true);
 
                     var parts = [];
                     var promise = promiseFactory.makePromise(function (resolve) {

@@ -503,20 +503,20 @@
     /**
      * Copies pixels from the source image to the destination image.
      * @param {PNG} dst The destination image.
-     * @param dstPosition An object containing the top/left values of the pixel which is the starting point to copy to.
+     * @param dstPosition An object containing the x/y values of the pixel which is the starting point to copy to.
      * @param {PNG} src The source image.
-     * @param srcPosition An object containing the top/left values of the pixel from which to start copying.
+     * @param srcPosition An object containing the x/y values of the pixel from which to start copying.
      * @param size An object containing width/height of the region to be copied.
      */
     ImageUtils.copyPixels = function copyPixels(dst, dstPosition, src, srcPosition, size) {
         var y, dstY, srcY, x, dstX, srcX, dstIndex, srcIndex;
         for (y = 0; y < size.height; ++y) {
-            dstY = dstPosition.top + y;
-            srcY = srcPosition.top + y;
+            dstY = dstPosition.y + y;
+            srcY = srcPosition.y + y;
 
             for (x = 0; x < size.width; ++x) {
-                dstX = dstPosition.left + x;
-                srcX = srcPosition.left + x;
+                dstX = dstPosition.x + x;
+                srcX = srcPosition.x + x;
 
                 // Since each pixel is composed of 4 values (RGBA) we multiply each index by 4.
                 dstIndex = (dstY * dst.width + dstX) << 2;
@@ -569,7 +569,7 @@
             return promiseFactory.makePromise(function(resolve) {
                 //noinspection JSUnresolvedFunction
                 ImageUtils.createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
-                    ImageUtils.copyPixels(stitchedImage, part.position, pngImage, {left: 0, top: 0}, part.size);
+                    ImageUtils.copyPixels(stitchedImage, part.position, pngImage, {x: 0, y: 0}, part.size);
                     resolve(stitchedImage);
                 });
             });
@@ -581,7 +581,7 @@
      * Stitches the given parts to a full image.
      * @param fullSize The size of the stitched image. Should have 'width' and 'height' properties.
      * @param {Array} parts The parts to stitch into an image. Each part should have: 'position'
-     *                      (which includes top/left), 'size' (which includes width/height) and image
+     *                      (which includes x/y), 'size' (which includes width/height) and image
      *                      (a buffer containing PNG bytes) properties.
      * @param {Object} promiseFactory
      *
