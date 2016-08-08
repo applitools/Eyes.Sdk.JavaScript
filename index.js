@@ -8,6 +8,7 @@ exports.ScreenShotTaker = require('./src/ScreenshotTaker');
 exports.ServerConnector = require('./src/ServerConnector');
 exports.ConsoleLogHandler = require('./src/ConsoleLogHandler');
 exports.NullLogHandler = require('./src/NullLogHandler');
+exports.FileLogHandler = require('./src/FileLogHandler');
 exports.Triggers = require('./src/Triggers');
 exports.CoordinatesType = require('./src/CoordinatesType');
 exports.EyesScreenshot = require('./src/EyesScreenshot');
