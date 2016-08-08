@@ -81,15 +81,14 @@
      * Coordinates represent the image's position in a larger context (if any). E.g., A screenshot of the browser's
      * viewport of a web page.
      *
-     * @return {Promise} A promise which resolves to the coordinates of the image in the larger
-     *                  context (if any): {top: *, left: *}
+     * @return {Promise.<{x: number, y: number}>} A promise which resolves to the coordinates of the image in the larger context (if any)
      */
     MutableImage.prototype.getCoordinates = function () {
         var that = this;
         return _parseImage(that).then(function () {
             return {
-                left: that._left,
-                top: that._top
+                x: that._left,
+                y: that._top
             };
         });
     };
@@ -103,8 +102,8 @@
     MutableImage.prototype.setCoordinates = function (coordinates) {
         var that = this;
         return _parseImage(that).then(function () {
-            that._left = coordinates.left;
-            that._top = coordinates.top;
+            that._left = coordinates.x;
+            that._top = coordinates.y;
         });
     };
 
@@ -149,8 +148,8 @@
     /**
      * Scales the image in place (used to downsize by 2 for retina display chrome bug - and tested accordingly).
      *
-     * @param {Float} scale
-     * @return {Object} promise - resolves without any value.
+     * @param {float} scale
+     * @return {Promise.<MutableImage>} promise - resolves without any value.
      */
     MutableImage.prototype.scaleImage = function (scale) {
         var that = this;
