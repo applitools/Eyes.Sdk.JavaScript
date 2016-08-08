@@ -22,6 +22,7 @@
     "main": "index",
     "dependencies": {
         "request": "^2.69.0",
+        "winston": "*",
         "eyes.utils": "0.0.17"
     },
     "devDependencies": {

@@ -1,9 +1,6 @@
 (function () {
     "use strict";
 
-    var RectangleSize = require('./RectangleSize'),
-        Location = require('./Location');
-
     /**
      * @constructor
      **/
@@ -11,19 +8,19 @@
 
     /**
      *
-     * @return {Location} The current position, or {@code null} if position is not
+     * @return {{x: number, y: number}} The current position, or {@code null} if position is not
      * available.
      */
     PositionProvider.prototype.getCurrentPosition = function () {};
 
     /**
      * Go to the specified location.
-     * @param {Location} location The position to set.
+     * @param {{x: number, y: number}} location The position to set.
      */
     PositionProvider.prototype.setPosition = function (location) {};
 
     /**
-     * @return {RectangleSize} The entire size of the container which the position is relative to.
+     * @return {{x: number, y: number}} The entire size of the container which the position is relative to.
      */
     PositionProvider.prototype.getEntireSize = function () {};
 
