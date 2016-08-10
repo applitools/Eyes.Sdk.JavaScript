@@ -48,19 +48,23 @@
 
 
         // *** Overriding callbacks
-        sessionHandler.testStarted = function (sessionStartInfo) {
+		var _sendNotification = function (requestOptions, resolve, reject) {
+			return request(requestOptions, function (err, response) {
+				if (err) {
+					reject(new Error(err));
+					return;
+				}
+				resolve(response.statusCode);
+			});
+		}
+
+        sessionHandler.testStarted = function (autSessionId) {
             return this._promiseFactory.makePromise(function (resolve, reject) {
                 var options = Object.create(this._defaultHttpOptions);
                 options.uri = "";
-                options.body = {autSessionId: sessionStartInfo.autSessionId};
+                options.body = {autSessionId: autSessionId};
                 options.method = "post";
-                request(options, function (err, response) {
-                    if (err) {
-                        reject(new Error(err));
-                        return;
-                    }
-                    resolve(response.statusCode);
-                }.bind(this));
+                _sendNotification(options, resolve, reject);
             }.bind(this));
         };
 
@@ -68,15 +72,49 @@
             return this._promiseFactory.makePromise(function (resolve, reject) {
                 var options = Object.create(this._defaultHttpOptions);
                 options.uri = autSessionId;
-                options.body = {action: "sessionEnd", testResults: testResults};
+                options.body = {action: "testEnd", testResults: testResults};
                 options.method = 'put';
-                request(options, function (err, response) {
-                    if (err) {
-                        reject(new Error(err));
-                        return;
-                    }
-                    resolve(response.statusCode);
-                }.bind(this));
+				_sendNotification(options, resolve, reject);
+            }.bind(this));
+        };
+
+        sessionHandler.initStarted = function (autSessionId) {
+            return this._promiseFactory.makePromise(function (resolve, reject) {
+                var options = Object.create(this._defaultHttpOptions);
+                options.uri = autSessionId;
+                options.body = {action: 'initStart'};
+                options.method = "put";
+				_sendNotification(options, resolve, reject);
+            }.bind(this));
+        };
+
+        sessionHandler.initEnded = function (autSessionId) {
+            return this._promiseFactory.makePromise(function (resolve, reject) {
+                var options = Object.create(this._defaultHttpOptions);
+                options.uri = autSessionId;
+                options.body = {action: "initEnd"};
+                options.method = 'put';
+				_sendNotification(options, resolve, reject);
+            }.bind(this));
+        };
+
+        sessionHandler.setSizeWillStart = function (autSessionId, size) {
+            return this._promiseFactory.makePromise(function (resolve, reject) {
+                var options = Object.create(this._defaultHttpOptions);
+                options.uri = autSessionId;
+                options.body = {action: "setSizeStart", size: size};
+                options.method = "put";
+				_sendNotification(options, resolve, reject);
+            }.bind(this));
+        };
+
+        sessionHandler.setSizeEnded = function (autSessionId) {
+            return this._promiseFactory.makePromise(function (resolve, reject) {
+                var options = Object.create(this._defaultHttpOptions);
+                options.uri = autSessionId;
+                options.body = {action: "setSizeEnd"};
+                options.method = 'put';
+				_sendNotification(options, resolve, reject);
             }.bind(this));
         };
 
@@ -86,13 +124,7 @@
                 options.uri = autSessionId + "/validations";
                 options.body = validationInfo.toObject();
                 options.method = 'post';
-                request(options, function (err, response) {
-                    if (err) {
-                        reject(new Error(err));
-                        return;
-                    }
-                    resolve(response.statusCode);
-                }.bind(this));
+				_sendNotification(options, resolve, reject);
             }.bind(this));
         };
 
@@ -102,13 +134,7 @@
                 options.uri = autSessionId + "/validations/" + validationId;
                 options.body = {action: "validationEnd", asExpected: validationResult.asExpected};
                 options.method = 'put';
-                request(options, function (err, response) {
-                    if (err) {
-                        reject(new Error(err));
-                        return;
-                    }
-                    resolve(response.statusCode);
-                }.bind(this));
+				_sendNotification(options, resolve, reject);
             }.bind(this));
         };
 
