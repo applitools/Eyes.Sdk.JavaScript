@@ -51,11 +51,36 @@
      */
     var _baseSessionEventHandler = {
         /**
+         * Called when the data gathering for creating a session phase had started.
+         *
+         */
+        initStarted: function () { },
+
+        /**
+         * Called when the data garthering phase had ended.
+         *
+         */
+        initEnded: function () { },
+
+        /**
+         * Called when setting the size of the appolication window is about to start.
+         *
+         * @param sizeToSet {Object} an object with 'width' and 'height' properties.
+         */
+        setSizeWillStart: function (sizeToSet) { },
+
+        /**
+         * Called 'set size' operation has ended (either failed/success).
+         *
+         */
+		setSizeEnded: function () { },
+
+        /**
          * Called after a session had started.
          *
-         * @param sessionStartInfo {Object} The session parameters.
+         * @param autSessionId {string} The AUT session ID.
          */
-        testStarted: function (sessionStartInfo) { },
+        testStarted: function (autSessionId) { },
 
         /**
          * Called after a session had ended.
