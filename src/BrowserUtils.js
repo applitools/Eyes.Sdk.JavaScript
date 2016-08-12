@@ -645,6 +645,7 @@
      * @param {number} automaticRotationDegrees
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
+     * @param {boolean} checkFrameOrElement
      * @param {{left: number, top: number, width: number, height: number}} regionToCheck
      * @returns {Promise<MutableImage>}
      */
@@ -659,6 +660,7 @@
                                                         automaticRotationDegrees,
                                                         isLandscape,
                                                         waitBeforeScreenshots,
+                                                        checkFrameOrElement,
                                                         regionToCheck) {
         var MIN_SCREENSHOT_PART_HEIGHT = 10;
         var maxScrollbarSize = useCssTransition ? 0 : 50; // This should cover all scroll bars (and some fixed position footer elements :).
@@ -722,7 +724,7 @@
             .then(function () {
                 // step #5 - Take screenshot of the 0,0 tile / current viewport
                 return _captureViewport(browser, promiseFactory, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
-                    automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, regionToCheck)
+                    automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null)
                     .then(function (image) {
                         screenshot = image;
                         return screenshot.asObject().then(function (imageObj) {
@@ -732,7 +734,7 @@
             })
             .then(function () {
                 return promiseFactory.makePromise(function (resolve) {
-                    if (!fullPage) {
+                    if (!fullPage && !checkFrameOrElement) {
                         resolve();
                         return;
                     }
@@ -763,7 +765,7 @@
                     screenshotParts.forEach(function (part) {
                         promise = _processPart(part, parts, imageObject, browser, promise,
                             promiseFactory, useCssTransition, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
-                            automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, regionToCheck);
+                            automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null);
                     });
                     promise.then(function () {
                         return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {
@@ -787,6 +789,11 @@
                     } else {
                         return BrowserUtils.scrollTo(browser, originalScrollPosition, promiseFactory);
                     }
+                }
+            })
+            .then(function () {
+                if (!checkFrameOrElement && regionToCheck) {
+                    return screenshot.cropImage(regionToCheck);
                 }
             })
             .then(function () {
