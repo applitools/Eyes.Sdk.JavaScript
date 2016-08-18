@@ -14,8 +14,10 @@
     "use strict";
 
 
-    var ImageUtils = require('./ImageUtils');
-    var disabled = !require('fs').open;
+    var fs = require("fs"),
+        ImageUtils = require('./ImageUtils');
+
+    var disabled = !fs.open;
 
     /**
      * Parses the image if possible - meaning dimensions and BMP are extracted and available
@@ -216,6 +218,31 @@
                             that._height = that._imageBmp.height;
                             return that;
                         });
+                }
+            });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Write image to local directory
+     *
+     * @param {string} filename
+     * @return {Object} promise - resolves without any value
+     */
+    MutableImage.prototype.saveImage = function (filename) {
+        var that = this;
+        return _parseImage(that)
+            .then(function () {
+                if (that._isParsed) {
+                    return that._promiseFactory.makePromise(function (resolve, reject) {
+                        fs.writeFile(filename, that._imageBuffer, function(err) {
+                            if(err) {
+                                reject(err);
+                            }
+
+                            resolve(that);
+                        });
+                    });
                 }
             });
     };
