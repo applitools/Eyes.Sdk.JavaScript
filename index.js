@@ -12,7 +12,6 @@ exports.FileLogHandler = require('./src/FileLogHandler');
 exports.Triggers = require('./src/Triggers');
 exports.CoordinatesType = require('./src/CoordinatesType');
 exports.EyesScreenshot = require('./src/EyesScreenshot');
-exports.PositionProvider = require('./src/PositionProvider');
 exports.ScaleProvider = require('./src/ScaleProvider');
 exports.SessionEventHandler = require('./src/SessionEventHandler');
 exports.RemoteSessionEventHandler = require('./src/RemoteSessionEventHandler');
