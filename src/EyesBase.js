@@ -15,6 +15,7 @@
         MatchWindowTask = require('./MatchWindowTask'),
         SessionEventHandler = require('./SessionEventHandler'),
         RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
+        FixedScaleProvider = require('./FixedScaleProvider'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
@@ -131,6 +132,7 @@
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._positionProvider = null;
+            this._scaleProvider = new FixedScaleProvider(1, promiseFactory);
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
@@ -490,6 +492,49 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {number} The ratio used to scale the images being validated.
+     */
+    EyesBase.prototype.getScaleRatio = function () {
+        return this._scaleProvider.getScaleRatio();
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Manually set the scale ratio for the images being validated.
+     *
+     * @param {number} [scaleRatio=1] The scale ratio to use, or {@code null} to reset back to automatic scaling.
+     */
+    EyesBase.prototype.setScaleRatio = function (scaleRatio) {
+        if (scaleRatio != null) {
+            this._scaleProvider = new FixedScaleProvider(scaleRatio, this._promiseFactory, true);
+        } else {
+            this._scaleProvider = new FixedScaleProvider(1, this._promiseFactory);
+        }
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {ScaleProvider} The currently set scale provider.
+     */
+    EyesBase.prototype.getScaleProvider = function () {
+        return this._scaleProvider;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {ScaleProvider} scaleProvider The scale provider to use
+     */
+    EyesBase.prototype.setScaleProvider = function (scaleProvider) {
+        if (this._scaleProvider.isReadOnly()) {
+            this.logger.verbose("New ScaleProvider ignored.");
+            return false;
+        }
+
+        this._scaleProvider = scaleProvider;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * Sets the branch name.
      *
      * @param branchName {String} The branch name.
@@ -579,6 +624,7 @@
             this._isOpen = true;
             this._userInputs = [];
             this._viewportSize = viewportSize;
+            this.setScaleProvider(new FixedScaleProvider(1, this._promiseFactory));
             this._testName = testName;
             this._appName = appName;
             this._validationId = -1;
