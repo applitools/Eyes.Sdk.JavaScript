@@ -15,7 +15,7 @@
 
     /**
      * Go to the specified location.
-     * @param {Promise<{x: number, y: number}>} location The position to set.
+     * @param {{x: number, y: number}} location The position to set.
      */
     PositionProvider.prototype.setPosition = function (location) {};
 
