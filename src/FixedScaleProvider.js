@@ -3,8 +3,7 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard,
-        ImageUtils = EyesUtils.ImageUtils;
+        ArgumentGuard = EyesUtils.ArgumentGuard;
 
     /**
      * @constructor
@@ -37,7 +36,7 @@
      * @return {Promise<MutableImage>} A new scaled image.
      */
     FixedScaleProvider.prototype.scaleImage = function (image) {
-        return ImageUtils.scaleImage(image, this._scaleRatio, this._promiseFactory);
+        return image.scaleImage(this._scaleRatio);
     };
 
     module.exports = FixedScaleProvider;

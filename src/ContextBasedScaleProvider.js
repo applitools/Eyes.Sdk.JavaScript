@@ -3,8 +3,7 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard,
-        ImageUtils = EyesUtils.ImageUtils;
+        ArgumentGuard = EyesUtils.ArgumentGuard;
 
     // Allowed deviations for viewport size and default content entire size.
     var ALLOWED_VS_DEVIATION = 1,
@@ -80,7 +79,7 @@
         var that = this;
         return calculateScaleRatio(that, image).then(function (scaleRatio) {
             that._scaleRatio = scaleRatio;
-            return ImageUtils.scaleImage(image, scaleRatio, that._promiseFactory);
+            return image.scaleImage(scaleRatio);
         });
     };
 
