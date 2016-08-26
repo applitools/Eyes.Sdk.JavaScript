@@ -270,7 +270,7 @@
             transforms[key] = transformToSet;
         }
 
-        return BrowserUtils.setTransform(browser, transforms, promiseFactory);
+        return BrowserUtils.setTransforms(browser, transforms, promiseFactory);
     };
 
     /**
