@@ -761,16 +761,10 @@
         return this._promiseFactory.makePromise(function (resolve, reject) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             var data = {appOutput: {}};
-            var parsedImage;
             return that.getScreenShot()
                 .then(function (image) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
-                    parsedImage = image;
-                    return parsedImage.cropImage(region);
-                })
-                .then(function () {
-                    that._logger.verbose('cropped image returned - packing');
-                    return parsedImage.asObject();
+                    return image.asObject();
                 })
                 .then(function (imageObj) {
                     that._logger.verbose('image is ready');
@@ -1072,7 +1066,7 @@
         var sb = this._matchWindowTask.getLastScreenShotBounds();
         cursor.x += control.left;
         cursor.y += control.top;
-        if (!GeometryUtils.contains(sb, cursor)) {
+        if (!GeometryUtils.isRegionContainsLocation(sb, cursor)) {
             this._logger.verbose("AddMouseTrigger: out of bounds - ignoring mouse event");
             return;
         }
