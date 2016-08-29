@@ -13,17 +13,16 @@
 
     var util = require('util'),
         Stream = require('stream');
+
     //noinspection JSUnresolvedVariable
     var Readable = Stream.Readable;
     //noinspection JSUnresolvedVariable
     var Writable = Stream.Writable;
 
-
-    // --- ReadableBufferStream
     /**
      * ReadableBufferStream constructor.
      * @param {Buffer} buffer The buffer to be used as the stream's source.
-     * @param {object|undefined} options (Optional) An "options" object to be passed to the stream constructor.
+     * @param {object} [options] An "options" object to be passed to the stream constructor.
      * @constructor
      */
     var ReadableBufferStream = function (buffer, options) {
@@ -47,11 +46,9 @@
         this.push(null);
     };
 
-
-    // --- WritableBufferStream
     /**
      * WritableBufferStream constructor.
-     * @param {object|undefined} options (Optional) An "options" object to be passed to the stream constructor.
+     * @param {object} [options] An "options" object to be passed to the stream constructor.
      * @constructor
      */
     var WritableBufferStream = function (options) {
@@ -98,8 +95,6 @@
         return buffer;
     };
 
-
-    // --- Exports
     var StreamUtils = {};
     StreamUtils.ReadableBufferStream = ReadableBufferStream;
     StreamUtils.WritableBufferStream = WritableBufferStream;

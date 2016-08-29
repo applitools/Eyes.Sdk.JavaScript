@@ -14,21 +14,11 @@
     var ArgumentGuard = {};
 
     /**
-     * Fails if the input parameter is null.
-     * @param param The input parameter.
-     * @param paramName The input parameter name.
-     */
-    ArgumentGuard.notNull = function (param, paramName) {
-        if (null == param) {
-            throw new Error("IllegalArgument: " + paramName + " is null");
-        }
-    };
-
-    /**
      * Fails if the input parameter equals the input value.
-     * @param param The input parameter.
-     * @param value The input value.
-     * @param paramName The input parameter name.
+     *
+     * @param {Object} param The input parameter.
+     * @param {Object} value The input value.
+     * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notEqual = function (param, value, paramName) {
         if (param === value) {
@@ -37,9 +27,34 @@
     };
 
     /**
+     * Fails if the input parameter is null.
+     *
+     * @param {Object} param The input parameter.
+     * @param {string} paramName The input parameter name.
+     */
+    ArgumentGuard.notNull = function (param, paramName) {
+        if (null == param) {
+            throw new Error("IllegalArgument: " + paramName + " is null");
+        }
+    };
+
+    /**
+     * Fails if the input parameter is not null.
+     *
+     * @param {Object} param The input parameter.
+     * @param {string} paramName The input parameter name.
+     */
+    ArgumentGuard.isNull = function (param, paramName) {
+        if (null != param) {
+            throw new Error("IllegalArgument: " + paramName + " is not null");
+        }
+    };
+
+    /**
      * Fails if the input parameter string is null or empty.
-     * @param param The input parameter.
-     * @param paramName The input parameter name.
+     *
+     * @param {Object} param The input parameter.
+     * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notNullOrEmpty = function (param, paramName) {
         notNull(param, paramName);
@@ -49,20 +64,10 @@
     };
 
     /**
-     * Fails if the input parameter is not null.
-     * @param param The input parameter.
-     * @param paramName The input parameter name.
-     */
-    ArgumentGuard.isNull = function (param, paramName) {
-        if (null != param) {
-            throw new Error("IllegalArgument: " + paramName + " is not null");
-        }
-    };
-
-    /**
      * Fails if the input integer parameter is negative.
-     * @param param The input parameter.
-     * @param paramName The input parameter name.
+     *
+     * @param {number} param The input parameter.
+     * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.greaterThanOrEqualToZero = function (param, paramName) {
         if (0 > param) {
@@ -72,8 +77,9 @@
 
     /**
      * Fails if the input integer parameter is smaller than 1.
-     * @param param The input parameter.
-     * @param paramName The input parameter name.
+     *
+     * @param {number} param The input parameter.
+     * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.greaterThanZero = function (param, paramName) {
         if (0 >= param) {
@@ -94,8 +100,9 @@
 
     /**
      * Fails if isValid is false.
-     * @param isValid Whether the current state is valid.
-     * @param errMsg A description of the error.
+     *
+     * @param {boolean} isValid Whether the current state is valid.
+     * @param {string} errMsg A description of the error.
      */
     ArgumentGuard.isValidState = function (isValid, errMsg) {
         if (!isValid) {
@@ -105,8 +112,9 @@
 
     /**
      * Fails if isValid is false.
-     * @param param The input parameter.
-     * @param type The expected param type
+     *
+     * @param {Object} param The input parameter.
+     * @param {Object} type The expected param type
      */
     ArgumentGuard.isValidType = function (param, type) {
         if (!(param instanceof type)) {

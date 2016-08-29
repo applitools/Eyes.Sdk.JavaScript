@@ -8,8 +8,7 @@
 
     /**
      *
-     * @return {Promise<{x: number, y: number}>} The current position, or {@code null} if position is not
-     * available.
+     * @return {Promise<{x: number, y: number}>} The current position, or {@code null} if position is not available.
      */
     PositionProvider.prototype.getCurrentPosition = function () {};
 
@@ -20,7 +19,7 @@
     PositionProvider.prototype.setPosition = function (location) {};
 
     /**
-     * @return {Promise<{x: number, y: number}>} The entire size of the container which the position is relative to.
+     * @return {Promise<{width: number, height: number}>} The entire size of the container which the position is relative to.
      */
     PositionProvider.prototype.getEntireSize = function () {};
 
