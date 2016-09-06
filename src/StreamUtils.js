@@ -80,6 +80,36 @@
     /**
      * @return {Buffer} The buffer which contains the chunks written up to this point.
      */
+    WritableBufferStream.prototype.writeInt = function (value) {
+        var buf = new Buffer(4);
+        buf.writeInt32BE(value, 0);
+        return this.write(buf);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {Buffer} The buffer which contains the chunks written up to this point.
+     */
+    WritableBufferStream.prototype.writeShort = function (value) {
+        var buf = new Buffer(2);
+        buf.writeInt16BE(value, 0);
+        return this.write(buf);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {Buffer} The buffer which contains the chunks written up to this point.
+     */
+    WritableBufferStream.prototype.writeByte = function (value) {
+        var buf = new Buffer(1);
+        buf.writeInt8(value, 0);
+        return this.write(buf);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {Buffer} The buffer which contains the chunks written up to this point.
+     */
     WritableBufferStream.prototype.getBuffer = function () {
         return this._buffer;
     };
