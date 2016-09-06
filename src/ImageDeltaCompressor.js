@@ -149,7 +149,7 @@
                     if (!compareResult.isIdentical) {
                         stream.writeByte(channel);
                         stream.writeInt(blockNumber);
-                        stream.write(compareResult);
+                        stream.write(compareResult.buffer);
 
                         // If the number of bytes already written is greater
                         // then the number of bytes for the uncompressed
