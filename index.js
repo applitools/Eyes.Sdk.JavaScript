@@ -6,4 +6,5 @@ exports.StreamUtils = require('./src/StreamUtils');
 exports.PromiseFactory = require('./src/PromiseFactory');
 exports.BrowserUtils = require('./src/BrowserUtils');
 exports.MutableImage = require('./src/MutableImage');
+exports.PositionProvider = require('./src/PositionProvider');
 exports.TestResultsFormatter = require('./src/TestResultsFormatter');

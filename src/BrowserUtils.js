@@ -516,9 +516,24 @@
         return 1 / pixelRatio;
     };
 
-    var _processPart = function (part, parts, imageObj, browser, promise, promiseFactory,
-                                 useCssTransition, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
-                                 automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, regionToCheck) {
+    var _processPart = function (
+        part,
+        parts,
+        imageObj,
+        browser,
+        promise,
+        promiseFactory,
+        positionProvider,
+        viewportSize,
+        entirePageSize,
+        pixelRatio,
+        rotationDegrees,
+        automaticRotation,
+        automaticRotationDegrees,
+        isLandscape,
+        waitBeforeScreenshots,
+        regionToCheck
+    ) {
         return promise.then(function () {
             return promiseFactory.makePromise(function (resolve) {
                 // Skip 0,0 as we already got the screenshot
@@ -535,61 +550,70 @@
 
                 var currentPosition;
                 var partCoords = {x: part.left, y: part.top};
-                var promise = useCssTransition ?
-                    BrowserUtils.translateTo(browser, partCoords, promiseFactory).then(function () {
-                        currentPosition = partCoords;
-                    }) :
-                    BrowserUtils.scrollTo(browser, partCoords, promiseFactory).then(function () {
-                        return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (position) {
-                            currentPosition = {x: position.x, y: position.y};
-                        });
+                return positionProvider.setPosition(partCoords).then(function () {
+                    return positionProvider.getCurrentPosition().then(function (position) {
+                        currentPosition = position;
                     });
-
-                return promise.then(function () {
+                }).then(function () {
                     return _captureViewport(browser, promiseFactory, viewportSize, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
                         waitBeforeScreenshots, regionToCheck);
-                })
-                    .then(function (partImage) {
-                        return partImage.asObject().then(function (partObj) {
-                            parts.push({
-                                image: partObj.imageBuffer,
-                                size: {width: partObj.width, height: partObj.height},
-                                position: {x: currentPosition.x, y: currentPosition.y}
-                            });
-
-                            resolve();
+                }).then(function (partImage) {
+                    return partImage.asObject().then(function (partObj) {
+                        parts.push({
+                            image: partObj.imageBuffer,
+                            size: {width: partObj.width, height: partObj.height},
+                            position: {x: currentPosition.x, y: currentPosition.y}
                         });
+
+                        resolve();
                     });
+                });
             });
         });
     };
 
-    var _captureViewport = function _captureViewport(browser,
-                                                     promiseFactory,
-                                                     viewportSize,
-                                                     entirePageSize,
-                                                     pixelRatio,
-                                                     rotationDegrees,
-                                                     automaticRotation,
-                                                     automaticRotationDegrees,
-                                                     isLandscape,
-                                                     waitBeforeScreenshots,
-                                                     regionToCheck) {
-        var parsedImage;
+    var _captureViewport = function (
+        browser,
+        promiseFactory,
+        viewportSize,
+        entirePageSize,
+        pixelRatio,
+        rotationDegrees,
+        automaticRotation,
+        automaticRotationDegrees,
+        isLandscape,
+        waitBeforeScreenshots,
+        regionToCheck,
+        saveDebugScreenshots,
+        tag
+    ) {
+        var screenshot, parsedImage;
         return BrowserUtils.sleep(waitBeforeScreenshots, promiseFactory).then(function () {
             return browser.takeScreenshot().then(function (screenshot64) {
                 return new MutableImage(new Buffer(screenshot64, 'base64'), promiseFactory);
             })
-                .then(function (screenshot) {
-                    if (regionToCheck) {
-                        return screenshot.cropImage(regionToCheck);
+                .then(function (image) {
+                    screenshot = image;
+                    if (saveDebugScreenshots) {
+                        return screenshot.saveImage((tag || "screenshot") + "-" + new Date().getTime() + ".jpg");
                     }
-
+                })
+                .then(function () {
+                    return screenshot;
+                }, function (err) {
+                    // something wrong
                     return screenshot;
                 })
-                .then(function (screenshot) {
-                    parsedImage = screenshot;
+                .then(function (image) {
+                    if (regionToCheck) {
+                        return image.cropImage(regionToCheck);
+                    }
+
+                    return image;
+                })
+                .then(function (image) {
+                    parsedImage = image;
                     return parsedImage.getSize();
                 })
                 .then(function (size) {
@@ -637,6 +661,7 @@
      * @param {WebDriver} browser
      * @param {PromiseFactory} promiseFactory
      * @param {{width: number, height: number}} viewportSize
+     * @param {PositionProvider} positionProvider
      * @param {boolean} fullPage
      * @param {boolean} hideScrollbars
      * @param {boolean} useCssTransition
@@ -647,33 +672,39 @@
      * @param {int} waitBeforeScreenshots
      * @param {boolean} checkFrameOrElement
      * @param {{left: number, top: number, width: number, height: number}} regionToCheck
+     * @param {boolean} saveDebugScreenshots
+     * @param {string} tag
      * @returns {Promise<MutableImage>}
      */
-    BrowserUtils.getScreenshot = function getScreenshot(browser,
-                                                        promiseFactory,
-                                                        viewportSize,
-                                                        fullPage,
-                                                        hideScrollbars,
-                                                        useCssTransition,
-                                                        rotationDegrees,
-                                                        automaticRotation,
-                                                        automaticRotationDegrees,
-                                                        isLandscape,
-                                                        waitBeforeScreenshots,
-                                                        checkFrameOrElement,
-                                                        regionToCheck) {
+    BrowserUtils.getScreenshot = function getScreenshot(
+        browser,
+        promiseFactory,
+        viewportSize,
+        positionProvider,
+        fullPage,
+        hideScrollbars,
+        useCssTransition,
+        rotationDegrees,
+        automaticRotation,
+        automaticRotationDegrees,
+        isLandscape,
+        waitBeforeScreenshots,
+        checkFrameOrElement,
+        regionToCheck,
+        saveDebugScreenshots,
+        tag
+    ) {
         var MIN_SCREENSHOT_PART_HEIGHT = 10;
         var maxScrollbarSize = useCssTransition ? 0 : 50; // This should cover all scroll bars (and some fixed position footer elements :).
-        var originalScrollPosition,
+        var originalPosition,
             originalOverflow,
-            originalTransform,
             entirePageSize,
             pixelRatio,
             imageObject,
             screenshot;
 
         // step #1 - get entire page size for future use (scaling and stitching)
-        return BrowserUtils.getEntirePageSize(browser, promiseFactory).then(function (pageSize) {
+        return positionProvider.getEntireSize().then(function (pageSize) {
             entirePageSize = pageSize;
         }, function () {
             // Couldn't get entire page size, using viewport size as default.
@@ -700,31 +731,23 @@
             .then(function () {
                 // step #4 - if this is a full page screenshot we need to scroll to position 0,0 before taking the first
                 if (fullPage) {
-                    return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (point) {
-                        originalScrollPosition = point;
-                        return BrowserUtils.scrollTo(browser, {x: 0, y: 0}, promiseFactory).then(function () {
-                            return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (point) {
-                                if (point.x != 0 || point.y != 0) {
+                    return positionProvider.getCurrentPosition().then(function (location) {
+                        originalPosition = location;
+                        return positionProvider.setPosition({x: 0, y: 0}).then(function () {
+                            return positionProvider.getCurrentPosition().then(function (location) {
+                                if (location.x != 0 || location.y != 0) {
                                     throw new Error("Could not scroll to the x/y corner of the screen");
                                 }
                             });
                         });
-                    })
-                        .then(function () {
-                            if (useCssTransition) {
-                                return BrowserUtils.getCurrentTransform(browser, promiseFactory).then(function (transform) {
-                                    originalTransform = transform;
-                                    // Translating to "x/y" of the page (notice this is different from Javascript scrolling).
-                                    return BrowserUtils.translateTo(browser, {x: 0, y: 0}, promiseFactory);
-                                });
-                            }
-                        })
+                    });
                 }
             })
             .then(function () {
                 // step #5 - Take screenshot of the 0,0 tile / current viewport
                 return _captureViewport(browser, promiseFactory, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
-                    automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null)
+                    automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
+                    checkFrameOrElement ? regionToCheck : null, saveDebugScreenshots, tag)
                     .then(function (image) {
                         screenshot = image;
                         return screenshot.asObject().then(function (imageObj) {
@@ -763,9 +786,9 @@
                     });
 
                     screenshotParts.forEach(function (part) {
-                        promise = _processPart(part, parts, imageObject, browser, promise,
-                            promiseFactory, useCssTransition, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
-                            automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null);
+                        promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
+                            positionProvider, viewportSize, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
+                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null);
                     });
                     promise.then(function () {
                         return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {
@@ -782,13 +805,7 @@
             })
             .then(function () {
                 if (fullPage) {
-                    if (useCssTransition) {
-                        return BrowserUtils.setTransform(browser, originalTransform, promiseFactory).then(function () {
-                            return BrowserUtils.scrollTo(browser, originalScrollPosition, promiseFactory);
-                        });
-                    } else {
-                        return BrowserUtils.scrollTo(browser, originalScrollPosition, promiseFactory);
-                    }
+                    return positionProvider.setPosition(originalPosition);
                 }
             })
             .then(function () {
