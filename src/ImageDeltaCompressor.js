@@ -11,7 +11,8 @@
 (function () {
     "use strict";
 
-    var WritableBufferStream = require('./StreamUtils').WritableBufferStream;
+    var zlib = require('zlib'),
+        WritableBufferStream = require('./StreamUtils').WritableBufferStream;
 
     var PREAMBLE = new Buffer("applitools", "utf8");
     var COMPRESS_BY_RAW_BLOCKS_FORMAT = 3;
@@ -125,6 +126,7 @@
 
         // Writing the header
         var stream = new WritableBufferStream();
+        var blocksStream = new WritableBufferStream();
         stream.write(PREAMBLE);
         stream.write(new Buffer([COMPRESS_BY_RAW_BLOCKS_FORMAT]));
 
@@ -147,14 +149,14 @@
                     compareResult = _compareAndCopyBlocks(sourcePixels, targetPixels, imageSize, pixelLength, blockSize, blockColumn, blockRow, actualChannelIndex);
 
                     if (!compareResult.isIdentical) {
-                        stream.writeByte(channel);
-                        stream.writeInt(blockNumber);
-                        stream.write(compareResult.buffer);
+                        blocksStream.writeByte(channel);
+                        blocksStream.writeInt(blockNumber);
+                        blocksStream.write(compareResult.buffer);
 
                         // If the number of bytes already written is greater
                         // then the number of bytes for the uncompressed
                         // target, we just return the uncompressed target.
-                        if (stream.getBuffer().length > targetPacked.imageBuffer.length) {
+                        if (stream.getBuffer().length + blocksStream.getBuffer().length > targetPacked.imageBuffer.length) {
                             return targetPacked.imageBuffer;
                         }
                     }
@@ -163,6 +165,10 @@
                 }
             }
         }
+
+        stream.write(zlib.deflateRawSync(blocksStream.getBuffer(), {
+            level: zlib.Z_BEST_COMPRESSION,
+        }));
 
         if (stream.getBuffer().length > targetPacked.imageBuffer.length) {
             return targetPacked.imageBuffer;
