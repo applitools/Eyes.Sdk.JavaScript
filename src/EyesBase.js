@@ -130,6 +130,7 @@
             this._saveNewTests = true;
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
+            this._positionProvider = null;
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
@@ -473,6 +474,22 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {PositionProvider} The currently set position provider.
+     */
+    EyesBase.prototype.getPositionProvider = function () {
+        return this._positionProvider;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {PositionProvider} positionProvider The position provider to be used.
+     */
+    EyesBase.prototype.setPositionProvider = function (positionProvider) {
+        this._positionProvider = positionProvider;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * Sets the branch name.
      *
      * @param branchName {String} The branch name.
@@ -756,12 +773,12 @@
     };
 
     // lastScreenShot - notice it's an object with imageBuffer, width & height properties
-    function _getAppData(region, lastScreenShot) {
+    function _getAppData(region, lastScreenShot, tag) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve, reject) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             var data = {appOutput: {}};
-            return that.getScreenShot()
+            return that.getScreenShot(tag)
                 .then(function (image) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                     return image.asObject();
