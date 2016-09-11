@@ -747,6 +747,8 @@
             imageObject,
             screenshot;
 
+        hideScrollbars = hideScrollbars === null ? useCssTransition : hideScrollbars;
+
         // step #1 - get entire page size for future use (scaling and stitching)
         return positionProvider.getEntireSize().then(function (pageSize) {
             entirePageSize = pageSize;
