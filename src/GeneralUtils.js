@@ -13,22 +13,26 @@
 
     var GeneralUtils = {};
 
+    /**
+     * @private
+     * @param {Object} to
+     * @param {Object} from
+     * @param {string} fnName
+     */
     function _mixin(to, from, fnName) {
         to[fnName] = function () {
             return from[fnName].apply(from, arguments);
         };
     }
 
+    //noinspection JSUnusedGlobalSymbols
     /**
+     * Concatenate the url to the suffix - making sure there are no double slashes
      *
-     * concatenate the url to the suffix - making sure there are no double slashes
-     *
-     * @method urlConcat
      * @param {String} url - The left side of the URL.
      * @param {String} suffix - the right side.
      *
      * @return {String} the URL
-     *
      **/
     GeneralUtils.urlConcat = function (url, suffix) {
         var left = url;
@@ -43,11 +47,25 @@
         return left + "/" + suffix;
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Convert object into json string
+     *
+     * @param {Object} o
+     * @returns {String}
+     */
     GeneralUtils.toJson = function (o) {
         return JSON.stringify(o);
     };
 
-    // follow the prototype chain and apply form root to current - but skip the top (Object)
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Mixin methods from one object into another.
+     * Follow the prototype chain and apply form root to current - but skip the top (Object)
+     *
+     * @param {Object} to The object to which methods will be added
+     * @param {Object} from The object from which methods will be copied
+     */
     GeneralUtils.mixin = function (to, from) {
         var index, protos = [], proto = from;
         while (!!proto) {
@@ -66,6 +84,12 @@
         }
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Generate GUID
+     *
+     * @return {string}
+     */
     GeneralUtils.guid = function () {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0;
@@ -74,6 +98,13 @@
         });
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Clone object
+     *
+     * @param {Date|Array|Object} obj
+     * @return {*}
+     */
     GeneralUtils.clone = function (obj) {
         var copy;
         if (null == obj || "object" != typeof obj) {
@@ -107,6 +138,7 @@
         throw new Error("Unable to copy obj! Its type isn't supported.");
     };
 
+    //noinspection JSUnusedGlobalSymbols
 	/**
 	 * Creates a property with default configuration (writable, enumerable, configurable).
 	 *
@@ -122,8 +154,9 @@
 			get: getFunc,
 			set: setFunc
 		});
-	}
+	};
 
+    //noinspection JSUnusedGlobalSymbols
 	/**
 	 * Creates a property with default configuration (writable, enumerable, configurable) and default getter/setter.
 	 *
@@ -132,11 +165,11 @@
 	 */
 	GeneralUtils.defineStandardProperty = function (obj, name) {
 
-		var getFunc = function () { return this["_" + name]; }
-		var setFunc = function (v) { this["_" + name] = v; }
+		var getFunc = function () { return this["_" + name]; };
+		var setFunc = function (v) { this["_" + name] = v; };
 
 		GeneralUtils.definePropertyWithDefaultConfig(obj, name, getFunc, setFunc);
-	}
+	};
 
     module.exports = GeneralUtils;
 }());

@@ -11,8 +11,12 @@
 (function () {
     "use strict";
 
-    "use strict";
-
+    /**
+     * @constructor
+     * @param {function} promiseFactoryFunc A function which receives as a parameter
+     *                   the same function you would pass to a Promise constructor.
+     * @param {function} deferredFactoryFunc A function which returns a deferred.
+     */
     function PromiseFactory(promiseFactoryFunc, deferredFactoryFunc) {
         this._promiseFactoryFunc = promiseFactoryFunc;
         this._deferredFactoryFunc = deferredFactoryFunc;
@@ -21,9 +25,10 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the factory methods which will be used to create promises and deferred-s.
-     * @param promiseFactoryFunc A function which receives as a parameter the same function you would pass to a Promise
-     *                          constructor.
-     * @param deferredFactoryFunc A function which returns a deferred.
+     *
+     * @param {function} promiseFactoryFunc A function which receives as a parameter
+     *                   the same function you would pass to a Promise constructor.
+     * @param {function} deferredFactoryFunc A function which returns a deferred.
      */
     PromiseFactory.prototype.setFactoryMethods = function (promiseFactoryFunc, deferredFactoryFunc) {
         this._promiseFactoryFunc = promiseFactoryFunc;
@@ -31,6 +36,11 @@
     };
 
     //noinspection JSUnusedGlobalSymbols
+    /**
+     *
+     * @param {function} asyncAction
+     * @returns {*}
+     */
     PromiseFactory.prototype.makePromise = function (asyncAction) {
         if (this._promiseFactoryFunc) {
             return this._promiseFactoryFunc(asyncAction);

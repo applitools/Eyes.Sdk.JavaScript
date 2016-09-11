@@ -170,6 +170,7 @@
 
     /**
      * Returns a list of sub-regions which compose the current region.
+     *
      * @param {{top: number, left: number, width: number, height: number}} region The region from which we want to extract the sub regions.
      * @param subRegionSize The default sub-region size to use.
      * @param isFixedSize If {@code false}, then sub-regions might have a size which is smaller then {@code subRegionSize}

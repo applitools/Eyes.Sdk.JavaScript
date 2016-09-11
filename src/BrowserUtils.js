@@ -100,8 +100,8 @@
      * @param {WebDriver} browser The driver using which to execute the script.
      * @param {string} script The code to execute on the given driver.
      * @param {PromiseFactory} promiseFactory
-     * @param {number|undefined} stabilizationTimeMs (optional) The amount of time to wait after script execution to
-     *                           let the browser a chance to stabilize (e.g., finish rendering).
+     * @param {number|undefined} [stabilizationTimeMs] The amount of time to wait after script execution to
+     *        let the browser a chance to stabilize (e.g., finish rendering).
      * @return {Promise<void>} A promise which resolves to the result of the script's execution on the tab.
      */
     BrowserUtils.executeScript = function executeScript(browser, script, promiseFactory, stabilizationTimeMs) {
@@ -121,7 +121,7 @@
      * Returns the computed value of the style property for the current element.
      *
      * @param {WebDriver} browser The driver which will execute the script to get computed style.
-     * @param {WebElement|EyesRemoteWebElement} element
+     * @param {WebElement} element
      * @param {string} propStyle The style property which value we would like to extract.
      * @return {Promise<string>} The value of the style property of the element, or {@code null}.
      */
@@ -135,8 +135,8 @@
     /**
      * Returns a location based on the given location.
      *
-     * @param {Object} logger The logger to use.
-     * @param {WebElement|EyesRemoteWebElement} element The element for which we want to find the content's location.
+     * @param {Logger} logger The logger to use.
+     * @param {WebElement} element The element for which we want to find the content's location.
      * @param {{x: number, y: number}} location The location of the element.
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<{x: number, y: number}>} The location of the content of the element.
@@ -155,6 +155,15 @@
         });
     };
 
+    /**
+     * Return width of left border
+     *
+     * @private
+     * @param {Logger} logger
+     * @param {PromiseFactory} promiseFactory
+     * @param {WebElement} element
+     * @return {Promise<number>}
+     */
     function _getLeftBorderWidth(logger, promiseFactory, element) {
         return promiseFactory.makePromise(function (resolve) {
             logger.verbose("Get element border left width...");
@@ -179,6 +188,15 @@
         });
     }
 
+    /**
+     * Return width of top border
+     *
+     * @private
+     * @param {Logger} logger
+     * @param {PromiseFactory} promiseFactory
+     * @param {WebElement} element
+     * @return {Promise<number>}
+     */
     function _getTopBorderWidth(logger, promiseFactory, element) {
         return promiseFactory.makePromise(function (resolve) {
             logger.verbose("Get element's border top width...");
@@ -417,6 +435,7 @@
                         return;
                     }
 
+
                     browser.manage().window().getSize().then(function (browserSize) {
                         // Edge case.
                         if (browserSize.height < actualViewportSize.height || browserSize.width < actualViewportSize.width) {
@@ -462,6 +481,15 @@
         }.bind(this));
     };
 
+    /**
+     * @private
+     * @param {WebDriver} driver
+     * @param {{width: number, height: number}} size
+     * @param {number} retries
+     * @param {PromiseFactory} promiseFactory
+     * @param {Logger} logger
+     * @return {Promise<void>}
+     */
     function _setWindowSize(driver, size, retries, promiseFactory, logger) {
         return promiseFactory.makePromise(function (resolve, reject) {
             return driver.manage().window().setSize(size.width, size.height).then(function () {
@@ -489,6 +517,29 @@
         });
     }
 
+    /**
+     * @private
+     * @param {{top: number, left: number, width: number, height: number}} part
+     * @param {Array<{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}>} parts
+     * @param {{imageBuffer: Buffer, width: number, height: number}} imageObj
+     * @param {WebDriver} browser
+     * @param {Promise<void>} promise
+     * @param {PromiseFactory} promiseFactory
+     * @param {{width: number, height: number}} viewportSize
+     * @param {PositionProvider} positionProvider
+     * @param {ScaleProvider} scaleProvider
+     * @param {{width: number, height: number}} entirePageSize
+     * @param {number} pixelRatio
+     * @param {number} rotationDegrees
+     * @param {boolean} automaticRotation
+     * @param {number} automaticRotationDegrees
+     * @param {boolean} isLandscape
+     * @param {int} waitBeforeScreenshots
+     * @param {{left: number, top: number, width: number, height: number}} regionToCheck
+     * @param {boolean} [saveDebugScreenshots=false]
+     * @param {string} [tag=screenshot]
+     * @return {Promise<void>}
+     */
     var _processPart = function (
         part,
         parts,
@@ -506,7 +557,9 @@
         automaticRotationDegrees,
         isLandscape,
         waitBeforeScreenshots,
-        regionToCheck
+        regionToCheck,
+        saveDebugScreenshots,
+        tag
     ) {
         return promise.then(function () {
             return promiseFactory.makePromise(function (resolve) {
@@ -531,7 +584,7 @@
                 }).then(function () {
                     return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
-                        waitBeforeScreenshots, regionToCheck);
+                        waitBeforeScreenshots, regionToCheck, saveDebugScreenshots, tag);
                 }).then(function (partImage) {
                     return partImage.asObject().then(function (partObj) {
                         parts.push({
@@ -547,6 +600,24 @@
         });
     };
 
+    /**
+     * @private
+     * @param {WebDriver} browser
+     * @param {PromiseFactory} promiseFactory
+     * @param {{width: number, height: number}} viewportSize
+     * @param {ScaleProvider} scaleProvider
+     * @param {{width: number, height: number}} entirePageSize
+     * @param {number} pixelRatio
+     * @param {number} rotationDegrees
+     * @param {boolean} automaticRotation
+     * @param {number} automaticRotationDegrees
+     * @param {boolean} isLandscape
+     * @param {int} waitBeforeScreenshots
+     * @param {{left: number, top: number, width: number, height: number}} [regionToCheck]
+     * @param {boolean} [saveDebugScreenshots=false]
+     * @param {string} [tag=screenshot]
+     * @return {Promise<MutableImage>}
+     */
     var _captureViewport = function (
         browser,
         promiseFactory,
@@ -577,7 +648,7 @@
                 .then(function () {
                     return screenshot;
                 }, function (err) {
-                    // something wrong
+                    // something wrong, can not save screenshot to local storage
                     return screenshot;
                 })
                 .then(function (image) {
@@ -643,9 +714,9 @@
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
      * @param {boolean} checkFrameOrElement
-     * @param {{left: number, top: number, width: number, height: number}} regionToCheck
-     * @param {boolean} saveDebugScreenshots
-     * @param {string} tag
+     * @param {{left: number, top: number, width: number, height: number}} [regionToCheck]
+     * @param {boolean} [saveDebugScreenshots=false]
+     * @param {string} [tag=screenshot]
      * @returns {Promise<MutableImage>}
      */
     BrowserUtils.getScreenshot = function getScreenshot(
@@ -761,7 +832,7 @@
                     screenshotParts.forEach(function (part) {
                         promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
                             viewportSize, positionProvider, scaleProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
-                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null);
+                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null, saveDebugScreenshots, tag);
                     });
                     promise.then(function () {
                         return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {

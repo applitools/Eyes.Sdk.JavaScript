@@ -21,8 +21,9 @@
 
     /**
      * Parses the image if possible - meaning dimensions and BMP are extracted and available
-     * @param that - the context of the current instance of MutableImage
+     *
      * @private
+     * @param {MutableImage} that The context of the current instance of MutableImage
      */
     function _parseImage(that) {
         return that._promiseFactory.makePromise(function (resolve) {
@@ -43,8 +44,9 @@
 
     /**
      * Packs the image if possible - meaning the buffer is updated according to the edited BMP
-     * @param that - the context of the current instance of MutableImage
+     *
      * @private
+     * @param {MutableImage} that The context of the current instance of MutableImage
      */
     function _packImage(that) {
         return that._promiseFactory.makePromise(function (resolve) {
@@ -62,11 +64,9 @@
     }
 
     /**
-     * C'tor = initializes the module settings
-     *
+     * @constructor
      * @param {Buffer} imageBuffer
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     *
      **/
     function MutableImage(imageBuffer, promiseFactory) {
         this._imageBuffer = imageBuffer;
@@ -79,11 +79,12 @@
         this._left = 0;
     }
 
+    //noinspection JSUnusedGlobalSymbols
     /**
-     * Coordinates represent the image's position in a larger context (if any). E.g., A screenshot of the browser's
-     * viewport of a web page.
+     * Coordinates represent the image's position in a larger context (if any).
+     * E.g., A screenshot of the browser's viewport of a web page.
      *
-     * @return {Promise.<{x: number, y: number}>} A promise which resolves to the coordinates of the image in the larger context (if any)
+     * @return {Promise.<{x: number, y: number}>} The coordinates of the image in the larger context (if any)
      */
     MutableImage.prototype.getCoordinates = function () {
         var that = this;
@@ -95,11 +96,13 @@
         });
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
-     * Coordinates represent the image's position in a larger context (if any). E.g., A screenshot of the browser's
-     * viewport of a web page.
+     * Coordinates represent the image's position in a larger context (if any).
+     * E.g., A screenshot of the browser's viewport of a web page.
      *
-     * @return {Promise} A promise which resolves once the set is done.
+     * @param {{x: number, y: number}} coordinates
+     * @return {Promise<void>}
      */
     MutableImage.prototype.setCoordinates = function (coordinates) {
         var that = this;
@@ -111,8 +114,9 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * Parses the image if necessary
-     * @returns {Object} - the image size
+     * Size of the image. Parses the image if necessary
+     *
+     * @return {Promise<{width: number, height: number}>}
      */
     MutableImage.prototype.getSize = function () {
         var that = this;
@@ -127,9 +131,9 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * return the image as buffer and image width and height.
+     * Return the image as buffer and image width and height.
      *
-     * {Object} Promise of an object with buffer and image dimensions
+     * @return {Promise<{imageBuffer: Buffer, width: number, height: number}>}
      */
     MutableImage.prototype.asObject = function () {
         var that = this;
@@ -150,8 +154,8 @@
     /**
      * Scales the image in place (used to downsize by 2 for retina display chrome bug - and tested accordingly).
      *
-     * @param {float} scale
-     * @return {Promise.<MutableImage>} promise - resolves without any value.
+     * @param {number} scale
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.scaleImage = function (scale) {
         var that = this;
@@ -170,10 +174,10 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * crops the image according to the given region.
+     * Crops the image according to the given region.
      *
-     * @param {Object} region
-     * @return {Object} promise - resolves without any value
+     * @param {{left: number, top: number, width: number, height: number, relative: boolean=}} region
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.cropImage = function (region) {
         var that = this;
@@ -201,10 +205,10 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * rotates the image according to the given degrees.
+     * Rotates the image according to the given degrees.
      *
      * @param {Number} degrees
-     * @return {Object} promise - resolves without any value
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.rotateImage = function (degrees) {
         var that = this;
@@ -227,7 +231,7 @@
      * Write image to local directory
      *
      * @param {string} filename
-     * @return {Object} promise - resolves without any value
+     * @return {Promise<void>}
      */
     MutableImage.prototype.saveImage = function (filename) {
         var that = this;
