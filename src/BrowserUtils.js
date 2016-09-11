@@ -270,7 +270,7 @@
             transforms[key] = transformToSet;
         }
 
-        return BrowserUtils.setTransform(browser, transforms, promiseFactory);
+        return BrowserUtils.setTransforms(browser, transforms, promiseFactory);
     };
 
     /**
@@ -489,33 +489,6 @@
         });
     }
 
-    /**
-     * Queries the current page's size and pixel ratio to figure out what is the normalization factor of a screenshot
-     * image. Even if there's a pixel ration > 1, it doesn't necessarily mean that the image requires rescaling
-     * (e.g., when the screenshot is a full page screenshot).
-     *
-     * @param {WebDriver} browser The driver used to update the web page.
-     * @param {{width: number, height: number}} imageSize
-     * @param {{width: number, height: number}} viewportSize
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<number>} A promise which resolves to the normalization factor (float).
-     */
-    BrowserUtils.findImageNormalizationFactor = function findImageNormalizationFactor(browser, imageSize, viewportSize, promiseFactory) {
-        return BrowserUtils.getEntirePageSize(browser, promiseFactory).then(function (entirePageSize) {
-            return BrowserUtils.getDevicePixelRatio(browser, promiseFactory).then(function (ratio) {
-                return _calcImageNormalizationFactor(imageSize, viewportSize, entirePageSize, ratio);
-            });
-        });
-    };
-
-    var _calcImageNormalizationFactor = function (imageSize, viewportSize, entirePageSize, pixelRatio) {
-        if (imageSize.width === viewportSize.width || imageSize.width === entirePageSize.width) {
-            return 1;
-        }
-
-        return 1 / pixelRatio;
-    };
-
     var _processPart = function (
         part,
         parts,
@@ -523,8 +496,9 @@
         browser,
         promise,
         promiseFactory,
-        positionProvider,
         viewportSize,
+        positionProvider,
+        scaleProvider,
         entirePageSize,
         pixelRatio,
         rotationDegrees,
@@ -555,7 +529,7 @@
                         currentPosition = position;
                     });
                 }).then(function () {
-                    return _captureViewport(browser, promiseFactory, viewportSize, entirePageSize,
+                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
                         waitBeforeScreenshots, regionToCheck);
                 }).then(function (partImage) {
@@ -577,6 +551,7 @@
         browser,
         promiseFactory,
         viewportSize,
+        scaleProvider,
         entirePageSize,
         pixelRatio,
         rotationDegrees,
@@ -617,15 +592,11 @@
                     return parsedImage.getSize();
                 })
                 .then(function (size) {
-                    var sizeFactor;
                     if (isLandscape && automaticRotation && size.height > size.width) {
                         rotationDegrees = automaticRotationDegrees;
                     }
-                    sizeFactor = _calcImageNormalizationFactor(size, viewportSize, entirePageSize, pixelRatio);
-                    if (sizeFactor === 0.5) {
-                        return parsedImage.scaleImage(sizeFactor);
-                    }
-                    return parsedImage;
+
+                    return scaleProvider.scaleImage(parsedImage);
                 })
                 .then(function (parsedImage) {
                     if (rotationDegrees !== 0) {
@@ -662,6 +633,7 @@
      * @param {PromiseFactory} promiseFactory
      * @param {{width: number, height: number}} viewportSize
      * @param {PositionProvider} positionProvider
+     * @param {ScaleProvider} scaleProvider
      * @param {boolean} fullPage
      * @param {boolean} hideScrollbars
      * @param {boolean} useCssTransition
@@ -681,6 +653,7 @@
         promiseFactory,
         viewportSize,
         positionProvider,
+        scaleProvider,
         fullPage,
         hideScrollbars,
         useCssTransition,
@@ -745,7 +718,7 @@
             })
             .then(function () {
                 // step #5 - Take screenshot of the 0,0 tile / current viewport
-                return _captureViewport(browser, promiseFactory, viewportSize, entirePageSize, pixelRatio, rotationDegrees,
+                return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize, pixelRatio, rotationDegrees,
                     automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
                     checkFrameOrElement ? regionToCheck : null, saveDebugScreenshots, tag)
                     .then(function (image) {
@@ -787,7 +760,7 @@
 
                     screenshotParts.forEach(function (part) {
                         promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
-                            positionProvider, viewportSize, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
+                            viewportSize, positionProvider, scaleProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
                             automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null);
                     });
                     promise.then(function () {
