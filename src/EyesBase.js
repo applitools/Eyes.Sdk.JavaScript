@@ -11,7 +11,9 @@
 (function () {
     "use strict";
 
-    var ServerConnector = require('./ServerConnector'),
+    var EyesUtils = require('eyes.utils'),
+        MatchSettings = require('./MatchSettings'),
+        ServerConnector = require('./ServerConnector'),
         MatchWindowTask = require('./MatchWindowTask'),
         SessionEventHandler = require('./SessionEventHandler'),
         RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
@@ -19,14 +21,13 @@
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
-    var MatchSettings = require('./MatchSettings'),
+    var ImageUtils = EyesUtils.ImageUtils,
+        GeneralUtils = EyesUtils.GeneralUtils,
+        GeometryUtils = EyesUtils.GeometryUtils,
+        ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
         MatchLevel = MatchSettings.MatchLevel,
         ImageMatchSettings = MatchSettings.ImageMatchSettings,
         ExactMatchSettings = MatchSettings.ExactMatchSettings;
-
-    var EyesUtils = require('eyes.utils'),
-        GeneralUtils = EyesUtils.GeneralUtils,
-        GeometryUtils = EyesUtils.GeometryUtils;
 
     var _FailureReport = {
         // Failures are reported immediately when they are detected.
@@ -144,6 +145,7 @@
             this.validationId = -1;
             this._sessionEventHandlers = [];
 			this._autSessionId = undefined;
+            this._lastScreenshot = undefined;
         }
     }
 
@@ -772,6 +774,7 @@
         }
 
 		this._logger.verbose('EyesBase.close()');
+        this._lastScreenshot = null;
 
 		if (this._isDisabled) {
 			this._logger.log("EyesBase.close ignored - disabled");
@@ -799,6 +802,7 @@
 	EyesBase.prototype.abortIfNotClosed = function () {
 
 		this._logger.verbose('EyesBase.abortIfNotClosed()');
+        this._lastScreenshot = null;
 
 		if (this._isDisabled) {
 			this._logger.log("Eyes abortIfNotClosed ignored. (disabled)");
@@ -818,21 +822,39 @@
 		return this._endSession(true, false).catch(function () { });
     };
 
-    // lastScreenShot - notice it's an object with imageBuffer, width & height properties
-    function _getAppData(region, lastScreenShot, tag) {
+    /**
+     * @private
+     * @param region
+     * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
+     * @param {string} tag
+     * @return {Promise<Object<{appOutput: object}>>}
+     */
+    function _getAppData(region, lastScreenshot, tag) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve, reject) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-            var data = {appOutput: {}};
+            var data = {appOutput: {}}, screenshot;
             return that.getScreenShot(tag)
                 .then(function (image) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
+                    screenshot = image;
                     return image.asObject();
+                }, function (err) {
+                    throw new Error("EyesBase.checkWindow - getAppOutput empty buffer", err);
                 })
                 .then(function (imageObj) {
-                    that._logger.verbose('image is ready');
-                    data.screenShot = imageObj; //TODO: compress deltas
-                    data.appOutput.screenShot64 = imageObj.imageBuffer.toString('base64');
+                    that._logger.verbose('EyesBase.checkWindow - getAppOutput image is ready');
+                    data.screenShot = imageObj;
+                    that._logger.verbose("EyesBase.checkWindow - getAppOutput compressing screenshot...");
+                    return _compressScreenshot64(that, screenshot, lastScreenshot);
+                })
+                .then(function (compressResult) {
+                    data.appOutput.screenShot64 = compressResult;
+                }, function (err) {
+                    that._logger.verbose("EyesBase.checkWindow - getAppOutput  failed to compress screenshot!", err);
+                    data.appOutput.screenShot64 = data.screenShot.imageBuffer.toString('base64');
+                })
+                .then(function () {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
                     return that.getTitle();
                 })
@@ -845,6 +867,32 @@
                     data.appOutput.title = '';
                     resolve(data);
                 });
+        });
+    }
+
+    /**
+     * @private
+     * @param {EyesBase} eyes
+     * @param {MutableImage} screenshot
+     * @param {{imageBuffer: Buffer, width: number, height: number}} [lastScreenshot=null]
+     * @return {Promise<string>}
+     */
+    function _compressScreenshot64(eyes, screenshot, lastScreenshot) {
+        return eyes._promiseFactory.makePromise(function (resolve, reject) {
+            try {
+                var imageObj;
+                screenshot.asObject().then(function (obj) {
+                    imageObj = obj;
+                    if (lastScreenshot) {
+                        return ImageUtils.parseImage(lastScreenshot.imageBuffer, eyes._promiseFactory);
+                    }
+                }).then(function (sourceBmp) {
+                    var compressedBuffer = ImageDeltaCompressor.compressByRawBlocks(screenshot._imageBmp, imageObj, sourceBmp);
+                    resolve(compressedBuffer.toString('base64'));
+                });
+            } catch (err) {
+                reject(err);
+            }
         });
     }
 
@@ -886,7 +934,7 @@
 					'validationWillStart', this._autSessionId, validationInfo)
 				.then(function () {
 					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
-					return this._matchWindowTask.matchWindow(this._userInputs, region, tag,
+					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, region, tag,
 						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
 				}.bind(this))
 				.then(function (result) {
@@ -894,6 +942,7 @@
 						JSON.stringify(result));
 
 					validationResult.asExpected = result.asExpected;
+                    this._lastScreenshot = result.screenshot;
 
 					if (!ignoreMismatch) {
 						this._userInputs = [];

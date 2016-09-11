@@ -9,6 +9,10 @@
 (function () {
     "use strict";
 
+    /**
+     * @readonly
+     * @enum {string}
+     */
     var MatchLevel = {
         // Images do not necessarily match.
         None: 'None',
