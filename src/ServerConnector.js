@@ -14,12 +14,16 @@
 (function () {
     "use strict";
 
-    var GeneralUtils = require('eyes.utils').GeneralUtils,
+    var EyesUtils = require('eyes.utils'),
         request = require('request'),
         fs = require('fs');
 
+    var GeneralUtils = EyesUtils.GeneralUtils,
+        BrowserUtils = EyesUtils.BrowserUtils;
+
     // Constants
     var CONNECTION_TIMEOUT_MS = 5 * 60 * 1000,
+        MAX_DELAY = 10000,
         DEFAULT_HEADERS = {'Accept': 'application/json', 'Content-Type': 'application/json'},
         SERVER_SUFFIX = '/api/sessions/running';
 
@@ -153,31 +157,50 @@
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         this._logger.verbose('ServerConnector.endSession called with isAborted:', isAborted,
             ', save:', save, 'for session:', runningSession);
-        return this._promiseFactory.makePromise(function (resolve, reject) {
-            var data = {aborted: isAborted, updateBaseline: save};
-            var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            this._logger.verbose("ServerConnector.endSession will now post:", data, "to:", url);
-            var options = Object.create(this._httpOptions);
-            options.uri = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            options.qs.aborted = isAborted;
-            options.qs.updateBaseline = save;
-            options.json = true;
-            options.method = 'delete';
+
+        var data = {aborted: isAborted, updateBaseline: save};
+
+        var options = Object.create(this._httpOptions);
+        options.uri = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
+        options.qs.aborted = isAborted;
+        options.qs.updateBaseline = save;
+        options.headers["Eyes-Expect"] = "202-accepted";
+        options.headers["Eyes-Date"] = (new Date).toUTCString();
+        options.json = true;
+        options.method = 'delete';
+
+        this._logger.verbose("ServerConnector.endSession will now post:", data, "to:", options.uri);
+
+        return sendLongRequest(options, 2000, this._logger, this._promiseFactory);
+    };
+
+    var sendLongRequest = function (options, delay, logger, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
             request(options, function (err, response, body) {
                 if (err) {
-                    this._logger.log('ServerConnector.endSession - delete failed');
+                    logger.log('ServerConnector.endSession - delete failed');
                     reject(new Error(err));
                     return;
                 }
 
-                this._logger.verbose('ServerConnector.endSession result', body, 'status code', response.statusCode);
-                if (response.statusCode === 200) {
+                logger.verbose('ServerConnector.endSession result', body, 'status code', response.statusCode);
+                if (response.statusCode !== 202) {
                     resolve(body);
-                } else {
-                    reject(new Error(response));
                 }
-            }.bind(this));
-        }.bind(this));
+
+                // Waiting a delay
+                logger.verbose("endSession: Still running... Retrying in " + delay + " ms");
+
+                return BrowserUtils.sleep(delay, promiseFactory).then(function () {
+                    // increasing the delay
+                    delay = Math.min(MAX_DELAY, Math.floor(delay * 1.5));
+                    return sendLongRequest(options, delay, logger, promiseFactory);
+                }, function (err) {
+                    logger.log("Long request interrupted!");
+                    reject(new Error(err));
+                });
+            });
+        });
     };
 
     /**
