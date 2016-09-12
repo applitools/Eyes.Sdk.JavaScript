@@ -1157,7 +1157,7 @@
         }
 
         if (control.width > 0 && control.height > 0) {
-            var sb = this._matchWindowTask.getLastScreenShotBounds();
+            var sb = this._matchWindowTask.getLastScreenshotBounds();
             control = GeometryUtils.intersect(control, sb);
             if (control.width === 0 || control.height === 0) {
                 this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text:", text);
@@ -1165,7 +1165,7 @@
             }
 
             // Even after we intersected the control, we need to make sure it's location
-            // is based on the last screenShot location (remember it might be with offset).
+            // is based on the last screenshot location (remember it might be with offset).
             control.left -= sb.left;
             control.top -= sb.top;
         }
@@ -1181,7 +1181,7 @@
             return;
         }
 
-        var sb = this._matchWindowTask.getLastScreenShotBounds();
+        var sb = this._matchWindowTask.getLastScreenshotBounds();
         cursor.x += control.left;
         cursor.y += control.top;
         if (!GeometryUtils.isRegionContainsLocation(sb, cursor)) {
