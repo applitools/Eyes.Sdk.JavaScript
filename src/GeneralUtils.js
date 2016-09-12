@@ -11,6 +11,9 @@
 (function () {
     "use strict";
 
+    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
     var GeneralUtils = {};
 
     /**
@@ -170,6 +173,43 @@
 
 		GeneralUtils.definePropertyWithDefaultConfig(obj, name, getFunc, setFunc);
 	};
+
+    //noinspection JSUnusedGlobalSymbols
+	/**
+	 * Convert a Date object to a RFC-1123 date string
+	 *
+	 * @param {Date} date Date which will be converted
+     * @return {string} String formatted as RFC-1123 (ddd, dd MMM yyyy HH:mm:ss GMT)
+	 */
+	GeneralUtils.getRfc1123Date = function (date) {
+
+        return days[date.getDay()] + ", "
+            + _numpad(date.getDate(), 2) + " "
+            + months[date.getMonth()] + " "
+            + date.getFullYear() + " "
+            + _numpad(date.getHours(), 2) + ":"
+            + _numpad(date.getMinutes(), 2) + ":"
+            + _numpad(date.getSeconds(), 2) + " "
+            + _getTZOString(date.getTimezoneOffset());
+	};
+
+    function _numpad(x, digits) {
+        var result = x.toString();
+
+        while (result.length < digits) {
+            result = '0' + result;
+        }
+
+        return result;
+    }
+
+    function _getTZOString(timezoneOffset){
+        var prefix = timezoneOffset > 0 ? '-' : '+';
+        var offsetHours = Math.abs(Math.floor(timezoneOffset/60));
+        var offsetMinutes = Math.abs(timezoneOffset%60);
+
+        return prefix + _numpad(offsetHours, 2) + _numpad(offsetMinutes, 2);
+    }
 
     module.exports = GeneralUtils;
 }());
