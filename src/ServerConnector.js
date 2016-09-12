@@ -165,7 +165,7 @@
         options.qs.aborted = isAborted;
         options.qs.updateBaseline = save;
         options.headers["Eyes-Expect"] = "202-accepted";
-        options.headers["Eyes-Date"] = (new Date).toUTCString();
+        options.headers["Eyes-Date"] = GeneralUtils.getRfc1123Date(new Date());
         options.json = true;
         options.method = 'delete';
 
