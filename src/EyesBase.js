@@ -95,7 +95,7 @@
 
     	return promiseFactory.makePromise(function (resolve) {
 			logger.verbose('notifying event: ', eventName);
-			var notificationPromises = []
+			var notificationPromises = [];
 			for (var i = 0; i < handlers.length; ++i) {
 				var currentHanlder = handlers[i];
 				// Call the event with the rest of the (hidden) parameters supplied to this function.
@@ -831,14 +831,20 @@
      */
     function _getAppData(region, lastScreenshot, tag) {
         var that = this;
-        return this._promiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-            var data = {appOutput: {}}, screenshot;
+            var data = {appOutput: {}};
+            var parsedImage;
             return that.getScreenShot(tag)
-                .then(function (image) {
+                .then(function (screenshot) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
-                    screenshot = image;
-                    return image.asObject();
+                    parsedImage = screenshot;
+                    if (region && !GeometryUtils.isRegionEmpty(region)) {
+                        return parsedImage.cropImage(region);
+                    }
+                })
+                .then(function () {
+                    return parsedImage.asObject();
                 }, function (err) {
                     throw new Error("EyesBase.checkWindow - getAppOutput empty buffer", err);
                 })
@@ -846,7 +852,7 @@
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput image is ready');
                     data.screenShot = imageObj;
                     that._logger.verbose("EyesBase.checkWindow - getAppOutput compressing screenshot...");
-                    return _compressScreenshot64(that, screenshot, lastScreenshot);
+                    return _compressScreenshot64(that, parsedImage, lastScreenshot);
                 })
                 .then(function (compressResult) {
                     data.appOutput.screenShot64 = compressResult;
@@ -1151,7 +1157,7 @@
         }
 
         if (control.width > 0 && control.height > 0) {
-            var sb = this._matchWindowTask.getLastScreenShotBounds();
+            var sb = this._matchWindowTask.getLastScreenshotBounds();
             control = GeometryUtils.intersect(control, sb);
             if (control.width === 0 || control.height === 0) {
                 this._logger.verbose("addKeyboardTrigger: out of bounds - ignoring text:", text);
@@ -1159,7 +1165,7 @@
             }
 
             // Even after we intersected the control, we need to make sure it's location
-            // is based on the last screenShot location (remember it might be with offset).
+            // is based on the last screenshot location (remember it might be with offset).
             control.left -= sb.left;
             control.top -= sb.top;
         }
@@ -1175,7 +1181,7 @@
             return;
         }
 
-        var sb = this._matchWindowTask.getLastScreenShotBounds();
+        var sb = this._matchWindowTask.getLastScreenshotBounds();
         cursor.x += control.left;
         cursor.y += control.top;
         if (!GeometryUtils.isRegionContainsLocation(sb, cursor)) {

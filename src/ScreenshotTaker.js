@@ -1,7 +1,7 @@
 /*
  ---
 
- name: ScreenShotTaker
+ name: ScreenshotTaker
 
  ---
  */
@@ -20,15 +20,15 @@
      *
      *
      **/
-    function ScreenShotTaker(driverServerUri, driverSessionId) {
+    function ScreenshotTaker(driverServerUri, driverSessionId) {
         var cnct = GeneralUtils.urlConcat;
-        this._driverServerUri = cnct(cnct(cnct(driverServerUri, "session"), driverSessionId), "screenShot");
+        this._driverServerUri = cnct(cnct(cnct(driverServerUri, "session"), driverSessionId), "screenshot");
     }
 
     // FIXME remove or implement?
-    ScreenShotTaker.prototype.getScreenShotAsBase64 = function () {
+    ScreenshotTaker.prototype.getScreenshotAsBase64 = function () {
         return true;
     };
 
-    module.exports = ScreenShotTaker;
+    module.exports = ScreenshotTaker;
 }());

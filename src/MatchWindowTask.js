@@ -36,13 +36,13 @@
         this._logger = logger;
     }
 
-    MatchWindowTask.prototype.getLastScreenShotBounds = function () {
+    MatchWindowTask.prototype.getLastScreenshotBounds = function () {
         return this._lastBounds;
     };
 
-    function _finalize(region, ignoreMismatch, screenShot, resolve) {
+    function _finalize(region, ignoreMismatch, screenshot, resolve) {
         this._logger.verbose('MatchWindowTask.matchWindow - _finalize called');
-        this._matchResult.screenshot = screenShot;
+        this._matchResult.screenshot = screenshot;
         if (ignoreMismatch) {
             this._logger.verbose('MatchWindowTask.matchWindow - _finalize is completed because ignoreMismatch is true');
             resolve(this._matchResult);
@@ -50,11 +50,10 @@
         }
 
         if (!region) {
-            if (!screenShot) {
+            if (!screenshot) {
                 this._logger.verbose('MatchWindowTask.matchWindow - _finalize sets infinite bounds -',
                     'no region and no screen shot');
-                // We set an "infinite" image size since we don't know what the screenShot
-                // size is...
+                // We set an "infinite" image size since we don't know what the screenshot size is...
                 this._lastBounds = {
                     top: 0,
                     left: 0,
@@ -67,8 +66,8 @@
                 this._lastBounds = {
                     top: 0,
                     left: 0,
-                    width: screenShot.width,
-                    height: screenShot.height
+                    width: screenshot.width,
+                    height: screenshot.height
                 };
             }
         } else {
@@ -100,14 +99,14 @@
         }.bind(this));
     }
 
-    function _retryMatch(start, retryTimeout, region, tag, userInputs, lastScreenshot, ignoreMismatch, screenShot, resolve) {
+    function _retryMatch(start, retryTimeout, region, tag, userInputs, lastScreenshot, ignoreMismatch, screenshot, resolve) {
 
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask._retryMatch will retry');
             this._logger.verbose('MatchWindowTask._retryMatch calls for app output');
             return this._getAppOutput(region, lastScreenshot, tag).then(function (appOutput) {
                 this._logger.verbose('MatchWindowTask._retryMatch retrieved app output');
-                screenShot = appOutput.screenShot;
+                screenshot = appOutput.screenShot;
                 var data = {
                     userInputs: userInputs,
                     appOutput: appOutput.appOutput,
@@ -130,12 +129,12 @@
                                 this._logger.verbose('MatchWindowTask.matchWindow -',
                                     '_retryMatch timeout passed -  retrying');
                                 return _retryMatch.call(this, start, retryTimeout, region, tag, userInputs, lastScreenshot,
-                                    ignoreMismatch, screenShot, resolve);
+                                    ignoreMismatch, screenshot, resolve);
                             }.bind(this));
                         }
                         this._logger.verbose('MatchWindowTask.matchWindow -',
                             '_retryMatch received success result - finalizing');
-                        return _finalize.call(this, region, ignoreMismatch, screenShot, resolve);
+                        return _finalize.call(this, region, ignoreMismatch, screenshot, resolve);
                     }.bind(this));
             }.bind(this));
         }
@@ -148,7 +147,7 @@
 
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch no need for ',
             'last attempt because we got success');
-        return _finalize.call(this, region, ignoreMismatch, screenShot, resolve);
+        return _finalize.call(this, region, ignoreMismatch, screenshot, resolve);
     }
 
     MatchWindowTask.prototype.matchWindow = function (userInputs, lastScreenshot, region, tag,
