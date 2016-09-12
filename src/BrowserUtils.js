@@ -167,24 +167,21 @@
     function _getLeftBorderWidth(logger, promiseFactory, element) {
         return promiseFactory.makePromise(function (resolve) {
             logger.verbose("Get element border left width...");
-
-            try {
-                return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-left-width").then(function (styleValue) {
-                    return styleValue;
-                }, function (error) {
-                    logger.verbose("Using getComputedStyle failed: " + error + ".");
-                    logger.verbose("Using getCssValue...");
-                    return element.getCssValue("border-left-width");
-                }).then(function (propValue) {
-                    logger.verbose("Done!");
-                    var leftBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
-                    logger.verbose("border-left-width: " + leftBorderWidth);
-                    resolve(leftBorderWidth);
-                });
-            } catch (err) {
-                logger.verbose("Couldn't get the element's border-left-width: " + err + ". Falling back to default");
+            return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-left-width").then(function (styleValue) {
+                return styleValue;
+            }, function (err) {
+                logger.verbose("Using getComputedStyle failed: ", err);
+                logger.verbose("Using getCssValue...");
+                return element.getCssValue("border-left-width");
+            }).then(function (propValue) {
+                logger.verbose("Done!");
+                var leftBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
+                logger.verbose("border-left-width: ", leftBorderWidth);
+                resolve(leftBorderWidth);
+            }, function (err) {
+                logger.verbose("Couldn't get the element's border-left-width: ", err, ". Falling back to default");
                 resolve(0);
-            }
+            });
         });
     }
 
@@ -200,24 +197,21 @@
     function _getTopBorderWidth(logger, promiseFactory, element) {
         return promiseFactory.makePromise(function (resolve) {
             logger.verbose("Get element's border top width...");
-
-            try {
-                return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-top-width").then(function (styleValue) {
-                    return styleValue;
-                }, function (err) {
-                    logger.verbose("Using getComputedStyle failed: " + err + ".");
-                    logger.verbose("Using getCssValue...");
-                    return element.getCssValue("border-top-width");
-                }).then(function (propValue) {
-                    logger.verbose("Done!");
-                    var topBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
-                    logger.verbose("border-top-width: " + topBorderWidth);
-                    resolve(topBorderWidth);
-                });
-            } catch (err) {
-                logger.verbose("Couldn't get the element's border-top-width: " + err + ". Falling back to default");
+            return BrowserUtils.getComputedStyle(element.getDriver(), element, "border-top-width").then(function (styleValue) {
+                return styleValue;
+            }, function (err) {
+                logger.verbose("Using getComputedStyle failed: ", err);
+                logger.verbose("Using getCssValue...");
+                return element.getCssValue("border-top-width");
+            }).then(function (propValue) {
+                logger.verbose("Done!");
+                var topBorderWidth = Math.round(parseFloat(propValue.trim().replace("px", "")));
+                logger.verbose("border-top-width: ", topBorderWidth);
+                resolve(topBorderWidth);
+            }, function (err) {
+                logger.verbose("Couldn't get the element's border-top-width: ", err, ". Falling back to default");
                 resolve(0);
-            }
+            });
         });
     }
 

@@ -55,7 +55,7 @@
     };
 
     /**
-     * Crete new simple region object from values
+     * Crete new simple location object from values
      *
      * @param {number} left
      * @param {number} top

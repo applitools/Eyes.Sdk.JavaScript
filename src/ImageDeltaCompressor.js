@@ -93,9 +93,9 @@
     /**
      * Compresses a target image based on a difference from a source image.
      * {@code blockSize} defaults to 10.
-     * @param {exports.PNG} target targetBmp The image we want to compress.
+     * @param {exports.PNG} target The image we want to compress.
      * @param {{imageBuffer: Buffer, width: number, height: number}} targetPacked
-     * @param {exports.PNG} source sourceBmp The baseline image by which a compression will be performed.
+     * @param {exports.PNG} source The baseline image by which a compression will be performed.
      * @param {int} [blockSize=10] How many pixels per block.
      * @return {Buffer} The compression result.
      * @throws java.io.IOException If there was a problem reading/writing from/to the streams which are created during the process.
@@ -116,8 +116,8 @@
         var sourcePixels = source.data;
 
         // The number of bytes comprising a pixel (depends if there's an Alpha channel).
-        //int pixelLength = (target.getAlphaRaster() != null) ? 4 : 3;
-        var pixelLength = 4;
+        // target.data[25] & 4 equal 0 if there is no alpha channel but 4 if there is an alpha channel.
+        var pixelLength = (target.data[25] & 4) === 4 ? 4 : 3;
         var imageSize = {width: target.width, height: target.height};
 
         // Calculating how many block columns and rows we've got.
