@@ -24,7 +24,7 @@
      *
      * @param {String} serverUrl
      * @param {Boolean} isDisabled - set to true to disable Applitools Eyes and use the web driver directly.
-     *
+     * @augments EyesBase
      **/
     function Eyes(serverUrl, isDisabled) {
         this._promiseFactory = new PromiseFactory(function (asyncAction) {
@@ -199,6 +199,13 @@
             this._viewportSize = size;
             resolve();
         }.bind(this));
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    Eyes.prototype.getAUTSessionId = function () {
+        return this._promiseFactory.makePromise(function (resolve) {
+            resolve(undefined);
+        });
     };
 
     //noinspection JSUnresolvedVariable
