@@ -186,6 +186,7 @@
                 logger.verbose('ServerConnector.endSession result', body, 'status code', response.statusCode);
                 if (response.statusCode !== 202) {
                     resolve(body);
+                    return;
                 }
 
                 // Waiting a delay
