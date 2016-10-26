@@ -107,7 +107,7 @@
 
         // If there's no image to compare to, or the images are in different
         // sizes, we simply return the encoded target.
-        if (source == null || source == null || (source.width != target.width) || (source.height != target.height)) {
+        if (target == null || source == null || (source.width != target.width) || (source.height != target.height)) {
             return targetPacked.imageBuffer;
         }
 

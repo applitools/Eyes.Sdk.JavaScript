@@ -182,6 +182,8 @@
      * @return {string} String formatted as RFC-1123 (ddd, dd MMM yyyy HH:mm:ss GMT)
 	 */
 	GeneralUtils.getRfc1123Date = function (date) {
+        // cast to GMT timezone
+        date = new Date(date.valueOf() + date.getTimezoneOffset() * 60000);
 
         return days[date.getDay()] + ", "
             + _numpad(date.getDate(), 2) + " "
@@ -190,7 +192,7 @@
             + _numpad(date.getHours(), 2) + ":"
             + _numpad(date.getMinutes(), 2) + ":"
             + _numpad(date.getSeconds(), 2) + " "
-            + _getTZOString(date.getTimezoneOffset());
+            + "GMT";
 	};
 
     function _numpad(x, digits) {
