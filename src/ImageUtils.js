@@ -95,8 +95,8 @@
 
         function doBicubicScale(srcImg, scale) {
 
-            var destWidth = srcImg.width * scale;
-            var destHeight = srcImg.height * scale;
+            var destWidth = Math.round(srcImg.width * scale);
+            var destHeight = Math.round(srcImg.height * scale);
             var destImageData = [];
             var i, j;
             var dx, dy;
@@ -477,6 +477,7 @@
 
                 imageBmp.data = new Buffer(bitmap);
                 var tmp = imageBmp.width;
+                //noinspection JSSuspiciousNameCombination
                 imageBmp.width = imageBmp.height;
                 imageBmp.height = tmp;
 

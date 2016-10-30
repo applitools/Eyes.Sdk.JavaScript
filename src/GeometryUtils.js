@@ -172,7 +172,7 @@
      * Returns a list of sub-regions which compose the current region.
      *
      * @param {{top: number, left: number, width: number, height: number}} region The region from which we want to extract the sub regions.
-     * @param subRegionSize The default sub-region size to use.
+     * @param {{width: number, height: number}} subRegionSize The default sub-region size to use.
      * @param isFixedSize If {@code false}, then sub-regions might have a size which is smaller then {@code subRegionSize}
      *  (thus there will be no overlap of regions). Otherwise, all sub-regions will have the same size, but sub-regions might overlap.
      * @return {Array.<{top: number, left: number, width: number, height: number}>} The sub-regions composing the current region.

@@ -23,6 +23,17 @@
      */
     PositionProvider.prototype.getEntireSize = function () {};
 
+    /**
+     * @returns {Promise<object>}
+     */
+    PositionProvider.prototype.getState = function () {};
+
+    /**
+     * @param {object} state The initial state of position
+     * @returns {Promise<void>}
+     */
+    PositionProvider.prototype.restoreState = function (state) {};
+
     module.exports = PositionProvider;
 
 }());

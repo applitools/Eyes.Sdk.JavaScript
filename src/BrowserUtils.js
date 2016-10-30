@@ -136,13 +136,17 @@
      * Returns a location based on the given location.
      *
      * @param {Logger} logger The logger to use.
-     * @param {WebElement} element The element for which we want to find the content's location.
+     * @param {WebElement|EyesRemoteWebElement} element The element for which we want to find the content's location.
      * @param {{x: number, y: number}} location The location of the element.
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<{x: number, y: number}>} The location of the content of the element.
      */
     BrowserUtils.getLocationWithBordersAddition = function (logger, element, location, promiseFactory) {
         logger.verbose("BordersAdditionFrameLocationProvider(logger, element, [" + location.x + "," + location.y + "])");
+        if (element.getRemoteWebElement !== undefined) {
+            element = element.getRemoteWebElement();
+        }
+
         var leftBorderWidth, topBorderWidth;
         return _getLeftBorderWidth(logger, promiseFactory, element).then(function (val) {
             leftBorderWidth = val;
@@ -237,8 +241,8 @@
      */
     BrowserUtils.getCurrentTransform = function getCurrentTransform(browser, promiseFactory) {
         var script = "return { ";
-        for (var key in JS_TRANSFORM_KEYS) {
-            script += "'" + key + "': document.documentElement.style['" + key + "'],";
+        for (var i = 0, l = JS_TRANSFORM_KEYS.length; i < l; i++) {
+            script += "'" + JS_TRANSFORM_KEYS[i] + "': document.documentElement.style['" + JS_TRANSFORM_KEYS[i] + "'],";
         }
         script += " }";
 
@@ -278,8 +282,8 @@
             transformToSet = '';
         }
 
-        for (var key in JS_TRANSFORM_KEYS) {
-            transforms[key] = transformToSet;
+        for (var i = 0, l = JS_TRANSFORM_KEYS.length; i < l; i++) {
+            transforms[JS_TRANSFORM_KEYS[i]] = transformToSet;
         }
 
         return BrowserUtils.setTransforms(browser, transforms, promiseFactory);
@@ -646,13 +650,6 @@
                     return screenshot;
                 })
                 .then(function (image) {
-                    if (regionToCheck) {
-                        return image.cropImage(regionToCheck);
-                    }
-
-                    return image;
-                })
-                .then(function (image) {
                     parsedImage = image;
                     return parsedImage.getSize();
                 })
@@ -663,7 +660,15 @@
 
                     return scaleProvider.scaleImage(parsedImage);
                 })
-                .then(function (parsedImage) {
+                .then(function (image) {
+                    if (regionToCheck) {
+                        return image.cropImage(regionToCheck);
+                    }
+
+                    return image;
+                })
+                .then(function (image) {
+                    parsedImage = image;
                     if (rotationDegrees !== 0) {
                         return parsedImage.rotateImage(rotationDegrees);
                     }
@@ -732,8 +737,8 @@
         saveDebugScreenshots,
         tag
     ) {
-        var MIN_SCREENSHOT_PART_HEIGHT = 10;
-        var maxScrollbarSize = useCssTransition ? 0 : 50; // This should cover all scroll bars (and some fixed position footer elements :).
+        var MIN_SCREENSHOT_PART_HEIGHT = 10,
+            MAX_SCROLLBAR_SIZE = 50;
         var originalPosition,
             originalOverflow,
             entirePageSize,
@@ -771,8 +776,8 @@
             .then(function () {
                 // step #4 - if this is a full page screenshot we need to scroll to position 0,0 before taking the first
                 if (fullPage) {
-                    return positionProvider.getCurrentPosition().then(function (location) {
-                        originalPosition = location;
+                    return positionProvider.getState().then(function (state) {
+                        originalPosition = state;
                         return positionProvider.setPosition({x: 0, y: 0}).then(function () {
                             return positionProvider.getCurrentPosition().then(function (location) {
                                 if (location.x != 0 || location.y != 0) {
@@ -812,13 +817,13 @@
                     // of bottom scroll bars, as well as footer-like elements with fixed position.
                     var screenshotPartSize = {
                         width: imageObject.width,
-                        height: Math.max(imageObject.height - maxScrollbarSize, MIN_SCREENSHOT_PART_HEIGHT)
+                        height: Math.max(imageObject.height - MAX_SCROLLBAR_SIZE, MIN_SCREENSHOT_PART_HEIGHT)
                     };
 
                     var screenshotParts = GeometryUtils.getSubRegions({
                         left: 0, top: 0, width: entirePageSize.width,
                         height: entirePageSize.height
-                    }, screenshotPartSize, true);
+                    }, screenshotPartSize, false);
 
                     var parts = [];
                     var promise = promiseFactory.makePromise(function (resolve) {
@@ -845,7 +850,7 @@
             })
             .then(function () {
                 if (fullPage) {
-                    return positionProvider.setPosition(originalPosition);
+                    return positionProvider.restoreState(originalPosition);
                 }
             })
             .then(function () {
