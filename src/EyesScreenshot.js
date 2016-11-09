@@ -1,8 +1,7 @@
 (function () {
     "use strict";
 
-    var EyesUtils = require('eyes.utils'),
-        CoordinatesType = require('./CoordinatesType');
+    var EyesUtils = require('eyes.utils');
     var ArgumentGuard = EyesUtils.ArgumentGuard,
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils;
@@ -12,7 +11,6 @@
      * @param {object} image
      **/
     function EyesScreenshot(image) {
-        ArgumentGuard.notNull(image, "image");
         this._image = image;
     }
 

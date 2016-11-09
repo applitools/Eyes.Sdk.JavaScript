@@ -10,7 +10,6 @@ exports.ConsoleLogHandler = require('./src/ConsoleLogHandler');
 exports.NullLogHandler = require('./src/NullLogHandler');
 exports.FileLogHandler = require('./src/FileLogHandler');
 exports.Triggers = require('./src/Triggers');
-exports.CoordinatesType = require('./src/CoordinatesType');
 exports.EyesScreenshot = require('./src/EyesScreenshot');
 exports.FixedScaleProvider = require('./src/FixedScaleProvider');
 exports.ContextBasedScaleProvider = require('./src/ContextBasedScaleProvider');

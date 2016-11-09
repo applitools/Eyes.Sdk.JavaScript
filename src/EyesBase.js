@@ -824,12 +824,12 @@
 
     /**
      * @private
-     * @param region
+     * @param {RegionProvider} regionProvider
      * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
      * @param {string} tag
      * @return {Promise<Object<{appOutput: object}>>}
      */
-    function _getAppData(region, lastScreenshot, tag) {
+    function _getAppData(regionProvider, lastScreenshot, tag) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
@@ -839,8 +839,8 @@
                 .then(function (screenshot) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                     parsedImage = screenshot;
-                    if (region && !GeometryUtils.isRegionEmpty(region)) {
-                        return parsedImage.cropImage(region);
+                    if (regionProvider && !GeometryUtils.isRegionEmpty(regionProvider.getRegion())) {
+                        return parsedImage.cropImage(regionProvider);
                     }
                 })
                 .then(function () {
@@ -903,7 +903,7 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
-    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, region) {
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider) {
         ignoreMismatch = ignoreMismatch || false;
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
@@ -940,7 +940,7 @@
 					'validationWillStart', this._autSessionId, validationInfo)
 				.then(function () {
 					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
-					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, region, tag,
+					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
 						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
 				}.bind(this))
 				.then(function (result) {
