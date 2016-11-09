@@ -13,6 +13,7 @@
 
     var MutableImage = require('./MutableImage'),
         GeometryUtils = require('./GeometryUtils'),
+        CoordinatesType = require('./CoordinatesType'),
         ImageUtils = require('./ImageUtils');
 
     var BrowserUtils = {};
@@ -533,7 +534,7 @@
      * @param {number} automaticRotationDegrees
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
-     * @param {{left: number, top: number, width: number, height: number}} regionToCheck
+     * @param {{left: number, top: number, width: number, height: number}} regionInScreenshot
      * @param {boolean} [saveDebugScreenshots=false]
      * @param {string} [tag=screenshot]
      * @return {Promise<void>}
@@ -555,7 +556,7 @@
         automaticRotationDegrees,
         isLandscape,
         waitBeforeScreenshots,
-        regionToCheck,
+        regionInScreenshot,
         saveDebugScreenshots,
         tag
     ) {
@@ -582,7 +583,7 @@
                 }).then(function () {
                     return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
-                        waitBeforeScreenshots, regionToCheck, saveDebugScreenshots, tag);
+                        waitBeforeScreenshots, regionInScreenshot, saveDebugScreenshots, tag);
                 }).then(function (partImage) {
                     return partImage.asObject().then(function (partObj) {
                         parts.push({
@@ -611,7 +612,7 @@
      * @param {number} automaticRotationDegrees
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
-     * @param {{left: number, top: number, width: number, height: number}} [regionToCheck]
+     * @param {{left: number, top: number, width: number, height: number}} [regionInScreenshot]
      * @param {boolean} [saveDebugScreenshots=false]
      * @param {string} [tag=screenshot]
      * @return {Promise<MutableImage>}
@@ -628,7 +629,7 @@
         automaticRotationDegrees,
         isLandscape,
         waitBeforeScreenshots,
-        regionToCheck,
+        regionInScreenshot,
         saveDebugScreenshots,
         tag
     ) {
@@ -661,8 +662,8 @@
                     return scaleProvider.scaleImage(parsedImage);
                 })
                 .then(function (image) {
-                    if (regionToCheck) {
-                        return image.cropImage(regionToCheck);
+                    if (regionInScreenshot) {
+                        return image.cropImage(regionInScreenshot);
                     }
 
                     return image;
@@ -713,7 +714,7 @@
      * @param {boolean} isLandscape
      * @param {int} waitBeforeScreenshots
      * @param {boolean} checkFrameOrElement
-     * @param {{left: number, top: number, width: number, height: number}} [regionToCheck]
+     * @param {RegionProvider} [regionProvider]
      * @param {boolean} [saveDebugScreenshots=false]
      * @param {string} [tag=screenshot]
      * @returns {Promise<MutableImage>}
@@ -733,7 +734,7 @@
         isLandscape,
         waitBeforeScreenshots,
         checkFrameOrElement,
-        regionToCheck,
+        regionProvider,
         saveDebugScreenshots,
         tag
     ) {
@@ -742,6 +743,7 @@
         var originalPosition,
             originalOverflow,
             entirePageSize,
+            regionInScreenshot,
             pixelRatio,
             imageObject,
             screenshot;
@@ -789,10 +791,20 @@
                 }
             })
             .then(function () {
+                if (regionProvider) {
+                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize, pixelRatio,
+                        rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots).then(function (image) {
+                            return regionProvider.getRegionInLocation(image, CoordinatesType.SCREENSHOT_AS_IS, promiseFactory);
+                        }).then(function (region) {
+                            regionInScreenshot = region;
+                        });
+                }
+            })
+            .then(function () {
                 // step #5 - Take screenshot of the 0,0 tile / current viewport
                 return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize, pixelRatio, rotationDegrees,
                     automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
-                    checkFrameOrElement ? regionToCheck : null, saveDebugScreenshots, tag)
+                    checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, tag)
                     .then(function (image) {
                         screenshot = image;
                         return screenshot.asObject().then(function (imageObj) {
@@ -833,7 +845,7 @@
                     screenshotParts.forEach(function (part) {
                         promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
                             viewportSize, positionProvider, scaleProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
-                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionToCheck : null, saveDebugScreenshots, tag);
+                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, tag);
                     });
                     promise.then(function () {
                         return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {
@@ -854,8 +866,8 @@
                 }
             })
             .then(function () {
-                if (!checkFrameOrElement && regionToCheck) {
-                    return screenshot.cropImage(regionToCheck);
+                if (!checkFrameOrElement && regionInScreenshot) {
+                    return screenshot.cropImage(regionInScreenshot);
                 }
             })
             .then(function () {

@@ -184,15 +184,6 @@
         return _parseImage(that)
             .then(function () {
                 if (that._isParsed) {
-                    // If the region's coordinates are relative to the image, we convert them to absolute coordinates.
-                    if (region && region.relative) {
-                        region = {
-                            left: region.left - that._left,
-                            top: region.top - that._top,
-                            width: region.width,
-                            height: region.height
-                        };
-                    }
                     return ImageUtils.cropImage(that._imageBmp, region, that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
