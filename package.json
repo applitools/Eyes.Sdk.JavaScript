@@ -29,6 +29,9 @@
         "mocha": "*",
         "chai": "*"
     },
+    "browser": {
+        "./src/FileLogHandler": false
+    },
     "engines": {
         "node": ">=0.10.x"
     }
