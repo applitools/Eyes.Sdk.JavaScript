@@ -25,5 +25,10 @@
   "license": "Apache License 2.0",
   "dependencies": {
     "node-png": "0.4.3"
+  },
+  "devDependencies": {},
+  "browser": {
+    "fs": "browserify-fs",
+    "zlib": "browserify-zlib"
   }
 }
