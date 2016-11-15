@@ -852,7 +852,7 @@
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput image is ready');
                     data.screenShot = imageObj;
                     that._logger.verbose("EyesBase.checkWindow - getAppOutput compressing screenshot...");
-                    return _compressScreenshot64(that, parsedImage, lastScreenshot);
+                    return _compressScreenshot64(that, imageObj, parsedImage._imageBmp, lastScreenshot);
                 })
                 .then(function (compressResult) {
                     data.appOutput.screenShot64 = compressResult;
@@ -879,21 +879,26 @@
     /**
      * @private
      * @param {EyesBase} eyes
-     * @param {MutableImage} screenshot
+     * @param {{imageBuffer: Buffer, width: number, height: number}} imageObj
+     * @param {PNG} imageBmp
      * @param {{imageBuffer: Buffer, width: number, height: number}} [lastScreenshot=null]
      * @return {Promise<string>}
      */
-    function _compressScreenshot64(eyes, screenshot, lastScreenshot) {
+    function _compressScreenshot64(eyes, imageObj, imageBmp, lastScreenshot) {
         return eyes._promiseFactory.makePromise(function (resolve, reject) {
             try {
-                var imageObj;
-                screenshot.asObject().then(function (obj) {
-                    imageObj = obj;
-                    if (lastScreenshot) {
+                var promise = eyes._promiseFactory.makePromise(function (resolve) {
+                    resolve();
+                });
+
+                if (lastScreenshot) {
+                    promise.then(function () {
                         return ImageUtils.parseImage(lastScreenshot.imageBuffer, eyes._promiseFactory);
-                    }
-                }).then(function (sourceBmp) {
-                    var compressedBuffer = ImageDeltaCompressor.compressByRawBlocks(screenshot._imageBmp, imageObj, sourceBmp);
+                    });
+                }
+
+                promise.then(function (sourceBmp) {
+                    var compressedBuffer = ImageDeltaCompressor.compressByRawBlocks(imageBmp, imageObj, sourceBmp);
                     resolve(compressedBuffer.toString('base64'));
                 });
             } catch (err) {
