@@ -24,7 +24,7 @@
   "author": "Applitools team",
   "license": "Apache License 2.0",
   "dependencies": {
-    "node-png": "0.4.3"
+    "pngjs": "^3.0.0"
   },
   "devDependencies": {},
   "browser": {

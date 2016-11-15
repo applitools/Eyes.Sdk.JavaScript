@@ -12,8 +12,9 @@
     "use strict";
 
     var StreamUtils = require('./StreamUtils'),
-        PNG = require('node-png').PNG,
-        fs = require('fs');
+        fs = require('fs'),
+        /** @type {PNG} */
+        PNG = require('pngjs').PNG;
 
     var ReadableBufferStream = StreamUtils.ReadableBufferStream,
         WritableBufferStream = StreamUtils.WritableBufferStream;
@@ -25,7 +26,7 @@
      *
      * @param {Buffer} image
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<Object>} imageBmp object
+     * @returns {Promise<PNG>} imageBmp object
      *
      **/
     ImageUtils.parseImage = function parseImage(image, promiseFactory) {
@@ -48,7 +49,7 @@
     /**
      * Repacks a parsed image to a PNG buffer.
      *
-     * @param {Object} imageBmp Parsed image as returned from parseImage
+     * @param {PNG} imageBmp Parsed image as returned from parseImage
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<Buffer>} when resolved contains a buffer
      **/
@@ -67,345 +68,245 @@
     /**
      * Scaled a parsed image by a given factor.
      *
-     * @param {Object} imageBmp - will be modified
+     * @param {PNG} imageBmp - will be modified
      * @param {number} scale factor to multiply the image dimensions by (lower than 1 for scale down)
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
      **/
     ImageUtils.scaleImage = function scaleImage(imageBmp, scale, promiseFactory) {
-        // two-dimensional array coordinates to a vector index
-        function xytoi(ix, iy, w) {
-            // byte array, r,g,b,a
-            return((ix + w * iy) * 4);
+        if (scale === 1) {
+            return promiseFactory.makePromise(function (resolve) {
+                resolve(imageBmp);
+            });
         }
 
-        function interpolate (t, a, b, c, d){
-            return 0.5 * (c - a + (2.0*a - 5.0*b + 4.0*c - d + (3.0*(b - c) + d - a)*t)*t)*t + b;
-        }
+        var w = imageBmp.width * scale;
+        var h = imageBmp.height * scale;
+        return ImageUtils.resizeImage(imageBmp, w, h, promiseFactory);
+    };
 
-        function interpolateBicubic(x, y, values) {
-            var i0, i1, i2, i3;
+    /**
+     * Resize a parsed image by a given dimensions.
+     *
+     * @param {PNG} imageBmp - will be modified
+     * @param {number} width The width to resize the image to
+     * @param {number} height The height to resize the image to
+     * @param {PromiseFactory} promiseFactory
+     * @returns {Promise<void>}
+     **/
+    ImageUtils.resizeImage = function scaleImage(imageBmp, width, height, promiseFactory) {
 
-            i0 = interpolate(x, values[0][0], values[1][0], values[2][0], values[3][0]);
-            i1 = interpolate(x, values[0][1], values[1][1], values[2][1], values[3][1]);
-            i2 = interpolate(x, values[0][2], values[1][2], values[2][2], values[3][2]);
-            i3 = interpolate(x, values[0][3], values[1][3], values[2][3], values[3][3]);
-            return interpolate(y, i0, i1, i2, i3);
-        }
+        //noinspection JSUnusedLocalSymbols
+        function doBicubicInterpolation(src, dst) {
+            var bufSrc = src.data;
+            var bufDst = dst.data;
 
-        function doBicubicScale(srcImg, scale) {
+            var wSrc = src.width;
+            var hSrc = src.height;
 
-            var destWidth = Math.round(srcImg.width * scale);
-            var destHeight = Math.round(srcImg.height * scale);
-            var destImageData = [];
-            var i, j;
-            var dx, dy;
-            var iyv, iy0, ixv, ix0;
-            var repeatX, repeatY;
-            var idxD;
-            var offset_row0, offset_row1, offset_row2, offset_row3;
-            var offset_col0, offset_col1, offset_col2, offset_col3;
-            var red_pixels, green_pixels, blue_pixels, alpha_pixels;
-            for (i = 0; i < destHeight; ++i) {
-                iyv = i / scale;
-                iy0 = Math.floor(iyv);
+            var wDst = dst.width;
+            var hDst = dst.height;
 
-                // We have to special-case the pixels along the border and repeat their values if neccessary
-                repeatY = 0;
-                if(iy0 < 1) repeatY = -1;
-                else if(iy0 > srcImg.height - 3) repeatY = iy0 - (srcImg.height - 3);
+            // when dst smaller than src/2, interpolate first to a multiple between 0.5 and 1.0 src, then sum squares
+            var wM = Math.max(1, Math.floor(wSrc / wDst));
+            var wDst2 = wDst * wM;
+            var hM = Math.max(1, Math.floor(hSrc / hDst));
+            var hDst2 = hDst * hM;
 
-                for (j = 0; j < destWidth; ++j) {
-                    ixv = j / scale;
-                    ix0 = Math.floor(ixv);
+            var interpolateCubic = function (x0, x1, x2, x3, t) {
+                var a0 = x3 - x2 - x0 + x1;
+                var a1 = x0 - x1 - a0;
+                var a2 = x2 - x0;
+                return Math.max(0, Math.min(255, (a0 * (t * t * t)) + (a1 * (t * t)) + (a2 * t) + (x1)));
+            };
 
-                    // We have to special-case the pixels along the border and repeat their values if neccessary
-                    repeatX = 0;
-                    if(ix0 < 1) repeatX = -1;
-                    else if(ix0 > srcImg.width - 3) repeatX = ix0 - (srcImg.width - 3);
+            var i, j, x, y, k, t, xPos, yPos, kPos, buf1Pos, buf2Pos;
 
-                    offset_row1 = ((iy0)   * srcImg.width + ix0) * 4;
-                    offset_row0 = repeatY < 0 ? offset_row1 : ((iy0-1) * srcImg.width + ix0) * 4;
-                    offset_row2 = repeatY > 1 ? offset_row1 : ((iy0+1) * srcImg.width + ix0) * 4;
-                    offset_row3 = repeatY > 0 ? offset_row2 : ((iy0+2) * srcImg.width + ix0) * 4;
+            // Pass 1 - interpolate rows
+            // buf1 has width of dst2 and height of src
+            var buf1 = new Buffer(wDst2 * hSrc * 4);
+            for (i = 0; i < hSrc; i++) {
+                for (j = 0; j < wDst2; j++) {
+                    x = j * (wSrc - 1) / wDst2;
+                    xPos = Math.floor(x);
+                    t = x - xPos;
+                    var srcPos = (i * wSrc + xPos) * 4;
 
-                    offset_col1 = 0;
-                    offset_col0 = repeatX < 0 ? offset_col1 : -4;
-                    offset_col2 = repeatX > 1 ? offset_col1 : 4;
-                    offset_col3 = repeatX > 0 ? offset_col2 : 8;
-
-                    //Each offset is for the start of a row's red pixels
-                    red_pixels = [[srcImg.data[offset_row0+offset_col0], srcImg.data[offset_row1+offset_col0], srcImg.data[offset_row2+offset_col0], srcImg.data[offset_row3+offset_col0]],
-                        [srcImg.data[offset_row0+offset_col1], srcImg.data[offset_row1+offset_col1], srcImg.data[offset_row2+offset_col1], srcImg.data[offset_row3+offset_col1]],
-                        [srcImg.data[offset_row0+offset_col2], srcImg.data[offset_row1+offset_col2], srcImg.data[offset_row2+offset_col2], srcImg.data[offset_row3+offset_col2]],
-                        [srcImg.data[offset_row0+offset_col3], srcImg.data[offset_row1+offset_col3], srcImg.data[offset_row2+offset_col3], srcImg.data[offset_row3+offset_col3]]];
-                    offset_row0++;
-                    offset_row1++;
-                    offset_row2++;
-                    offset_row3++;
-                    //Each offset is for the start of a row's green pixels
-                    green_pixels = [[srcImg.data[offset_row0+offset_col0], srcImg.data[offset_row1+offset_col0], srcImg.data[offset_row2+offset_col0], srcImg.data[offset_row3+offset_col0]],
-                        [srcImg.data[offset_row0+offset_col1], srcImg.data[offset_row1+offset_col1], srcImg.data[offset_row2+offset_col1], srcImg.data[offset_row3+offset_col1]],
-                        [srcImg.data[offset_row0+offset_col2], srcImg.data[offset_row1+offset_col2], srcImg.data[offset_row2+offset_col2], srcImg.data[offset_row3+offset_col2]],
-                        [srcImg.data[offset_row0+offset_col3], srcImg.data[offset_row1+offset_col3], srcImg.data[offset_row2+offset_col3], srcImg.data[offset_row3+offset_col3]]];
-                    offset_row0++;
-                    offset_row1++;
-                    offset_row2++;
-                    offset_row3++;
-                    //Each offset is for the start of a row's blue pixels
-                    blue_pixels = [[srcImg.data[offset_row0+offset_col0], srcImg.data[offset_row1+offset_col0], srcImg.data[offset_row2+offset_col0], srcImg.data[offset_row3+offset_col0]],
-                        [srcImg.data[offset_row0+offset_col1], srcImg.data[offset_row1+offset_col1], srcImg.data[offset_row2+offset_col1], srcImg.data[offset_row3+offset_col1]],
-                        [srcImg.data[offset_row0+offset_col2], srcImg.data[offset_row1+offset_col2], srcImg.data[offset_row2+offset_col2], srcImg.data[offset_row3+offset_col2]],
-                        [srcImg.data[offset_row0+offset_col3], srcImg.data[offset_row1+offset_col3], srcImg.data[offset_row2+offset_col3], srcImg.data[offset_row3+offset_col3]]];
-                    offset_row0++;
-                    offset_row1++;
-                    offset_row2++;
-                    offset_row3++;
-                    //Each offset is for the start of a row's alpha pixels
-                    alpha_pixels =[[srcImg.data[offset_row0+offset_col0], srcImg.data[offset_row1+offset_col0], srcImg.data[offset_row2+offset_col0], srcImg.data[offset_row3+offset_col0]],
-                        [srcImg.data[offset_row0+offset_col1], srcImg.data[offset_row1+offset_col1], srcImg.data[offset_row2+offset_col1], srcImg.data[offset_row3+offset_col1]],
-                        [srcImg.data[offset_row0+offset_col2], srcImg.data[offset_row1+offset_col2], srcImg.data[offset_row2+offset_col2], srcImg.data[offset_row3+offset_col2]],
-                        [srcImg.data[offset_row0+offset_col3], srcImg.data[offset_row1+offset_col3], srcImg.data[offset_row2+offset_col3], srcImg.data[offset_row3+offset_col3]]];
-
-                    // overall coordinates to unit square
-                    dx = ixv - ix0; dy = iyv - iy0;
-
-                    idxD = xytoi(j, i, destWidth);
-
-                    destImageData[idxD] = interpolateBicubic(dx, dy, red_pixels);
-
-                    destImageData[idxD+1] = interpolateBicubic(dx, dy, green_pixels);
-
-                    destImageData[idxD+2] = interpolateBicubic(dx, dy, blue_pixels);
-
-                    destImageData[idxD+3] = interpolateBicubic(dx, dy, alpha_pixels);
+                    buf1Pos = (i * wDst2 + j) * 4;
+                    for (k = 0; k < 4; k++) {
+                        kPos = srcPos + k;
+                        var x0 = (xPos > 0) ? bufSrc[kPos - 4] : 2 * bufSrc[kPos] - bufSrc[kPos + 4];
+                        var x1 = bufSrc[kPos];
+                        var x2 = bufSrc[kPos + 4];
+                        var x3 = (xPos < wSrc - 2) ? bufSrc[kPos + 8] : 2 * bufSrc[kPos + 4] - bufSrc[kPos];
+                        buf1[buf1Pos + k] = interpolateCubic(x0, x1, x2, x3, t);
+                    }
                 }
             }
 
-            return {
-                data: destImageData,
-                width: destWidth,
-                height: destHeight
-            };
-        }
+            // Pass 2 - interpolate columns
+            // buf2 has width and height of dst2
+            var buf2 = new Buffer(wDst2 * hDst2 * 4);
+            for (i = 0; i < hDst2; i++) {
+                for (j = 0; j < wDst2; j++) {
+                    y = i * (hSrc - 1) / hDst2;
+                    yPos = Math.floor(y);
+                    t = y - yPos;
+                    buf1Pos = (yPos * wDst2 + j) * 4;
+                    buf2Pos = (i * wDst2 + j) * 4;
+                    for (k = 0; k < 4; k++) {
+                        kPos = buf1Pos + k;
+                        var y0 = (yPos > 0) ? buf1[kPos - wDst2 * 4] : 2 * buf1[kPos] - buf1[kPos + wDst2 * 4];
+                        var y1 = buf1[kPos];
+                        var y2 = buf1[kPos + wDst2 * 4];
+                        var y3 = (yPos < hSrc - 2) ? buf1[kPos + wDst2 * 8] : 2 * buf1[kPos + wDst2 * 4] - buf1[kPos];
 
-        //function doBilinearScale(srcImg, scale) {
-        //    // c.f.: wikipedia english article on bilinear interpolation
-        //    // taking the unit square, the inner loop looks like this
-        //    // note: there's a function call inside the double loop to this one
-        //    // maybe a performance killer, optimize this whole code as you need
-        //    function inner(f00, f10, f01, f11, x, y) {
-        //        var un_x = 1.0 - x; var un_y = 1.0 - y;
-        //        return (f00 * un_x * un_y + f10 * x * un_y + f01 * un_x * y + f11 * x * y);
-        //    }
-        //    var destWidth = srcImg.width * scale;
-        //    var destHeight = srcImg.height * scale;
-        //    var destImageData = [];
-        //    var i, j;
-        //    var iyv, iy0, iy1, ixv, ix0, ix1;
-        //    var idxD, idxS00, idxS10, idxS01, idxS11;
-        //    var dx, dy;
-        //    var r, g, b, a;
-        //    for (i = 0; i < destHeight; ++i) {
-        //        iyv = i / scale;
-        //        iy0 = Math.floor(iyv);
-        //        // Math.ceil can go over bounds
-        //        iy1 = ( Math.ceil(iyv) > (srcImg.height-1) ? (srcImg.height-1) : Math.ceil(iyv) );
-        //        for (j = 0; j < destWidth; ++j) {
-        //            ixv = j / scale;
-        //            ix0 = Math.floor(ixv);
-        //
-        //            // Math.ceil can go over bounds
-        //            ix1 = ( Math.ceil(ixv) > (srcImg.width-1) ? (srcImg.width-1) : Math.ceil(ixv) );
-        //            idxD = xytoi(j, i, destWidth);
-        //
-        //            // matrix to vector indices
-        //            idxS00 = xytoi(ix0, iy0, srcImg.width);
-        //            idxS10 = xytoi(ix1, iy0, srcImg.width);
-        //            idxS01 = xytoi(ix0, iy1, srcImg.width);
-        //            idxS11 = xytoi(ix1, iy1, srcImg.width);
-        //
-        //            // overall coordinates to unit square
-        //            dx = ixv - ix0; dy = iyv - iy0;
-        //
-        //            // I let the r, g, b, a on purpose for debugging
-        //            r = inner(srcImg.data[idxS00], srcImg.data[idxS10],
-        //                srcImg.data[idxS01], srcImg.data[idxS11], dx, dy);
-        //            destImageData[idxD] = r;
-        //
-        //            g = inner(srcImg.data[idxS00+1], srcImg.data[idxS10+1],
-        //                srcImg.data[idxS01+1], srcImg.data[idxS11+1], dx, dy);
-        //            destImageData[idxD+1] = g;
-        //
-        //            b = inner(srcImg.data[idxS00+2], srcImg.data[idxS10+2],
-        //                srcImg.data[idxS01+2], srcImg.data[idxS11+2], dx, dy);
-        //            destImageData[idxD+2] = b;
-        //
-        //            a = inner(srcImg.data[idxS00+3], srcImg.data[idxS10+3],
-        //                srcImg.data[idxS01+3], srcImg.data[idxS11+3], dx, dy);
-        //            destImageData[idxD+3] = a;
-        //        }
-        //    }
-        //
-        //    return {
-        //        data: destImageData,
-        //        width: destWidth,
-        //        height: destHeight
-        //    };
-        //}
-
-        //function doLanczosScale(srcImgData, width, height, scale) {
-        //    function lanczosCreate(lobes) {
-        //        return function(x) {
-        //            if (x > lobes)
-        //                return 0;
-        //            x *= Math.PI;
-        //            if (Math.abs(x) < 1e-16)
-        //                return 1;
-        //            var xx = x / lobes;
-        //            return Math.sin(x) * Math.sin(xx) / x / xx;
-        //        };
-        //    }
-        //
-        //    function process1() {
-        //        center.x = (u + 0.5) * ratio;
-        //        icenter.x = Math.floor(center.x);
-        //        for (var v = 0; v < destHeight; v++) {
-        //            center.y = (v + 0.5) * ratio;
-        //            icenter.y = Math.floor(center.y);
-        //            var a, r, g, b;
-        //            a = r = g = b = 0;
-        //            for (var i = icenter.x - range2; i <= icenter.x + range2; i++) {
-        //                if (i < 0 || i >= width)
-        //                    continue;
-        //                var f_x = Math.floor(1000 * Math.abs(i - center.x));
-        //                if (!cacheLanc[f_x])
-        //                    cacheLanc[f_x] = {};
-        //                for (var j = icenter.y - range2; j <= icenter.y + range2; j++) {
-        //                    if (j < 0 || j >= height)
-        //                        continue;
-        //                    var f_y = Math.floor(1000 * Math.abs(j - center.y));
-        //                    if (cacheLanc[f_x][f_y] == undefined)
-        //                        cacheLanc[f_x][f_y] = lanczos(Math.sqrt(Math.pow(f_x * rcp_ratio, 2)
-        //                        + Math.pow(f_y * rcp_ratio, 2)) / 1000);
-        //                    var weight = cacheLanc[f_x][f_y];
-        //                    if (weight > 0) {
-        //                        var idx = (j * width + i) * 4;
-        //                        a += weight;
-        //                        r += weight * srcImgData[idx];
-        //                        g += weight * srcImgData[idx + 1];
-        //                        b += weight * srcImgData[idx + 2];
-        //                    }
-        //                }
-        //            }
-        //            var idx = (v * destWidth + u) * 4;
-        //            destImageData[idx] = r / a;
-        //            destImageData[idx + 1] = g / a;
-        //            destImageData[idx + 2] = b / a;
-        //            destImageData[idx + 3] = 0.5;
-        //        }
-        //
-        //        u++;
-        //    }
-        //
-        //    var lobes = 1;
-        //    var lanczos = lanczosCreate(lobes);
-        //    var destWidth = width * scale;
-        //    var destHeight = height * scale;
-        //    var destImageData = [];
-        //    var ratio = 1 / scale;
-        //    var rcp_ratio = 2 * scale;
-        //    var range2 = Math.ceil(ratio * lobes / 2);
-        //    var cacheLanc = {};
-        //    var center = {};
-        //    var icenter = {};
-        //    var u = 0;
-        //    while (u < destWidth) {
-        //        process1();
-        //    }
-        //
-        //    return{
-        //        data: destImageData,
-        //        width: destWidth,
-        //        height: destHeight
-        //    };
-        //}
-        //
-        //function resample_hermite(srcImg, scale){
-        //    var destWidth = srcImg.width * scale;
-        //    var destHeight = srcImg.height * scale;
-        //    var destImageData = [];
-        //    var ratioHalf = Math.ceil(2/scale);
-        //
-        //    for(var j = 0; j < destHeight; j++){
-        //        for(var i = 0; i < destWidth; i++){
-        //            var x2 = (i + j*destWidth) * 4;
-        //            var weight = 0;
-        //            var weights = 0;
-        //            var weights_alpha = 0;
-        //            var gx_r = 0, gx_g = 0, gx_b = 0, gx_a = 0;
-        //            var center_y = (j + 0.5)/scale;
-        //            for(var yy = Math.floor(j/scale); yy < (j + 1)/scale; yy++){
-        //                var dy = Math.abs(center_y - (yy + 0.5))/ratioHalf;
-        //                var center_x = (i + 0.5) * ratioHalf;
-        //                var w0 = dy*dy //pre-calc part of w
-        //                for(var xx = Math.floor(i / scale); xx < (i + 1)/scale; xx++){
-        //                    var dx = Math.abs(center_x - (xx + 0.5))/ratioHalf;
-        //                    var w = Math.sqrt(w0 + dx*dx);
-        //                    if(w >= -1 && w <= 1){
-        //                        //hermite filter
-        //                        weight = 2 * w*w*w - 3*w*w + 1;
-        //                        if(weight > 0) {
-        //                            dx = 4*(xx + yy*srcImg.width);
-        //                            //alpha
-        //                            gx_a += weight * srcImg.data[dx + 3];
-        //                            weights_alpha += weight;
-        //                            //colors
-        //                            if(srcImg.data[dx + 3] < 255)
-        //                                weight = weight * srcImg.data[dx + 3] / 250;
-        //                            gx_r += weight * srcImg.data[dx];
-        //                            gx_g += weight * srcImg.data[dx + 1];
-        //                            gx_b += weight * srcImg.data[dx + 2];
-        //                            weights += weight;
-        //                        }
-        //                    }
-        //                }
-        //            }
-        //            destImageData[x2]     = gx_r / weights;
-        //            destImageData[x2 + 1] = gx_g / weights;
-        //            destImageData[x2 + 2] = gx_b / weights;
-        //            destImageData[x2 + 3] = gx_a / weights_alpha;
-        //        }
-        //    }
-        //
-        //    return {
-        //        data: destImageData,
-        //        width: destWidth,
-        //        height: destHeight
-        //    };
-        //}
-
-        return promiseFactory.makePromise(function (resolve) {
-
-            if (scale === 1) {
-                resolve(imageBmp);
-                return;
+                        buf2[buf2Pos + k] = interpolateCubic(y0, y1, y2, y3, t);
+                    }
+                }
             }
 
-            var scaledBmp = doBicubicScale(imageBmp, scale);
-            imageBmp.data = new Buffer(scaledBmp.data);
-            imageBmp.width = scaledBmp.width;
-            imageBmp.height = scaledBmp.height;
+            // Pass 3 - scale to dst
+            var m = wM * hM;
+            if (m > 1) {
+                for (i = 0; i < hDst; i++) {
+                    for (j = 0; j < wDst; j++) {
+                        var r = 0;
+                        var g = 0;
+                        var b = 0;
+                        var a = 0;
+                        for (y = 0; y < hM; y++) {
+                            yPos = i * hM + y;
+                            for (x = 0; x < wM; x++) {
+                                xPos = j * wM + x;
+                                var xyPos = (yPos * wDst2 + xPos) * 4;
+                                r += buf2[xyPos];
+                                g += buf2[xyPos + 1];
+                                b += buf2[xyPos + 2];
+                                a += buf2[xyPos + 3];
+                            }
+                        }
 
+                        var pos = (i * wDst + j) * 4;
+                        bufDst[pos] = Math.round(r / m);
+                        bufDst[pos + 1] = Math.round(g / m);
+                        bufDst[pos + 2] = Math.round(b / m);
+                        bufDst[pos + 3] = Math.round(a / m);
+                    }
+                }
+            } else {
+                dst.data = buf2;
+            }
+        }
+
+        //noinspection JSUnusedLocalSymbols
+        function doBilinearInterpolation(src, dst) {
+            var wSrc = src.width;
+            var hSrc = src.height;
+
+            var wDst = dst.width;
+            var hDst = dst.height;
+
+            var bufSrc = src.data;
+            var bufDst = dst.data;
+
+            var interpolate = function (k, kMin, vMin, kMax, vMax) {
+                if (kMin === kMax) {
+                    return vMin;
+                }
+
+                return Math.round((k - kMin) * vMax + (kMax - k) * vMin);
+            };
+
+            var assign = function (pos, offset, x, xMin, xMax, y, yMin, yMax) {
+                var posMin = (yMin * wSrc + xMin) * 4 + offset;
+                var posMax = (yMin * wSrc + xMax) * 4 + offset;
+                var vMin = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
+
+                if (yMax === yMin) {
+                    bufDst[pos + offset] = vMin;
+                } else {
+                    posMin = (yMax * wSrc + xMin) * 4 + offset;
+                    posMax = (yMax * wSrc + xMax) * 4 + offset;
+                    var vMax = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
+
+                    bufDst[pos + offset] = interpolate(y, yMin, vMin, yMax, vMax);
+                }
+            };
+
+            for (var i = 0; i < hDst; i++) {
+                for (var j = 0; j < wDst; j++) {
+                    var posDst = (i * wDst + j) * 4;
+
+                    var x = j * wSrc / wDst;
+                    var xMin = Math.floor(x);
+                    var xMax = Math.min(Math.ceil(x), wSrc - 1);
+
+                    var y = i * hSrc / hDst;
+                    var yMin = Math.floor(y);
+                    var yMax = Math.min(Math.ceil(y), hSrc - 1);
+
+                    assign(posDst, 0, x, xMin, xMax, y, yMin, yMax);
+                    assign(posDst, 1, x, xMin, xMax, y, yMin, yMax);
+                    assign(posDst, 2, x, xMin, xMax, y, yMin, yMax);
+                    assign(posDst, 3, x, xMin, xMax, y, yMin, yMax);
+                }
+            }
+        }
+
+        //noinspection JSUnusedLocalSymbols
+        function doNearestNeighbor(src, dst) {
+            var wSrc = src.width;
+            var hSrc = src.height;
+
+            var wDst = dst.width;
+            var hDst = dst.height;
+
+            var bufSrc = src.data;
+            var bufDst = dst.data;
+
+            for (var i = 0; i < hDst; i++) {
+                for (var j = 0; j < wDst; j++) {
+                    var posDst = (i * wDst + j) * 4;
+
+                    var iSrc = Math.round(i * hSrc / hDst);
+                    var jSrc = Math.round(j * wSrc / wDst);
+                    var posSrc = (iSrc * wSrc + jSrc) * 4;
+
+                    bufDst[posDst++] = bufSrc[posSrc++];
+                    bufDst[posDst++] = bufSrc[posSrc++];
+                    bufDst[posDst++] = bufSrc[posSrc++];
+                    bufDst[posDst++] = bufSrc[posSrc++];
+                }
+            }
+        }
+
+        return promiseFactory.makePromise(function (resolve) {
+            // round inputs
+            width = Math.round(width);
+            height = Math.round(height);
+
+
+            var dst = {
+                data: new Buffer(width * height * 4),
+                width: width,
+                height: height
+            };
+
+            doNearestNeighbor(imageBmp, dst); // fast
+            // doBilinearInterpolation(imageBmp, dst);
+            // doBicubicInterpolation(imageBmp, dst); // good quality
+            imageBmp.data = dst.data;
+            imageBmp.width = dst.width;
+            imageBmp.height = dst.height;
             resolve(imageBmp);
-
         });
     };
 
     /**
      * Crops a parsed image - the image is changed
      *
-     * @param {Object} imageBmp BMP
+     * @param {PNG} imageBmp
      * @param {{left: number, top: number, width: number, height: number}} region Region to crop
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
@@ -449,7 +350,7 @@
     /**
      * Rotates a parsed image - the image is changed
      *
-     * @param {Object} imageBmp BMP
+     * @param {PNG} imageBmp
      * @param {number} deg how many degrees to rotate (in actuality it's only by multipliers of 90)
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
@@ -464,18 +365,18 @@
             if (i < 0) i += 4;
 
             while (i > 0) {
-                var bitmap = new Buffer(imageBmp.data.length);
+                var buffer = new Buffer(imageBmp.data.length);
                 var offset = 0;
                 for (var x = 0; x < imageBmp.width; x++) {
                     for (var y = imageBmp.height - 1; y >= 0; y--) {
                         var idx = (imageBmp.width * y + x) << 2;
                         var data = imageBmp.data.readUInt32BE(idx, true);
-                        bitmap.writeUInt32BE(data, offset, true);
+                        buffer.writeUInt32BE(data, offset, true);
                         offset += 4;
                     }
                 }
 
-                imageBmp.data = new Buffer(bitmap);
+                imageBmp.data = Buffer.from(buffer);
                 var tmp = imageBmp.width;
                 //noinspection JSSuspiciousNameCombination
                 imageBmp.width = imageBmp.height;
@@ -578,20 +479,14 @@
             var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
             var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
 
-            //noinspection JSLint
             for (var i = 0; i < parts.length; ++i) {
-                //noinspection JSUnresolvedFunction
                 stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i], promiseFactory);
             }
 
-            //noinspection JSUnresolvedFunction
             stitchingPromise.then(function () {
-                var stitchedImageStream = new WritableBufferStream();
-                //noinspection JSUnresolvedFunction
-                stitchedImage.pack().pipe(stitchedImageStream)
-                    .on('finish', function () {
-                        resolve(stitchedImageStream.getBuffer());
-                    });
+                return ImageUtils.packImage(stitchedImage, promiseFactory);
+            }).then(function (buffer) {
+                resolve(buffer);
             });
         });
     };
