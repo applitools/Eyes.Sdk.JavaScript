@@ -12,6 +12,7 @@
     "use strict";
 
     var StreamUtils = require('./StreamUtils'),
+        ScaleMethod = require('./ScaleMethod'),
         fs = require('fs'),
         /** @type {PNG} */
         PNG = require('pngjs').PNG;
@@ -56,9 +57,17 @@
     ImageUtils.packImage = function packImage(imageBmp, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
 
+            var png = new PNG({
+                width: imageBmp.width,
+                height: imageBmp.height,
+                bitDepth: 8,
+                filterType: 4
+            });
+            png.data = new Buffer(imageBmp.data);
+
             // Write back to a temp png file
             var croppedImageStream = new WritableBufferStream();
-            imageBmp.pack().pipe(croppedImageStream)
+            png.pack().pipe(croppedImageStream)
                 .on('finish', function () {
                     resolve(croppedImageStream.getBuffer());
                 });
@@ -69,20 +78,21 @@
      * Scaled a parsed image by a given factor.
      *
      * @param {PNG} imageBmp - will be modified
-     * @param {number} scale factor to multiply the image dimensions by (lower than 1 for scale down)
+     * @param {number} scaleRatio factor to multiply the image dimensions by (lower than 1 for scale down)
+     * @param {ScaleMethod} scaleMethod
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
      **/
-    ImageUtils.scaleImage = function scaleImage(imageBmp, scale, promiseFactory) {
-        if (scale === 1) {
+    ImageUtils.scaleImage = function scaleImage(imageBmp, scaleRatio, scaleMethod, promiseFactory) {
+        if (scaleRatio === 1) {
             return promiseFactory.makePromise(function (resolve) {
                 resolve(imageBmp);
             });
         }
 
-        var w = imageBmp.width * scale;
-        var h = imageBmp.height * scale;
-        return ImageUtils.resizeImage(imageBmp, w, h, promiseFactory);
+        var w = imageBmp.width * scaleRatio;
+        var h = imageBmp.height * scaleRatio;
+        return ImageUtils.resizeImage(imageBmp, w, h, scaleMethod, promiseFactory);
     };
 
     /**
@@ -91,12 +101,12 @@
      * @param {PNG} imageBmp - will be modified
      * @param {number} width The width to resize the image to
      * @param {number} height The height to resize the image to
+     * @param {ScaleMethod} scaleMethod
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
      **/
-    ImageUtils.resizeImage = function scaleImage(imageBmp, width, height, promiseFactory) {
+    ImageUtils.resizeImage = function resizeImage(imageBmp, width, height, scaleMethod, promiseFactory) {
 
-        //noinspection JSUnusedLocalSymbols
         function doBicubicInterpolation(src, dst) {
             var bufSrc = src.data;
             var bufDst = dst.data;
@@ -197,95 +207,122 @@
             } else {
                 dst.data = buf2;
             }
+
+            return dst;
         }
 
-        //noinspection JSUnusedLocalSymbols
-        function doBilinearInterpolation(src, dst) {
-            var wSrc = src.width;
-            var hSrc = src.height;
+        function scaleImageIncrementally(src, dst, method) {
+            var incrementCount = 0;
+            var currentWidth = src.width,
+                currentHeight = src.height;
+            var targetWidth = dst.width,
+                targetHeight = dst.height;
 
-            var wDst = dst.width;
-            var hDst = dst.height;
+            dst.data = src.data;
+            dst.width = src.width;
+            dst.height = src.height;
 
-            var bufSrc = src.data;
-            var bufDst = dst.data;
+            var fraction = (method == ScaleMethod.ULTRA_QUALITY ? 7 : 2);
 
-            var interpolate = function (k, kMin, vMin, kMax, vMax) {
-                if (kMin === kMax) {
-                    return vMin;
+            do {
+                var prevCurrentWidth = currentWidth;
+                var prevCurrentHeight = currentHeight;
+
+                /*
+                 * If the current width is bigger than our target, cut it in half
+                 * and sample again.
+                 */
+                if (currentWidth > targetWidth) {
+                    currentWidth -= (currentWidth / fraction);
+
+                    /*
+                     * If we cut the width too far it means we are on our last
+                     * iteration. Just set it to the target width and finish up.
+                     */
+                    if (currentWidth < targetWidth)
+                        currentWidth = targetWidth;
                 }
 
-                return Math.round((k - kMin) * vMax + (kMax - k) * vMin);
-            };
+                /*
+                 * If the current height is bigger than our target, cut it in half
+                 * and sample again.
+                 */
+                if (currentHeight > targetHeight) {
+                    currentHeight -= (currentHeight / fraction);
 
-            var assign = function (pos, offset, x, xMin, xMax, y, yMin, yMax) {
-                var posMin = (yMin * wSrc + xMin) * 4 + offset;
-                var posMax = (yMin * wSrc + xMax) * 4 + offset;
-                var vMin = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
-
-                if (yMax === yMin) {
-                    bufDst[pos + offset] = vMin;
-                } else {
-                    posMin = (yMax * wSrc + xMin) * 4 + offset;
-                    posMax = (yMax * wSrc + xMax) * 4 + offset;
-                    var vMax = interpolate(x, xMin, bufSrc[posMin], xMax, bufSrc[posMax]);
-
-                    bufDst[pos + offset] = interpolate(y, yMin, vMin, yMax, vMax);
+                    /*
+                     * If we cut the height too far it means we are on our last
+                     * iteration. Just set it to the target height and finish up.
+                     */
+                    if (currentHeight < targetHeight)
+                        currentHeight = targetHeight;
                 }
-            };
 
-            for (var i = 0; i < hDst; i++) {
-                for (var j = 0; j < wDst; j++) {
-                    var posDst = (i * wDst + j) * 4;
+                /*
+                 * Stop when we cannot incrementally step down anymore.
+                 *
+                 * This used to use a || condition, but that would cause problems
+                 * when using FIT_EXACT such that sometimes the width OR height
+                 * would not change between iterations, but the other dimension
+                 * would (e.g. resizing 500x500 to 500x250).
+                 *
+                 * Now changing this to an && condition requires that both
+                 * dimensions do not change between a resize iteration before we
+                 * consider ourselves done.
+                 */
+                if (prevCurrentWidth == currentWidth && prevCurrentHeight == currentHeight)
+                    break;
 
-                    var x = j * wSrc / wDst;
-                    var xMin = Math.floor(x);
-                    var xMax = Math.min(Math.ceil(x), wSrc - 1);
+                // Render the incremental scaled image.
+                var incrementalImage = {
+                    data: new Buffer(currentWidth * currentHeight * 4),
+                    width: currentWidth,
+                    height: currentHeight
+                };
+                doBicubicInterpolation(dst, incrementalImage);
 
-                    var y = i * hSrc / hDst;
-                    var yMin = Math.floor(y);
-                    var yMax = Math.min(Math.ceil(y), hSrc - 1);
+                /*
+                 * Now treat our incremental partially scaled image as the src image
+                 * and cycle through our loop again to do another incremental scaling of it (if necessary).
+                 */
+                dst.data = incrementalImage.data;
+                dst.width = incrementalImage.width;
+                dst.height = incrementalImage.height;
 
-                    assign(posDst, 0, x, xMin, xMax, y, yMin, yMax);
-                    assign(posDst, 1, x, xMin, xMax, y, yMin, yMax);
-                    assign(posDst, 2, x, xMin, xMax, y, yMin, yMax);
-                    assign(posDst, 3, x, xMin, xMax, y, yMin, yMax);
-                }
-            }
+                // Track how many times we go through this cycle to scale the image.
+                incrementCount++;
+            } while (currentWidth != targetWidth || currentHeight != targetHeight);
+
+            return dst;
         }
 
-        //noinspection JSUnusedLocalSymbols
         function doNearestNeighbor(src, dst) {
-            var wSrc = src.width;
-            var hSrc = src.height;
+            var wSrc = src.width, hSrc = src.height, bufSrc = src.data,
+                wDst = dst.width, hDst = dst.height, bufDst = dst.data,
+                i, j, iSrc, jSrc, posDst, posSrc;
 
-            var wDst = dst.width;
-            var hDst = dst.height;
+            var hScale = hSrc / hDst, wScale = wSrc / wDst;
 
-            var bufSrc = src.data;
-            var bufDst = dst.data;
+            for (i = 0; i < hDst; i++) {
+                for (j = 0; j < wDst; j++) {
+                    iSrc = Math.round(i * hScale);
+                    jSrc = Math.round(j * wScale);
 
-            for (var i = 0; i < hDst; i++) {
-                for (var j = 0; j < wDst; j++) {
-                    var posDst = (i * wDst + j) * 4;
-
-                    var iSrc = Math.round(i * hSrc / hDst);
-                    var jSrc = Math.round(j * wSrc / wDst);
-                    var posSrc = (iSrc * wSrc + jSrc) * 4;
-
+                    posDst = (i * wDst + j) << 2;
+                    posSrc = (iSrc * wSrc + jSrc) << 2;
                     bufDst[posDst++] = bufSrc[posSrc++];
                     bufDst[posDst++] = bufSrc[posSrc++];
                     bufDst[posDst++] = bufSrc[posSrc++];
                     bufDst[posDst++] = bufSrc[posSrc++];
                 }
             }
+
+            return dst;
         }
 
         return promiseFactory.makePromise(function (resolve) {
-            // round inputs
             width = Math.round(width);
             height = Math.round(height);
-
 
             var dst = {
                 data: new Buffer(width * height * 4),
@@ -293,9 +330,18 @@
                 height: height
             };
 
-            doNearestNeighbor(imageBmp, dst); // fast
-            // doBilinearInterpolation(imageBmp, dst);
-            // doBicubicInterpolation(imageBmp, dst); // good quality
+            switch (scaleMethod) {
+                case ScaleMethod.SPEED:
+                    doNearestNeighbor(imageBmp, dst);
+                    break;
+                default:
+                    if (dst.width > imageBmp.width || dst.height > imageBmp.height) {
+                        doBicubicInterpolation(imageBmp, dst);
+                    } else {
+                        scaleImageIncrementally(imageBmp, dst, scaleMethod);
+                    }
+            }
+
             imageBmp.data = dst.data;
             imageBmp.width = dst.width;
             imageBmp.height = dst.height;

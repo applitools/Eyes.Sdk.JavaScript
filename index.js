@@ -9,6 +9,7 @@ exports.MutableImage = require('./src/MutableImage');
 exports.PositionProvider = require('./src/PositionProvider');
 exports.PromiseFactory = require('./src/PromiseFactory');
 exports.RegionProvider = require('./src/RegionProvider');
+exports.ScaleMethod = require('./src/ScaleMethod');
 exports.ScaleProvider = require('./src/ScaleProvider');
 exports.StreamUtils = require('./src/StreamUtils');
 exports.TestResultsFormatter = require('./src/TestResultsFormatter');
