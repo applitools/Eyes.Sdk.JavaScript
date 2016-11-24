@@ -25,6 +25,7 @@
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
+        ScaleMethod = EyesUtils.ScaleMethod,
         MatchLevel = MatchSettings.MatchLevel,
         ImageMatchSettings = MatchSettings.ImageMatchSettings,
         ExactMatchSettings = MatchSettings.ExactMatchSettings;
@@ -133,7 +134,8 @@
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._positionProvider = null;
-            this._scaleProvider = new FixedScaleProvider(1, promiseFactory);
+            this._scaleMethod = ScaleMethod.getDefault();
+            this._scaleProvider = new FixedScaleProvider(1, this._scaleMethod, promiseFactory);
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
@@ -508,9 +510,9 @@
      */
     EyesBase.prototype.setScaleRatio = function (scaleRatio) {
         if (scaleRatio != null) {
-            this._scaleProvider = new FixedScaleProvider(scaleRatio, this._promiseFactory, true);
+            this._scaleProvider = new FixedScaleProvider(scaleRatio, this._scaleMethod, this._promiseFactory, true);
         } else {
-            this._scaleProvider = new FixedScaleProvider(1, this._promiseFactory);
+            this._scaleProvider = new FixedScaleProvider(1, this._scaleMethod, this._promiseFactory);
         }
     };
 
@@ -533,6 +535,22 @@
         }
 
         this._scaleProvider = scaleProvider;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {ScaleMethod} The currently set scale method.
+     */
+    EyesBase.prototype.getScaleMethod = function () {
+        return this._scaleMethod;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {ScaleMethod} scaleMethod The scale method to use
+     */
+    EyesBase.prototype.setScaleMethod = function (scaleMethod) {
+        this._scaleMethod = scaleMethod;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -626,7 +644,7 @@
             this._isOpen = true;
             this._userInputs = [];
             this._viewportSize = viewportSize;
-            this.setScaleProvider(new FixedScaleProvider(1, this._promiseFactory));
+            this.setScaleProvider(new FixedScaleProvider(1, this._scaleMethod, this._promiseFactory));
             this._testName = testName;
             this._appName = appName;
             this._validationId = -1;

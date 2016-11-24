@@ -3,6 +3,7 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
+        ScaleMethod = EyesUtils.ScaleMethod,
         ArgumentGuard = EyesUtils.ArgumentGuard;
 
     // Allowed deviations for viewport size and default content entire size.
@@ -15,14 +16,16 @@
      * @param {{width: number, height: number}} topLevelContextEntireSize The total size of the top level context.
      *        E.g., for selenium this would be the document size of the top level frame.
      * @param {{width: number, height: number}} viewportSize The viewport size.
+     * @param {ScaleMethod} scaleMethod
      * @param {number} devicePixelRatio The device pixel ratio of the platform on which the application is running.
      * @param {PromiseFactory} promiseFactory
      * @param {boolean} [isReadOnly=false]
      * @augments ScaleProvider
      */
-    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, devicePixelRatio, promiseFactory, isReadOnly) {
+    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, scaleMethod, devicePixelRatio, promiseFactory, isReadOnly) {
         this._topLevelContextEntireSize = topLevelContextEntireSize;
         this._viewportSize = viewportSize;
+        this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
         this._devicePixelRatio = devicePixelRatio;
         this._promiseFactory = promiseFactory;
 
@@ -79,7 +82,7 @@
         var that = this;
         return calculateScaleRatio(that, image).then(function (scaleRatio) {
             that._scaleRatio = scaleRatio;
-            return image.scaleImage(scaleRatio);
+            return image.scaleImage(scaleRatio, that._scaleMethod);
         });
     };
 
