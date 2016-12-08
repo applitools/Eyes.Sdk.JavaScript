@@ -61,7 +61,7 @@
      * @param {number} top
      * @returns {{x: number, y: number}} New location object
      */
-    GeometryUtils.createLocation  = function(left, top) {
+    GeometryUtils.createLocation = function(left, top) {
         return {
             x: Math.ceil(left) || 0,
             y: Math.ceil(top) || 0
@@ -74,8 +74,18 @@
      * @param {{top: number, left: number, width: number, height: number}} region
      * @returns {{x: number, y: number}} New location object
      */
-    GeometryUtils.createLocationFromRegion  = function(region) {
+    GeometryUtils.createLocationFromRegion = function(region) {
         return GeometryUtils.createLocation(region.left, region.top);
+    };
+
+    /**
+     * Crete new simple location object from location
+     *
+     * @param {{x: number, y: number}} location
+     * @returns {{x: number, y: number}} New location object
+     */
+    GeometryUtils.createLocationFromLocation = function(location) {
+        return GeometryUtils.createLocation(location.x, location.y);
     };
 
     /**
@@ -85,10 +95,55 @@
      * @param {number} height
      * @returns {{width: number, height: number}} New size object
      */
-    GeometryUtils.createSize  = function(width, height) {
+    GeometryUtils.createSize = function(width, height) {
         return {
             width: Math.ceil(width) || 0,
             height: Math.ceil(height) || 0
+        };
+    };
+
+    /**
+     * Get a scaled location.
+     *
+     * @param {{x: number, y: number}} location
+     * @param {number} scaleRatio The ratio by which to scale the results.
+     * @returns {{x: number, y: number}} A scaled copy of the current location.
+     */
+    GeometryUtils.scaleLocation = function(location, scaleRatio) {
+        return {
+            x: Math.ceil(location.x * scaleRatio),
+            y: Math.ceil(location.y * scaleRatio)
+        };
+    };
+
+    /**
+     * Get a scaled version of the current size.
+     *
+     * @param {{width: number, height: number}} size
+     * @param {number} scaleRatio The ratio by which to scale the results.
+     * @returns {{width: number, height: number}} A scaled version of the current size.
+     */
+    GeometryUtils.scaleSize = function(size, scaleRatio) {
+        return {
+            width: Math.ceil(size.width * scaleRatio),
+            height: Math.ceil(size.height * scaleRatio)
+        };
+    };
+
+    /**
+     * Get a region which is a scaled version of the current region.
+     * IMPORTANT: This also scales the LOCATION(!!) of the region (not just its size).
+     *
+     * @param {{top: number, left: number, width: number, height: number}} region
+     * @param {number} scaleRatio The ratio by which to scale the results.
+     * @returns {{top: number, left: number, width: number, height: number}} A new region which is a scaled version of the current region.
+     */
+    GeometryUtils.scaleRegion = function(region, scaleRatio) {
+        return {
+            width: Math.ceil(region.width * scaleRatio),
+            height: Math.ceil(region.height * scaleRatio),
+            top: Math.ceil(region.top * scaleRatio),
+            left: Math.ceil(region.left * scaleRatio)
         };
     };
 
@@ -98,7 +153,7 @@
      * @param {{top: number, left: number, width: number, height: number}} region
      * @returns {{width: number, height: number}} New size object
      */
-    GeometryUtils.createSizeFromRegion  = function(region) {
+    GeometryUtils.createSizeFromRegion = function(region) {
         return GeometryUtils.createSize(region.width, region.height);
     };
 
