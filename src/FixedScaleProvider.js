@@ -10,18 +10,13 @@
      * @constructor
      * @param {number} scaleRatio The scale ratio to use.
      * @param {ScaleMethod} scaleMethod The scale method to use.
-     * @param {PromiseFactory} promiseFactory
-     * @param {boolean} [isReadOnly=false]
      * @augments ScaleProvider
      */
-    function FixedScaleProvider(scaleRatio, scaleMethod, promiseFactory, isReadOnly) {
+    function FixedScaleProvider(scaleRatio, scaleMethod) {
         ArgumentGuard.greaterThanZero(scaleRatio, "scaleRatio");
 
         this._scaleRatio = scaleRatio;
         this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
-        this._promiseFactory = promiseFactory;
-
-        ScaleProvider.call(this, isReadOnly);
     }
 
     FixedScaleProvider.prototype = new ScaleProvider();
@@ -35,11 +30,10 @@
     };
 
     /**
-     * @param {MutableImage} image The image to scale.
-     * @return {Promise<MutableImage>} A new scaled image.
+     * @return {ScaleMethod}
      */
-    FixedScaleProvider.prototype.scaleImage = function (image) {
-        return image.scaleImage(this._scaleRatio, this._scaleMethod);
+    FixedScaleProvider.prototype.getScaleMethod = function () {
+        return this._scaleMethod;
     };
 
     module.exports = FixedScaleProvider;

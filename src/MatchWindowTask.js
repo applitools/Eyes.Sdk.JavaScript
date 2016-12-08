@@ -17,12 +17,12 @@
     /**
      *
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     * @param {Object} serverConnector
-     * @param {Object} runningSession
-     * @param {Number} retryTimeout
-     * @param {Object} appOutputProvider
+     * @param {ServerConnector} serverConnector Our gateway to the agent
+     * @param {Object} runningSession The running session in which we should match the window
+     * @param {Number} retryTimeout The default total time to retry matching (ms).
+     * @param {Object} appOutputProvider A callback for getting the application output when performing match
      * @param {Function} waitTimeout - a call back that provides timeout
-     * @param {Object} logger
+     * @param {Logger} logger
      * @constructor
      **/
     function MatchWindowTask(promiseFactory, serverConnector, runningSession, retryTimeout, appOutputProvider, waitTimeout, logger) {

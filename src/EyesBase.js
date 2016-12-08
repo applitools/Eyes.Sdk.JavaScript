@@ -18,6 +18,7 @@
         SessionEventHandler = require('./SessionEventHandler'),
         RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
         FixedScaleProvider = require('./FixedScaleProvider'),
+        NullScaleProvider = require('./NullScaleProvider'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
@@ -26,6 +27,8 @@
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
         ScaleMethod = EyesUtils.ScaleMethod,
+        SimplePropertyHandler = EyesUtils.SimplePropertyHandler,
+        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler,
         MatchLevel = MatchSettings.MatchLevel,
         ImageMatchSettings = MatchSettings.ImageMatchSettings,
         ExactMatchSettings = MatchSettings.ExactMatchSettings;
@@ -135,13 +138,14 @@
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._positionProvider = null;
             this._scaleMethod = ScaleMethod.getDefault();
-            this._scaleProvider = new FixedScaleProvider(1, this._scaleMethod, promiseFactory);
+            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
             this._os = undefined;
             this._hostingApp = undefined;
-            this._baselineName = undefined;
+            this._baselineEnvName = undefined;
+            this._environmentName = undefined;
             this._testName = null;
             this._appName = null;
             this.validationId = -1;
@@ -297,18 +301,78 @@
     /**
      * If specified, determines the baseline to compare with and disables automatic baseline inference.
      *
+     * @deprecated Only available for backward compatibility. See {@link #setBaselineEnvName(String)}.
      * @param baselineName {String} The hosting application.
      */
     EyesBase.prototype.setBaselineName = function (baselineName) {
-        this._baselineName = baselineName;
+        this._logger.log("Baseline environment name: " + baselineName);
+
+        if(!baselineName) {
+            this.baselineEnvName = null;
+        } else {
+            this.baselineEnvName = baselineName.trim();
+        }
     };
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @deprecated Only available for backward compatibility. See {@link #getBaselineEnvName()}.
      * @return {String} The baseline name, if it was specified.
      */
     EyesBase.prototype.getBaselineName = function () {
-        return this._baselineName;
+        return this._baselineEnvName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * If not {@code null}, determines the name of the environment of the baseline.
+     *
+     * @param baselineEnvName {String} The name of the baseline's environment.
+     */
+    EyesBase.prototype.setBaselineEnvName = function (baselineEnvName) {
+        this._logger.log("Baseline environment name: " + baselineEnvName);
+
+        if(!baselineEnvName) {
+            this.baselineEnvName = null;
+        } else {
+            this.baselineEnvName = baselineEnvName.trim();
+        }
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * If not {@code null}, determines the name of the environment of the baseline.
+     *
+     * @return {String} The name of the baseline's environment, or {@code null} if no such name was set.
+     */
+    EyesBase.prototype.getBaselineEnvName = function () {
+        return this._baselineEnvName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * If not {@code null} specifies a name for the environment in which the application under test is running.
+     *
+     * @param envName {String} The name of the environment of the baseline.
+     */
+    EyesBase.prototype.setEnvName = function (envName) {
+        this._logger.log("Environment name: " + envName);
+
+        if(!envName) {
+            this._environmentName = null;
+        } else {
+            this._environmentName = envName.trim();
+        }
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * If not {@code null} specifies a name for the environment in which the application under test is running.
+     *
+     * @return {String} The name of the environment of the baseline, or {@code null} if no such name was set.
+     */
+    EyesBase.prototype.getEnvName = function () {
+        return this._environmentName;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -499,7 +563,7 @@
      * @return {number} The ratio used to scale the images being validated.
      */
     EyesBase.prototype.getScaleRatio = function () {
-        return this._scaleProvider.getScaleRatio();
+        return this._scaleProviderHandler.get().getScaleRatio();
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -510,31 +574,10 @@
      */
     EyesBase.prototype.setScaleRatio = function (scaleRatio) {
         if (scaleRatio != null) {
-            this._scaleProvider = new FixedScaleProvider(scaleRatio, this._scaleMethod, this._promiseFactory, true);
+            this._scaleProviderHandler = new ReadOnlyPropertyHandler(this._logger, new FixedScaleProvider(scaleRatio, this._scaleMethod));
         } else {
-            this._scaleProvider = new FixedScaleProvider(1, this._scaleMethod, this._promiseFactory);
+            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
         }
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * @return {ScaleProvider} The currently set scale provider.
-     */
-    EyesBase.prototype.getScaleProvider = function () {
-        return this._scaleProvider;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * @param {ScaleProvider} scaleProvider The scale provider to use
-     */
-    EyesBase.prototype.setScaleProvider = function (scaleProvider) {
-        if (this._scaleProvider.isReadOnly()) {
-            this.logger.verbose("New ScaleProvider ignored.");
-            return false;
-        }
-
-        this._scaleProvider = scaleProvider;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -644,7 +687,7 @@
             this._isOpen = true;
             this._userInputs = [];
             this._viewportSize = viewportSize;
-            this.setScaleProvider(new FixedScaleProvider(1, this._scaleMethod, this._promiseFactory));
+            this._scaleProviderHandler.set(new NullScaleProvider(this._promiseFactory));
             this._testName = testName;
             this._appName = appName;
             this._validationId = -1;
@@ -1147,7 +1190,8 @@
 					appIdOrName: this._appName,
 					scenarioIdOrName: this._testName,
 					batchInfo: testBatch,
-					envName: this._baselineName,
+                    baselineEnvName: this._baselineEnvName,
+                    environmentName: this._environmentName,
 					environment: appEnv,
 					defaultMatchSettings: defaultMatchSettings,
 					branchName: this._branchName || null,
