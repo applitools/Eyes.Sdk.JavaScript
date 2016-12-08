@@ -526,7 +526,7 @@
      * @param {PromiseFactory} promiseFactory
      * @param {{width: number, height: number}} viewportSize
      * @param {PositionProvider} positionProvider
-     * @param {ScaleProvider} scaleProvider
+     * @param {ScaleProviderFactory} scaleProviderFactory
      * @param {{width: number, height: number}} entirePageSize
      * @param {number} pixelRatio
      * @param {number} rotationDegrees
@@ -548,7 +548,7 @@
         promiseFactory,
         viewportSize,
         positionProvider,
-        scaleProvider,
+        scaleProviderFactory,
         entirePageSize,
         pixelRatio,
         rotationDegrees,
@@ -581,7 +581,7 @@
                         currentPosition = position;
                     });
                 }).then(function () {
-                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize,
+                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
                         waitBeforeScreenshots, regionInScreenshot, saveDebugScreenshots, tag);
                 }).then(function (partImage) {
@@ -604,7 +604,7 @@
      * @param {WebDriver} browser
      * @param {PromiseFactory} promiseFactory
      * @param {{width: number, height: number}} viewportSize
-     * @param {ScaleProvider} scaleProvider
+     * @param {ScaleProviderFactory} scaleProviderFactory
      * @param {{width: number, height: number}} entirePageSize
      * @param {number} pixelRatio
      * @param {number} rotationDegrees
@@ -621,7 +621,7 @@
         browser,
         promiseFactory,
         viewportSize,
-        scaleProvider,
+        scaleProviderFactory,
         entirePageSize,
         pixelRatio,
         rotationDegrees,
@@ -633,7 +633,7 @@
         saveDebugScreenshots,
         tag
     ) {
-        var screenshot, parsedImage;
+        var screenshot, parsedImage, imageSize, scaleProvider;
         return BrowserUtils.sleep(waitBeforeScreenshots, promiseFactory).then(function () {
             return browser.takeScreenshot().then(function (screenshot64) {
                 return new MutableImage(new Buffer(screenshot64, 'base64'), promiseFactory);
@@ -655,18 +655,20 @@
                     return parsedImage.getSize();
                 })
                 .then(function (size) {
-                    if (isLandscape && automaticRotation && size.height > size.width) {
+                    imageSize = size;
+                    scaleProvider = scaleProviderFactory.getScaleProvider(imageSize.width);
+                    if (regionInScreenshot) {
+                        return parsedImage.cropImage(GeometryUtils.scaleRegion(regionInScreenshot, 1 / scaleProvider.getScaleRatio()));
+                    }
+
+                    return parsedImage;
+                })
+                .then(function (image) {
+                    if (isLandscape && automaticRotation && imageSize.height > imageSize.width) {
                         rotationDegrees = automaticRotationDegrees;
                     }
 
-                    return scaleProvider.scaleImage(parsedImage);
-                })
-                .then(function (image) {
-                    if (regionInScreenshot) {
-                        return image.cropImage(regionInScreenshot);
-                    }
-
-                    return image;
+                    return image.scaleImage(scaleProvider);
                 })
                 .then(function (image) {
                     parsedImage = image;
@@ -704,7 +706,7 @@
      * @param {PromiseFactory} promiseFactory
      * @param {{width: number, height: number}} viewportSize
      * @param {PositionProvider} positionProvider
-     * @param {ScaleProvider} scaleProvider
+     * @param {ScaleProviderFactory} scaleProviderFactory
      * @param {boolean} fullPage
      * @param {boolean} hideScrollbars
      * @param {boolean} useCssTransition
@@ -724,7 +726,7 @@
         promiseFactory,
         viewportSize,
         positionProvider,
-        scaleProvider,
+        scaleProviderFactory,
         fullPage,
         hideScrollbars,
         useCssTransition,
@@ -792,7 +794,7 @@
             })
             .then(function () {
                 if (regionProvider) {
-                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize, pixelRatio,
+                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, entirePageSize, pixelRatio,
                         rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots).then(function (image) {
                             return regionProvider.getRegionInLocation(image, CoordinatesType.SCREENSHOT_AS_IS, promiseFactory);
                         }).then(function (region) {
@@ -802,7 +804,7 @@
             })
             .then(function () {
                 // step #5 - Take screenshot of the 0,0 tile / current viewport
-                return _captureViewport(browser, promiseFactory, viewportSize, scaleProvider, entirePageSize, pixelRatio, rotationDegrees,
+                return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, entirePageSize, pixelRatio, rotationDegrees,
                     automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
                     checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, tag)
                     .then(function (image) {
@@ -844,7 +846,7 @@
 
                     screenshotParts.forEach(function (part) {
                         promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
-                            viewportSize, positionProvider, scaleProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
+                            viewportSize, positionProvider, scaleProviderFactory, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
                             automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, tag);
                     });
                     promise.then(function () {

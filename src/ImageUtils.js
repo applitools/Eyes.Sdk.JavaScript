@@ -90,9 +90,9 @@
             });
         }
 
-        var w = imageBmp.width * scaleRatio;
-        var h = imageBmp.height * scaleRatio;
-        return ImageUtils.resizeImage(imageBmp, w, h, scaleMethod, promiseFactory);
+        var scaledWidth = imageBmp.width * scaleRatio;
+        var scaledHeight = imageBmp.height * scaleRatio;
+        return ImageUtils.resizeImage(imageBmp, scaledWidth, scaledHeight, scaleMethod, promiseFactory);
     };
 
     /**
@@ -321,8 +321,8 @@
         }
 
         return promiseFactory.makePromise(function (resolve) {
-            width = Math.round(width);
-            height = Math.round(height);
+            width = Math.ceil(width);
+            height = Math.ceil(height);
 
             var dst = {
                 data: new Buffer(width * height * 4),

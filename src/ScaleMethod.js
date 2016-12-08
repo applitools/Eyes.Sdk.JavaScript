@@ -2,23 +2,17 @@
     "use strict";
 
     /**
-     * @param method
-     * @constructor
+     * @readonly
+     * @enum {number}
      */
-    function ScaleMethod(method) {
-        this._method = method;
-    }
-
-    ScaleMethod.SPEED = 'speed';
-    ScaleMethod.QUALITY = 'quality';
-    ScaleMethod.ULTRA_QUALITY = 'ultra_quality';
-
-    ScaleMethod.getDefault = function () {
-        return this.SPEED;
+    var ScaleMethod = {
+        SPEED: 'SPEED',
+        QUALITY: 'QUALITY',
+        ULTRA_QUALITY: 'ULTRA_QUALITY'
     };
 
-    ScaleMethod.prototype.getMethod = function () {
-        return this._method;
+    ScaleMethod.getDefault = function () {
+        return this.QUALITY;
     };
 
     module.exports = ScaleMethod;
