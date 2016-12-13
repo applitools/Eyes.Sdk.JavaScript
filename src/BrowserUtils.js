@@ -633,45 +633,38 @@
         saveDebugScreenshots,
         tag
     ) {
-        var screenshot, parsedImage, imageSize, scaleProvider;
+        var parsedImage, imageSize, scaleProvider;
         return BrowserUtils.sleep(waitBeforeScreenshots, promiseFactory).then(function () {
             return browser.takeScreenshot().then(function (screenshot64) {
                 return new MutableImage(new Buffer(screenshot64, 'base64'), promiseFactory);
             })
                 .then(function (image) {
-                    screenshot = image;
+                    parsedImage = image;
                     if (saveDebugScreenshots) {
-                        return screenshot.saveImage((tag || "screenshot") + "-" + new Date().getTime() + ".jpg");
+                        return parsedImage.saveImage((tag || "screenshot") + "-" + new Date().getTime() + ".png");
                     }
                 })
                 .then(function () {
-                    return screenshot;
-                }, function (err) {
-                    // something wrong, can not save screenshot to local storage
-                    return screenshot;
-                })
-                .then(function (image) {
-                    parsedImage = image;
                     return parsedImage.getSize();
                 })
-                .then(function (size) {
-                    imageSize = size;
+                .then(function (imgSize) {
+                    imageSize = imgSize;
                     scaleProvider = scaleProviderFactory.getScaleProvider(imageSize.width);
                     if (regionInScreenshot) {
-                        return parsedImage.cropImage(GeometryUtils.scaleRegion(regionInScreenshot, 1 / scaleProvider.getScaleRatio()));
+                        var scaledRegion = GeometryUtils.scaleRegion(regionInScreenshot, 1 / scaleProvider.getScaleRatio());
+                        return parsedImage.cropImage(scaledRegion);
                     }
-
-                    return parsedImage;
                 })
-                .then(function (image) {
+                .then(function () {
                     if (isLandscape && automaticRotation && imageSize.height > imageSize.width) {
                         rotationDegrees = automaticRotationDegrees;
                     }
 
-                    return image.scaleImage(scaleProvider);
+                    if (scaleProvider && scaleProvider.getScaleRatio() !== 1) {
+                        return parsedImage.scaleImage(scaleProvider);
+                    }
                 })
-                .then(function (image) {
-                    parsedImage = image;
+                .then(function () {
                     if (rotationDegrees !== 0) {
                         return parsedImage.rotateImage(rotationDegrees);
                     }
@@ -679,12 +672,9 @@
                 .then(function () {
                     return parsedImage.getSize();
                 })
-                .then(function (imageSize) {
-                    // If the image is a viewport screenshot, we want to save the current scroll position (we'll need it
-                    // for check region).
-                    var isViewportScreenshot = imageSize.width <= viewportSize.width
-                        && imageSize.height <= viewportSize.height;
-                    if (isViewportScreenshot) {
+                .then(function (imgSize) {
+                    // If the image is a viewport screenshot, we want to save the current scroll position (we'll need it for check region).
+                    if (imgSize.width <= viewportSize.width && imgSize.height <= viewportSize.height) {
                         return BrowserUtils.getCurrentScrollPosition(browser).then(function (scrollPosition) {
                             return parsedImage.setCoordinates(scrollPosition);
                         }, function () {
