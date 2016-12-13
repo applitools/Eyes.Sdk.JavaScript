@@ -3,22 +3,20 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard;
+        ArgumentGuard = EyesUtils.ArgumentGuard,
+        ScaleMethod = EyesUtils.ScaleMethod;
 
     /**
      * @constructor
      * @param {number} scaleRatio The scale ratio to use.
-     * @param {PromiseFactory} promiseFactory
-     * @param {boolean} [isReadOnly=false]
+     * @param {ScaleMethod} scaleMethod The scale method to use.
      * @augments ScaleProvider
      */
-    function FixedScaleProvider(scaleRatio, promiseFactory, isReadOnly) {
+    function FixedScaleProvider(scaleRatio, scaleMethod) {
         ArgumentGuard.greaterThanZero(scaleRatio, "scaleRatio");
 
         this._scaleRatio = scaleRatio;
-        this._promiseFactory = promiseFactory;
-
-        ScaleProvider.call(this, isReadOnly);
+        this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
     }
 
     FixedScaleProvider.prototype = new ScaleProvider();
@@ -32,11 +30,10 @@
     };
 
     /**
-     * @param {MutableImage} image The image to scale.
-     * @return {Promise<MutableImage>} A new scaled image.
+     * @return {ScaleMethod}
      */
-    FixedScaleProvider.prototype.scaleImage = function (image) {
-        return image.scaleImage(this._scaleRatio);
+    FixedScaleProvider.prototype.getScaleMethod = function () {
+        return this._scaleMethod;
     };
 
     module.exports = FixedScaleProvider;

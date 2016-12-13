@@ -3,6 +3,7 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
+        ScaleMethod = EyesUtils.ScaleMethod,
         ArgumentGuard = EyesUtils.ArgumentGuard;
 
     // Allowed deviations for viewport size and default content entire size.
@@ -15,21 +16,18 @@
      * @param {{width: number, height: number}} topLevelContextEntireSize The total size of the top level context.
      *        E.g., for selenium this would be the document size of the top level frame.
      * @param {{width: number, height: number}} viewportSize The viewport size.
+     * @param {ScaleMethod} scaleMethod
      * @param {number} devicePixelRatio The device pixel ratio of the platform on which the application is running.
-     * @param {PromiseFactory} promiseFactory
-     * @param {boolean} [isReadOnly=false]
      * @augments ScaleProvider
      */
-    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, devicePixelRatio, promiseFactory, isReadOnly) {
+    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, scaleMethod, devicePixelRatio) {
         this._topLevelContextEntireSize = topLevelContextEntireSize;
         this._viewportSize = viewportSize;
+        this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
         this._devicePixelRatio = devicePixelRatio;
-        this._promiseFactory = promiseFactory;
 
         // Since we need the image size to decide what the scale ratio is.
         this._scaleRatio = UNKNOWN_SCALE_RATIO;
-
-        ScaleProvider.call(this, isReadOnly);
     }
 
     ContextBasedScaleProvider.prototype = new ScaleProvider();
@@ -43,44 +41,31 @@
         return this._scaleRatio;
     };
 
-    var calculateScaleRatio = function (provider, image) {
-        return provider._promiseFactory.makePromise(function (resolve) {
-            if (provider._scaleRatio == UNKNOWN_SCALE_RATIO) {
-
-                return image.getSize().then(function (imageSize) {
-                    var imageWidth = imageSize.width;
-                    var viewportWidth = provider._viewportSize.width;
-                    var dcesWidth = provider._topLevelContextEntireSize.width;
-
-                    // If the image's width is the same as the viewport's width or the
-                    // top level context's width, no scaling is necessary.
-                    if (((imageWidth >= viewportWidth - ALLOWED_VS_DEVIATION)
-                        && (imageWidth <= viewportWidth + ALLOWED_VS_DEVIATION))
-                        || ((imageWidth >= dcesWidth - ALLOWED_DCES_DEVIATION)
-                        && imageWidth <= dcesWidth + ALLOWED_DCES_DEVIATION)) {
-                        resolve(1);
-                    } else {
-                        resolve(1 / provider._devicePixelRatio);
-                    }
-                });
-
-            }
-
-            resolve(provider._scaleRatio);
-        });
+    /**
+     * @return {ScaleMethod}
+     */
+    ContextBasedScaleProvider.prototype.getScaleMethod = function () {
+        return this._scaleMethod;
     };
 
     /**
-     * @param {MutableImage} image The image to scale.
-     * @return {Promise<MutableImage>} A new scaled image.
+     * Set the scale ratio based on the given image.
+     * @param {number} imageToScaleWidth The width of the image to scale, used for calculating the scale ratio.
      */
-    ContextBasedScaleProvider.prototype.scaleImage = function (image) {
-        // First time an image is given we determine the scale ratio.
-        var that = this;
-        return calculateScaleRatio(that, image).then(function (scaleRatio) {
-            that._scaleRatio = scaleRatio;
-            return image.scaleImage(scaleRatio);
-        });
+    ContextBasedScaleProvider.prototype.updateScaleRatio = function (imageToScaleWidth) {
+        var viewportWidth = this._viewportSize.width;
+        var dcesWidth = this._topLevelContextEntireSize.width;
+
+        // If the image's width is the same as the viewport's width or the
+        // top level context's width, no scaling is necessary.
+        if (((imageToScaleWidth >= viewportWidth - ALLOWED_VS_DEVIATION)
+            && (imageToScaleWidth <= viewportWidth + ALLOWED_VS_DEVIATION))
+            || ((imageToScaleWidth >= dcesWidth - ALLOWED_DCES_DEVIATION)
+            && imageToScaleWidth <= dcesWidth + ALLOWED_DCES_DEVIATION)) {
+            this._scaleRatio = 1;
+        } else {
+            this._scaleRatio = 1 / this._devicePixelRatio;
+        }
     };
 
     module.exports = ContextBasedScaleProvider;
