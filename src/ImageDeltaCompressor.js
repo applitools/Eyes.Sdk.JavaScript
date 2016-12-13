@@ -93,9 +93,9 @@
     /**
      * Compresses a target image based on a difference from a source image.
      * {@code blockSize} defaults to 10.
-     * @param {exports.PNG} target The image we want to compress.
+     * @param {PNG} target The image we want to compress.
      * @param {{imageBuffer: Buffer, width: number, height: number}} targetPacked
-     * @param {exports.PNG} source The baseline image by which a compression will be performed.
+     * @param {PNG} source The baseline image by which a compression will be performed.
      * @param {int} [blockSize=10] How many pixels per block.
      * @return {Buffer} The compression result.
      * @throws java.io.IOException If there was a problem reading/writing from/to the streams which are created during the process.

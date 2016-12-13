@@ -154,15 +154,15 @@
     /**
      * Scales the image in place (used to downsize by 2 for retina display chrome bug - and tested accordingly).
      *
-     * @param {number} scale
+     * @param {ScaleProvider} scaleProvider
      * @return {Promise<MutableImage>}
      */
-    MutableImage.prototype.scaleImage = function (scale) {
+    MutableImage.prototype.scaleImage = function (scaleProvider) {
         var that = this;
         return _parseImage(that)
             .then(function () {
                 if (that._isParsed) {
-                    return ImageUtils.scaleImage(that._imageBmp, scale, that._promiseFactory)
+                    return ImageUtils.scaleImage(that._imageBmp, scaleProvider.getScaleRatio(), scaleProvider.getScaleMethod(), that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;
@@ -184,15 +184,6 @@
         return _parseImage(that)
             .then(function () {
                 if (that._isParsed) {
-                    // If the region's coordinates are relative to the image, we convert them to absolute coordinates.
-                    if (region && region.relative) {
-                        region = {
-                            left: region.left - that._left,
-                            top: region.top - that._top,
-                            width: region.width,
-                            height: region.height
-                        };
-                    }
                     return ImageUtils.cropImage(that._imageBmp, region, that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
@@ -235,20 +226,17 @@
      */
     MutableImage.prototype.saveImage = function (filename) {
         var that = this;
-        return _parseImage(that)
-            .then(function () {
-                if (that._isParsed) {
-                    return that._promiseFactory.makePromise(function (resolve, reject) {
-                        fs.writeFile(filename, that._imageBuffer, function(err) {
-                            if(err) {
-                                reject(err);
-                            }
+        return this.asObject().then(function (imageObject) {
+            return that._promiseFactory.makePromise(function (resolve, reject) {
+                fs.writeFile(filename, imageObject.imageBuffer, function(err) {
+                    if(err) {
+                        reject(err);
+                    }
 
-                            resolve(that);
-                        });
-                    });
-                }
+                    resolve(that);
+                });
             });
+        });
     };
 
     module.exports = MutableImage;

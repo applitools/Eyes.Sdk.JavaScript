@@ -3,11 +3,8 @@
 
     /**
      * @constructor
-     * @param {boolean} [isReadOnly=false]
      **/
-    function ScaleProvider(isReadOnly) {
-        this._readOnly = isReadOnly || false;
-    }
+    function ScaleProvider() {}
 
     /**
      * @return {number} The ratio by which an image will be scaled.
@@ -15,17 +12,9 @@
     ScaleProvider.prototype.getScaleRatio = function () {};
 
     /**
-     * @param {MutableImage} image The image to scale.
-     * @return {Promise<MutableImage>} A new scaled image.
+     * @return {ScaleMethod} The scale method used for the scaling.
      */
-    ScaleProvider.prototype.scaleImage = function (image) {};
-
-    /**
-     * @return {boolean}
-     */
-    ScaleProvider.prototype.isReadOnly = function () {
-        return this._readOnly;
-    };
+    ScaleProvider.prototype.getScaleMethod = function () {};
 
     module.exports = ScaleProvider;
 
