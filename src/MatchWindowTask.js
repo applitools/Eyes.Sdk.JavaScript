@@ -71,7 +71,7 @@
             }
         } else {
             this._logger.verbose('MatchWindowTask.matchWindow - _finalize sets bounds - according to region');
-            this._lastBounds = regionProvider;
+            this._lastBounds = regionProvider.getRegion();
         }
 
         this._logger.verbose("last bounds:", this._lastBounds);
