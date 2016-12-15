@@ -28,8 +28,7 @@ var firstTestPromise = eyes.open("eyes.images.javascript", "First test5_3", {wid
         return eyes.checkImage(image1, 'My first image');
     })
     .then(function () {
-        //return eyes.checkRegion({left: 1773, top: 372, width: 180, height: 220}, image1, 'Specific region');
-        return eyes.checkRegion({left: 1600, top: 372, width: 180, height: 220}, image1, 'Specific region');
+        return eyes.checkRegion({left: 495, top: 100, width: 355, height: 360}, image1, 'Specific region');
     })
     .then(
         function () {

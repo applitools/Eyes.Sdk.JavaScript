@@ -13,10 +13,12 @@
 
     //noinspection JSUnresolvedFunction
     var EyesSDK = require('eyes.sdk'),
-        RSVP  = require('rsvp'),
+        RSVP = require('rsvp'),
         EyesBase = EyesSDK.EyesBase,
         EyesUtils = require('eyes.utils'),
         MutableImage = EyesUtils.MutableImage,
+        RegionProvider = EyesUtils.RegionProvider,
+        CoordinatesType = EyesUtils.CoordinatesType,
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
@@ -88,8 +90,9 @@
      * @return {Promise}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
-        this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout ,')');
-        return this._checkImage(image, tag, ignoreMismatch, retryTimeout, region);
+        this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout, ')');
+        var regionProvider = new RegionProvider(region, CoordinatesType.CONTEXT_AS_IS);
+        return this._checkImage(image, tag, ignoreMismatch, retryTimeout, regionProvider);
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -153,21 +156,19 @@
     /**
      * Internal function for performing an image verification for an image (or a region of an image).
      *
-     * @param {Buffer} image            The image png bytes.
-     * @param {string} tag              An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch  True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout     The amount of time to retry matching in milliseconds or a negative value to
-     *                                  use the default retry timeout.
-     * @param {Object} region           The region of the image which should be verified, or {undefined}/{null} if
-     *                                  the entire image should be verified.
+     * @param {Buffer} image The image png bytes.
+     * @param {string} tag An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} ignoreMismatch True if the server should ignore a negative result for the visual validation.
+     * @param {number} retryTimeout The amount of time to retry matching in milliseconds or a negative value to use the default retry timeout.
+     * @param {RegionProvider} regionProvider The region of the image which should be verified, or {undefined}/{null} if the entire image should be verified.
      *
      * @return {Promise}
      * @private
      */
-    Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, region) {
+    Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
         this._screenshot = image;
         this._title = tag || '';
-        return EyesBase.prototype.checkWindow.call(this, tag, ignoreMismatch, retryTimeout, region);
+        return EyesBase.prototype.checkWindow.call(this, tag, ignoreMismatch, retryTimeout, regionProvider);
     };
 
     //noinspection JSUnusedGlobalSymbols
