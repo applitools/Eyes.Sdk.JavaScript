@@ -21,16 +21,22 @@
   },
   "license": "Apache-2.0",
   "main": "index",
+  "scripts": {
+    "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
+    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
+  },
   "dependencies": {
-    "eyes.utils": "applitools/eyes.utils#9952ef5",
-    "eyes.sdk": "applitools/Eyes.Sdk.JavaScript#8b459b9",
-    "rsvp": "^3.0.13"
+    "eyes.utils": "applitools/eyes.utils#c743e9d",
+    "eyes.sdk": "applitools/Eyes.Sdk.JavaScript#b044f0e",
+    "rsvp": "^3.3.0"
   },
   "devDependencies": {
-    "mocha": "*",
-    "chai": "*"
+    "browserify": "latest",
+    "uglify-js": "latest",
+    "browserify-fs": "1.0.0",
+    "browserify-zlib": "ipfs/browserify-zlib#9993eff"
   },
   "engines": {
-    "node": ">=0.10.x"
+    "node": ">= 6.9.0"
   }
 }
