@@ -901,7 +901,7 @@
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                     parsedImage = screenshot;
                     if (regionProvider && !GeometryUtils.isRegionEmpty(regionProvider.getRegion())) {
-                        return parsedImage.cropImage(regionProvider);
+                        return parsedImage.cropImage(regionProvider.getRegion());
                     }
                 })
                 .then(function () {
@@ -1010,8 +1010,7 @@
 						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
 				}.bind(this))
 				.then(function (result) {
-					this._logger.verbose("EyesBase.checkWindow - match window returned result:",
-						JSON.stringify(result));
+					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
 
 					validationResult.asExpected = result.asExpected;
                     this._lastScreenshot = result.screenshot;
