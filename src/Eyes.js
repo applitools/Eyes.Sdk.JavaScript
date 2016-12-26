@@ -62,12 +62,20 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {boolean} Whether or not session is opened
+     */
+    Eyes.prototype.isOpen = function () {
+        return this._isOpen;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * Perform visual validation for the current image.
      *
      * @param {Buffer} image The image png bytes.
-     * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch  True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout optional timeout for performing the match (ms).
+     * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
      *
      * @return {Promise}
      */
@@ -83,9 +91,9 @@
      * @param {Object} region The region of the image which should be verified, or {undefined}/{null} if
      *                          the entire image should be verified.
      * @param {Buffer} image The image png bytes.
-     * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch  True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout optional timeout for performing the match (ms).
+     * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
      *
      * @return {Promise}
      */
