@@ -8,13 +8,11 @@
     /**
      * @constructor
      * @param {number} scaleRatio The scale ratio to use.
-     * @param {ScaleMethod} scaleMethod The scale method to use.
      * @param {PropertyHandler} scaleProviderHandler
      * @augments ScaleProviderFactory
      */
-    function FixedScaleProviderFactory(scaleRatio, scaleMethod, scaleProviderHandler) {
+    function FixedScaleProviderFactory(scaleRatio, scaleProviderHandler) {
         this._scaleRatio = scaleRatio;
-        this._scaleMethod = scaleMethod;
 
         ScaleProviderFactory.call(this, scaleProviderHandler);
     }
@@ -29,7 +27,7 @@
      * @return {ScaleProvider} The scale provider to be used.
      */
     FixedScaleProviderFactory.prototype.getScaleProviderImpl = function (imageToScaleWidth) {
-        return new FixedScaleProvider(this._scaleRatio, this._scaleMethod);
+        return new FixedScaleProvider(this._scaleRatio);
     };
 
     module.exports = FixedScaleProviderFactory;
