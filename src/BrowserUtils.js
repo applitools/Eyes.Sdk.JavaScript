@@ -553,9 +553,9 @@
                             return browser.manage().window().getSize().then(function (browserSize) {
                                 var MAX_DIFF = 3;
                                 var widthDiff = actualViewportSize.width - requiredSize.width;
-                                var widthStep = widthDiff / (-widthDiff); // -1 for smaller size, 1 for larger
+                                var widthStep = widthDiff != 0 ? (widthDiff / (-widthDiff)) : 1; // -1 for smaller size, 1 for larger
                                 var heightDiff = actualViewportSize.height - requiredSize.height;
-                                var heightStep = heightDiff / (-heightDiff);
+                                var heightStep = heightDiff != 0 ? (heightDiff / (-heightDiff)) : 1;
 
                                 var currWidthChange = 0;
                                 var currHeightChange = 0;
