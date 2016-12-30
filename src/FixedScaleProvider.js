@@ -3,20 +3,16 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard,
-        ScaleMethod = EyesUtils.ScaleMethod;
-
+        ArgumentGuard = EyesUtils.ArgumentGuard;
     /**
      * @constructor
      * @param {number} scaleRatio The scale ratio to use.
-     * @param {ScaleMethod} scaleMethod The scale method to use.
      * @augments ScaleProvider
      */
-    function FixedScaleProvider(scaleRatio, scaleMethod) {
+    function FixedScaleProvider(scaleRatio) {
         ArgumentGuard.greaterThanZero(scaleRatio, "scaleRatio");
 
         this._scaleRatio = scaleRatio;
-        this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
     }
 
     FixedScaleProvider.prototype = new ScaleProvider();
@@ -27,13 +23,6 @@
      */
     FixedScaleProvider.prototype.getScaleRatio = function () {
         return this._scaleRatio;
-    };
-
-    /**
-     * @return {ScaleMethod}
-     */
-    FixedScaleProvider.prototype.getScaleMethod = function () {
-        return this._scaleMethod;
     };
 
     module.exports = FixedScaleProvider;

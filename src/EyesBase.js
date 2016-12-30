@@ -26,7 +26,6 @@
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
-        ScaleMethod = EyesUtils.ScaleMethod,
         SimplePropertyHandler = EyesUtils.SimplePropertyHandler,
         ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler,
         MatchLevel = MatchSettings.MatchLevel,
@@ -137,7 +136,6 @@
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._positionProvider = null;
-            this._scaleMethod = ScaleMethod.getDefault();
             this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
@@ -574,26 +572,10 @@
      */
     EyesBase.prototype.setScaleRatio = function (scaleRatio) {
         if (scaleRatio != null) {
-            this._scaleProviderHandler = new ReadOnlyPropertyHandler(this._logger, new FixedScaleProvider(scaleRatio, this._scaleMethod));
+            this._scaleProviderHandler = new ReadOnlyPropertyHandler(this._logger, new FixedScaleProvider(scaleRatio));
         } else {
             this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
         }
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * @return {ScaleMethod} The currently set scale method.
-     */
-    EyesBase.prototype.getScaleMethod = function () {
-        return this._scaleMethod;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * @param {ScaleMethod} scaleMethod The scale method to use
-     */
-    EyesBase.prototype.setScaleMethod = function (scaleMethod) {
-        this._scaleMethod = scaleMethod;
     };
 
     //noinspection JSUnusedGlobalSymbols

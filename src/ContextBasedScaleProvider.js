@@ -3,7 +3,6 @@
 
     var EyesUtils = require('eyes.utils');
     var ScaleProvider = EyesUtils.ScaleProvider,
-        ScaleMethod = EyesUtils.ScaleMethod,
         ArgumentGuard = EyesUtils.ArgumentGuard;
 
     // Allowed deviations for viewport size and default content entire size.
@@ -16,14 +15,12 @@
      * @param {{width: number, height: number}} topLevelContextEntireSize The total size of the top level context.
      *        E.g., for selenium this would be the document size of the top level frame.
      * @param {{width: number, height: number}} viewportSize The viewport size.
-     * @param {ScaleMethod} scaleMethod
      * @param {number} devicePixelRatio The device pixel ratio of the platform on which the application is running.
      * @augments ScaleProvider
      */
-    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, scaleMethod, devicePixelRatio) {
+    function ContextBasedScaleProvider(topLevelContextEntireSize, viewportSize, devicePixelRatio) {
         this._topLevelContextEntireSize = topLevelContextEntireSize;
         this._viewportSize = viewportSize;
-        this._scaleMethod = scaleMethod || ScaleMethod.getDefault();
         this._devicePixelRatio = devicePixelRatio;
 
         // Since we need the image size to decide what the scale ratio is.
@@ -39,13 +36,6 @@
     ContextBasedScaleProvider.prototype.getScaleRatio = function () {
         ArgumentGuard.isValidState(this._scaleRatio != UNKNOWN_SCALE_RATIO, "scaleRatio not defined yet");
         return this._scaleRatio;
-    };
-
-    /**
-     * @return {ScaleMethod}
-     */
-    ContextBasedScaleProvider.prototype.getScaleMethod = function () {
-        return this._scaleMethod;
     };
 
     /**
