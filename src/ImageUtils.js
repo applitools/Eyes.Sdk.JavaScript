@@ -12,7 +12,6 @@
     "use strict";
 
     var StreamUtils = require('./StreamUtils'),
-        ScaleMethod = require('./ScaleMethod'),
         fs = require('fs'),
         /** @type {PNG} */
         PNG = require('pngjs').PNG;
@@ -79,35 +78,40 @@
      *
      * @param {PNG} imageBmp - will be modified
      * @param {number} scaleRatio factor to multiply the image dimensions by (lower than 1 for scale down)
-     * @param {ScaleMethod} scaleMethod
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
      **/
-    ImageUtils.scaleImage = function scaleImage(imageBmp, scaleRatio, scaleMethod, promiseFactory) {
+    ImageUtils.scaleImage = function scaleImage(imageBmp, scaleRatio, promiseFactory) {
         if (scaleRatio === 1) {
             return promiseFactory.makePromise(function (resolve) {
                 resolve(imageBmp);
             });
         }
 
-        var scaledWidth = imageBmp.width * scaleRatio;
-        var scaledHeight = imageBmp.height * scaleRatio;
-        return ImageUtils.resizeImage(imageBmp, scaledWidth, scaledHeight, scaleMethod, promiseFactory);
+        var scaledWidth = Math.ceil(imageBmp.width * scaleRatio);
+        var scaledHeight = Math.ceil(imageBmp.height * scaleRatio);
+        return ImageUtils.resizeImage(imageBmp, scaledWidth, scaledHeight, promiseFactory);
     };
 
     /**
      * Resize a parsed image by a given dimensions.
      *
      * @param {PNG} imageBmp - will be modified
-     * @param {number} width The width to resize the image to
-     * @param {number} height The height to resize the image to
-     * @param {ScaleMethod} scaleMethod
+     * @param {int} targetWidth The width to resize the image to
+     * @param {int} targetHeight The height to resize the image to
      * @param {PromiseFactory} promiseFactory
      * @returns {Promise<void>}
      **/
-    ImageUtils.resizeImage = function resizeImage(imageBmp, width, height, scaleMethod, promiseFactory) {
+    ImageUtils.resizeImage = function resizeImage(imageBmp, targetWidth, targetHeight, promiseFactory) {
 
-        function doBicubicInterpolation(src, dst) {
+        function _interpolateCubic(x0, x1, x2, x3, t) {
+            var a0 = x3 - x2 - x0 + x1;
+            var a1 = x0 - x1 - a0;
+            var a2 = x2 - x0;
+            return Math.max(0, Math.min(255, (a0 * (t * t * t)) + (a1 * (t * t)) + (a2 * t) + (x1)));
+        }
+
+        function _doBicubicInterpolation(src, dst) {
             var bufSrc = src.data;
             var bufDst = dst.data;
 
@@ -122,13 +126,6 @@
             var wDst2 = wDst * wM;
             var hM = Math.max(1, Math.floor(hSrc / hDst));
             var hDst2 = hDst * hM;
-
-            var interpolateCubic = function (x0, x1, x2, x3, t) {
-                var a0 = x3 - x2 - x0 + x1;
-                var a1 = x0 - x1 - a0;
-                var a2 = x2 - x0;
-                return Math.max(0, Math.min(255, (a0 * (t * t * t)) + (a1 * (t * t)) + (a2 * t) + (x1)));
-            };
 
             var i, j, x, y, k, t, xPos, yPos, kPos, buf1Pos, buf2Pos;
 
@@ -149,7 +146,7 @@
                         var x1 = bufSrc[kPos];
                         var x2 = bufSrc[kPos + 4];
                         var x3 = (xPos < wSrc - 2) ? bufSrc[kPos + 8] : 2 * bufSrc[kPos + 4] - bufSrc[kPos];
-                        buf1[buf1Pos + k] = interpolateCubic(x0, x1, x2, x3, t);
+                        buf1[buf1Pos + k] = _interpolateCubic(x0, x1, x2, x3, t);
                     }
                 }
             }
@@ -171,7 +168,7 @@
                         var y2 = buf1[kPos + wDst2 * 4];
                         var y3 = (yPos < hSrc - 2) ? buf1[kPos + wDst2 * 8] : 2 * buf1[kPos + wDst2 * 4] - buf1[kPos];
 
-                        buf2[buf2Pos + k] = interpolateCubic(y0, y1, y2, y3, t);
+                        buf2[buf2Pos + k] = _interpolateCubic(y0, y1, y2, y3, t);
                     }
                 }
             }
@@ -211,7 +208,7 @@
             return dst;
         }
 
-        function scaleImageIncrementally(src, dst, method) {
+        function _scaleImageIncrementally(src, dst) {
             var incrementCount = 0;
             var currentWidth = src.width,
                 currentHeight = src.height;
@@ -222,54 +219,32 @@
             dst.width = src.width;
             dst.height = src.height;
 
-            var fraction = (method == ScaleMethod.ULTRA_QUALITY ? 7 : 2);
+            // For ultra quality should use 7
+            var fraction = 2;
 
             do {
                 var prevCurrentWidth = currentWidth;
                 var prevCurrentHeight = currentHeight;
 
-                /*
-                 * If the current width is bigger than our target, cut it in half
-                 * and sample again.
-                 */
+                // If the current width is bigger than our target, cut it in half and sample again.
                 if (currentWidth > targetWidth) {
                     currentWidth -= (currentWidth / fraction);
 
-                    /*
-                     * If we cut the width too far it means we are on our last
-                     * iteration. Just set it to the target width and finish up.
-                     */
+                    // If we cut the width too far it means we are on our last iteration. Just set it to the target width and finish up.
                     if (currentWidth < targetWidth)
                         currentWidth = targetWidth;
                 }
 
-                /*
-                 * If the current height is bigger than our target, cut it in half
-                 * and sample again.
-                 */
+                // If the current height is bigger than our target, cut it in half and sample again.
                 if (currentHeight > targetHeight) {
                     currentHeight -= (currentHeight / fraction);
 
-                    /*
-                     * If we cut the height too far it means we are on our last
-                     * iteration. Just set it to the target height and finish up.
-                     */
+                    // If we cut the height too far it means we are on our last iteration. Just set it to the target height and finish up.
                     if (currentHeight < targetHeight)
                         currentHeight = targetHeight;
                 }
 
-                /*
-                 * Stop when we cannot incrementally step down anymore.
-                 *
-                 * This used to use a || condition, but that would cause problems
-                 * when using FIT_EXACT such that sometimes the width OR height
-                 * would not change between iterations, but the other dimension
-                 * would (e.g. resizing 500x500 to 500x250).
-                 *
-                 * Now changing this to an && condition requires that both
-                 * dimensions do not change between a resize iteration before we
-                 * consider ourselves done.
-                 */
+                // Stop when we cannot incrementally step down anymore.
                 if (prevCurrentWidth == currentWidth && prevCurrentHeight == currentHeight)
                     break;
 
@@ -279,12 +254,10 @@
                     width: currentWidth,
                     height: currentHeight
                 };
-                doBicubicInterpolation(dst, incrementalImage);
+                _doBicubicInterpolation(dst, incrementalImage);
 
-                /*
-                 * Now treat our incremental partially scaled image as the src image
-                 * and cycle through our loop again to do another incremental scaling of it (if necessary).
-                 */
+                // Now treat our incremental partially scaled image as the src image
+                // and cycle through our loop again to do another incremental scaling of it (if necessary).
                 dst.data = incrementalImage.data;
                 dst.width = incrementalImage.width;
                 dst.height = incrementalImage.height;
@@ -296,50 +269,20 @@
             return dst;
         }
 
-        function doNearestNeighbor(src, dst) {
-            var wSrc = src.width, hSrc = src.height, bufSrc = src.data,
-                wDst = dst.width, hDst = dst.height, bufDst = dst.data,
-                i, j, iSrc, jSrc, posDst, posSrc;
-
-            var hScale = hSrc / hDst, wScale = wSrc / wDst;
-
-            for (i = 0; i < hDst; i++) {
-                for (j = 0; j < wDst; j++) {
-                    iSrc = Math.round(i * hScale);
-                    jSrc = Math.round(j * wScale);
-
-                    posDst = (i * wDst + j) << 2;
-                    posSrc = (iSrc * wSrc + jSrc) << 2;
-                    bufDst[posDst++] = bufSrc[posSrc++];
-                    bufDst[posDst++] = bufSrc[posSrc++];
-                    bufDst[posDst++] = bufSrc[posSrc++];
-                    bufDst[posDst++] = bufSrc[posSrc++];
-                }
-            }
-
-            return dst;
-        }
-
         return promiseFactory.makePromise(function (resolve) {
-            width = Math.ceil(width);
-            height = Math.ceil(height);
+            var ratio = imageBmp.height / imageBmp.width;
+            targetHeight = Math.round(targetWidth * ratio);
 
             var dst = {
-                data: new Buffer(width * height * 4),
-                width: width,
-                height: height
+                data: new Buffer(targetWidth * targetHeight * 4),
+                width: targetWidth,
+                height: targetHeight
             };
 
-            switch (scaleMethod) {
-                case ScaleMethod.SPEED:
-                    doNearestNeighbor(imageBmp, dst);
-                    break;
-                default:
-                    if (dst.width > imageBmp.width || dst.height > imageBmp.height) {
-                        doBicubicInterpolation(imageBmp, dst);
-                    } else {
-                        scaleImageIncrementally(imageBmp, dst, scaleMethod);
-                    }
+            if (dst.width > imageBmp.width || dst.height > imageBmp.height) {
+                _doBicubicInterpolation(imageBmp, dst);
+            } else {
+                _scaleImageIncrementally(imageBmp, dst);
             }
 
             imageBmp.data = dst.data;

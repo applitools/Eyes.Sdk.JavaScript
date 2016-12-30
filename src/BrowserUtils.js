@@ -661,7 +661,7 @@
                     }
 
                     if (scaleProvider && scaleProvider.getScaleRatio() !== 1) {
-                        return parsedImage.scaleImage(scaleProvider);
+                        return parsedImage.scaleImage(scaleProvider.getScaleRatio());
                     }
                 })
                 .then(function () {

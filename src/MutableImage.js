@@ -154,15 +154,15 @@
     /**
      * Scales the image in place (used to downsize by 2 for retina display chrome bug - and tested accordingly).
      *
-     * @param {ScaleProvider} scaleProvider
+     * @param {number} scaleRatio
      * @return {Promise<MutableImage>}
      */
-    MutableImage.prototype.scaleImage = function (scaleProvider) {
+    MutableImage.prototype.scaleImage = function (scaleRatio) {
         var that = this;
         return _parseImage(that)
             .then(function () {
                 if (that._isParsed) {
-                    return ImageUtils.scaleImage(that._imageBmp, scaleProvider.getScaleRatio(), scaleProvider.getScaleMethod(), that._promiseFactory)
+                    return ImageUtils.scaleImage(that._imageBmp, scaleRatio, that._promiseFactory)
                         .then(function () {
                             that._width = that._imageBmp.width;
                             that._height = that._imageBmp.height;

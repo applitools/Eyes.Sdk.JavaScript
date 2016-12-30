@@ -11,7 +11,6 @@ exports.PromiseFactory = require('./src/PromiseFactory');
 exports.PropertyHandler = require('./src/PropertyHandler');
 exports.ReadOnlyPropertyHandler = require('./src/ReadOnlyPropertyHandler');
 exports.RegionProvider = require('./src/RegionProvider');
-exports.ScaleMethod = require('./src/ScaleMethod');
 exports.ScaleProvider = require('./src/ScaleProvider');
 exports.ScaleProviderFactory = require('./src/ScaleProviderFactory');
 exports.ScaleProviderIdentityFactory = require('./src/ScaleProviderIdentityFactory');
