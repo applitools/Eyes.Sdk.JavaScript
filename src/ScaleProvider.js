@@ -11,11 +11,6 @@
      */
     ScaleProvider.prototype.getScaleRatio = function () {};
 
-    /**
-     * @return {ScaleMethod} The scale method used for the scaling.
-     */
-    ScaleProvider.prototype.getScaleMethod = function () {};
-
     module.exports = ScaleProvider;
 
 }());
