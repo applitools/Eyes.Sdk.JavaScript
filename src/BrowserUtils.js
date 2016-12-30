@@ -31,7 +31,7 @@
         "if (window.innerWidth) { width = window.innerWidth; } " +
         "else if (document.documentElement && document.documentElement.clientWidth) { width = document.documentElement.clientWidth; } " +
         "else { var b = document.getElementsByTagName('body')[0]; if (b.clientWidth) { width = b.clientWidth;} }; " +
-        "return {width: width, height: height};";
+        "return [width, height];";
 
     /**
      * @private
@@ -396,108 +396,69 @@
      * @return {Promise<{width: number, height: number}>} The viewport size.
      */
     BrowserUtils.getViewportSize = function (browser, promiseFactory) {
-        return promiseFactory.makePromise(function (resolve) {
-            try {
-                return BrowserUtils.executeScript(browser, JS_GET_VIEWPORT_SIZE, promiseFactory, undefined).then(function (size) {
-                    resolve(size);
-                }, function () {
-                    browser.manage().window().getSize().then(function (size) {
-                        resolve(size);
+        return promiseFactory.makePromise(function (resolve, reject) {
+            return BrowserUtils.executeScript(browser, JS_GET_VIEWPORT_SIZE, promiseFactory, undefined).then(function (results) {
+                if (isNaN(results[0]) || isNaN(results[1])) {
+                    reject("Can't parse values.");
+                } else {
+                    resolve({
+                        width: parseInt(results[0], 10) || 0,
+                        height: parseInt(results[1], 10) || 0
                     });
-                });
-            } catch (err) {
-                browser.manage().window().getSize().then(function (size) {
-                    resolve(size);
-                });
-            }
-        }.bind(this));
+                }
+            }, function (err) {
+                reject(err);
+            });
+        });
     };
 
     /**
-     * Tries to set the viewport
-     *
+     * @param {Logger} logger
      * @param {WebDriver} browser The browser to use.
-     * @param {{width: number, height: number}} size The viewport size.
      * @param {PromiseFactory} promiseFactory
-     * @param {Logger} logger
-     * @param {boolean|undefined} lastRetry
-     * @returns {Promise<void>}
+     * @return {Promise<{width: number, height: number}>} The viewport size of the current context, or the display size if the viewport size cannot be retrieved.
      */
-    BrowserUtils.setViewportSize = function (browser, size, promiseFactory, logger, lastRetry) {
-        // First we will set the window size to the required size.
-        // Then we'll check the viewport size and increase the window size accordingly.
-        return promiseFactory.makePromise(function (resolve, reject) {
-            try {
-                BrowserUtils.getViewportSize(browser, promiseFactory).then(function (actualViewportSize) {
-                    if (actualViewportSize.width === size.width && actualViewportSize.height === size.height) {
-                        resolve();
-                        return;
-                    }
+    BrowserUtils.getViewportSizeOrDisplaySize = function (logger, browser, promiseFactory) {
+        logger.verbose("getViewportSizeOrDisplaySize()");
 
+        return BrowserUtils.getViewportSize(browser, promiseFactory).catch(function (err) {
+            logger.verbose("Failed to extract viewport size using Javascript:", err);
 
-                    browser.manage().window().getSize().then(function (browserSize) {
-                        // Edge case.
-                        if (browserSize.height < actualViewportSize.height || browserSize.width < actualViewportSize.width) {
-                            logger.log("Browser window size is smaller than the viewport! Using current viewport size as is.");
-                            resolve();
-                            return;
-                        }
-
-                        var requiredBrowserSize = {
-                            height: browserSize.height + (size.height - actualViewportSize.height),
-                            width: browserSize.width + (size.width - actualViewportSize.width)
-                        };
-
-                        logger.log("Trying to set browser size to: " + requiredBrowserSize.width + "x" + requiredBrowserSize.height);
-                        _setWindowSize(browser, requiredBrowserSize, 3, promiseFactory, logger).then(function () {
-                            BrowserUtils.getViewportSize(browser, promiseFactory).then(function (updatedViewportSize) {
-                                if (updatedViewportSize.width === size.width &&
-                                    updatedViewportSize.height === size.height) {
-                                    resolve();
-                                    return;
-                                }
-
-                                if (lastRetry) {
-                                    reject(new Error("Failed to set viewport size! " +
-                                        "(Got " + updatedViewportSize.width + "x" + updatedViewportSize.height + ") " +
-                                        "Please try using a smaller viewport size."));
-                                } else {
-                                    BrowserUtils.setViewportSize(browser, size, promiseFactory, logger, true).then(function () {
-                                        resolve();
-                                    }, function (err) {
-                                        reject(err);
-                                    });
-                                }
-                            });
-                        }, function () {
-                            reject(new Error("Failed to set browser size! Please try using a smaller viewport size."));
-                        });
-                    });
-                });
-            } catch (err) {
-                reject(new Error(err));
-            }
-        }.bind(this));
+            // If we failed to extract the viewport size using JS, will use the window size instead.
+            logger.verbose("Using window size as viewport size.");
+            return browser.manage().window().getSize().then(function (size) {
+                logger.verbose(String.format("Done! Size is", size));
+                return size;
+            });
+        });
     };
 
     /**
-     * @private
-     * @param {WebDriver} driver
-     * @param {{width: number, height: number}} size
-     * @param {number} retries
-     * @param {PromiseFactory} promiseFactory
      * @param {Logger} logger
-     * @return {Promise<void>}
+     * @param {WebDriver} browser The browser to use.
+     * @param {{width: number, height: number}} requiredSize
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<boolean>}
      */
-    function _setWindowSize(driver, size, retries, promiseFactory, logger) {
+    BrowserUtils.setBrowserSize = function (logger, browser, requiredSize, promiseFactory) {
+        return _setBrowserSize(logger, browser, requiredSize, 3, promiseFactory).then(function () {
+            return true;
+        }, function () {
+            return false;
+        });
+    };
+
+    function _setBrowserSize(logger, browser, requiredSize, retries, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
-            return driver.manage().window().setSize(size.width, size.height).then(function () {
+            logger.verbose("Trying to set browser size to:", requiredSize);
+
+            return browser.manage().window().setSize(requiredSize.width, requiredSize.height).then(function () {
                 return BrowserUtils.sleep(1000, promiseFactory);
             }).then(function () {
-                return driver.manage().window().getSize();
-            }).then(function (browserSize) {
-                logger.log("Current browser size: " + browserSize.width + "x" + browserSize.height);
-                if (browserSize.width === size.width && browserSize.height === size.height) {
+                return browser.manage().window().getSize();
+            }).then(function (currentSize) {
+                logger.log("Current browser size:", currentSize);
+                if (currentSize.width === requiredSize.width && currentSize.height === requiredSize.height) {
                     resolve();
                     return;
                 }
@@ -507,11 +468,168 @@
                     return;
                 }
 
-                _setWindowSize(driver, size, retries - 1, promiseFactory, logger).then(function () {
+                _setBrowserSize(logger, browser, requiredSize, retries - 1, promiseFactory).then(function () {
                     resolve();
                 }, function () {
                     reject();
                 });
+            });
+        });
+    }
+
+    /**
+     * @param {Logger} logger
+     * @param {WebDriver} browser The browser to use.
+     * @param {{width: number, height: number}} actualViewportSize
+     * @param {{width: number, height: number}} requiredViewportSize
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<boolean>}
+     */
+    BrowserUtils.setBrowserSizeByViewportSize = function (logger, browser, actualViewportSize, requiredViewportSize, promiseFactory) {
+        return browser.manage().window().getSize().then(function (browserSize) {
+            logger.verbose("Current browser size:", browserSize);
+            var requiredBrowserSize = {
+                width: browserSize.width + (requiredViewportSize.width - actualViewportSize.width),
+                height: browserSize.height + (requiredViewportSize.height - actualViewportSize.height)
+            };
+            return BrowserUtils.setBrowserSize(logger, browser, requiredBrowserSize, promiseFactory);
+        });
+    };
+
+    /**
+     * Tries to set the viewport
+     *
+     * @param {Logger} logger
+     * @param {WebDriver} browser The browser to use.
+     * @param {{width: number, height: number}} requiredSize The viewport size.
+     * @param {PromiseFactory} promiseFactory
+     * @returns {Promise<void>}
+     */
+    BrowserUtils.setViewportSize = function (logger, browser, requiredSize, promiseFactory) {
+        // First we will set the window size to the required size.
+        // Then we'll check the viewport size and increase the window size accordingly.
+        logger.verbose("setViewportSize(", requiredSize, ")");
+        return promiseFactory.makePromise(function (resolve, reject) {
+            try {
+                var actualViewportSize;
+                BrowserUtils.getViewportSize(browser, promiseFactory).then(function (viewportSize) {
+                    actualViewportSize = viewportSize;
+                    logger.verbose("Initial viewport size:", actualViewportSize);
+
+                    // If the viewport size is already the required size
+                    if (actualViewportSize.width == requiredSize.width && actualViewportSize.height == requiredSize.height) {
+                        resolve();
+                        return;
+                    }
+
+                    // We move the window to (0,0) to have the best chance to be able to
+                    // set the viewport size as requested.
+                    browser.manage().window().setPosition(0, 0).catch(function () {
+                        logger.verbose("Warning: Failed to move the browser window to (0,0)");
+                    }).then(function () {
+                        return BrowserUtils.setBrowserSizeByViewportSize(logger, browser, actualViewportSize, requiredSize, promiseFactory);
+                    }).then(function () {
+                        return BrowserUtils.getViewportSize(browser, promiseFactory);
+                    }).then(function (actualViewportSize) {
+                        if (actualViewportSize.width == requiredSize.width && actualViewportSize.height == requiredSize.height) {
+                            resolve();
+                            return;
+                        }
+
+                        // Additional attempt. This Solves the "maximized browser" bug
+                        // (border size for maximized browser sometimes different than non-maximized, so the original browser size calculation is wrong).
+                        logger.verbose("Trying workaround for maximization...");
+                        return BrowserUtils.setBrowserSizeByViewportSize(logger, browser, actualViewportSize, requiredSize, promiseFactory).then(function () {
+                            return BrowserUtils.getViewportSize(browser, promiseFactory);
+                        }).then(function (viewportSize) {
+                            actualViewportSize = viewportSize;
+                            logger.verbose("Current viewport size:", actualViewportSize);
+
+                            if (actualViewportSize.width == requiredSize.width && actualViewportSize.height == requiredSize.height) {
+                                resolve();
+                                return;
+                            }
+
+                            return browser.manage().window().getSize().then(function (browserSize) {
+                                var MAX_DIFF = 3;
+                                var widthDiff = actualViewportSize.width - requiredSize.width;
+                                var widthStep = widthDiff / (-widthDiff); // -1 for smaller size, 1 for larger
+                                var heightDiff = actualViewportSize.height - requiredSize.height;
+                                var heightStep = heightDiff / (-heightDiff);
+
+                                var currWidthChange = 0;
+                                var currHeightChange = 0;
+                                // We try the zoom workaround only if size difference is reasonable.
+                                if (Math.abs(widthDiff) <= MAX_DIFF && Math.abs(heightDiff) <= MAX_DIFF) {
+                                    logger.verbose("Trying workaround for zoom...");
+                                    return _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize,
+                                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory).then(function () {
+                                        resolve();
+                                    }, function () {
+                                        logger.verbose("Zoom workaround failed.");
+                                        reject();
+                                    });
+                                }
+                            });
+                        });
+                    });
+                }).catch(function () {
+                    reject("Failed to set viewport size!");
+                });
+            } catch (err) {
+                reject(new Error(err));
+            }
+        });
+    };
+
+    /**
+     * @private
+     * @param {Logger} logger
+     * @param {WebDriver} browser
+     * @param {{width: number, height: number}} requiredSize
+     * @param actualViewportSize
+     * @param browserSize
+     * @param widthDiff
+     * @param widthStep
+     * @param heightDiff
+     * @param heightStep
+     * @param currWidthChange
+     * @param currHeightChange
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<void>}
+     */
+    function _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize, widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            // We specifically use "<=" (and not "<"), so to give an extra resize attempt
+            // in addition to reaching the diff, due to floating point issues.
+            if (Math.abs(currWidthChange) <= Math.abs(widthDiff) && actualViewportSize.width != requiredSize.width) {
+                currWidthChange += widthStep;
+            }
+
+            if (Math.abs(currHeightChange) <= Math.abs(heightDiff) && actualViewportSize.height != requiredSize.height) {
+                currHeightChange += heightStep;
+            }
+
+            var sizeToSet = {
+                width: browserSize.width + currWidthChange,
+                height: browserSize.height + currHeightChange
+            };
+
+            return BrowserUtils.setBrowserSize(logger, browser, sizeToSet, promiseFactory).then(function () {
+                return BrowserUtils.getViewportSize(browser, promiseFactory);
+            }).then(function (actualViewportSize) {
+                logger.verbose("Current viewport size:", actualViewportSize);
+                if (actualViewportSize.width === requiredSize.width && actualViewportSize.height === requiredSize.height) {
+                    resolve();
+                    return;
+                }
+
+                if (Math.abs(currWidthChange) <= Math.abs(widthDiff) || Math.abs(currHeightChange) <= Math.abs(heightDiff)) {
+                    return _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize,
+                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory);
+                }
+
+                reject();
             });
         });
     }
