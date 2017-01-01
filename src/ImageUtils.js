@@ -389,11 +389,15 @@
      */
     ImageUtils.copyPixels = function copyPixels(dst, dstPosition, src, srcPosition, size) {
         var y, dstY, srcY, x, dstX, srcX, dstIndex, srcIndex;
-        for (y = 0; y < size.height; ++y) {
+
+        // Fix the problem when src image was out of dst image and pixels was copied to wrong position in dst image.
+        var maxHeight = dstPosition.y + size.height <= dst.height ? size.height : dst.height - dstPosition.y;
+        var maxWidth = dstPosition.x + size.width <= dst.width ? size.width : dst.width - dstPosition.x;
+        for (y = 0; y < maxHeight; ++y) {
             dstY = dstPosition.y + y;
             srcY = srcPosition.y + y;
 
-            for (x = 0; x < size.width; ++x) {
+            for (x = 0; x < maxWidth; ++x) {
                 dstX = dstPosition.x + x;
                 srcX = srcPosition.x + x;
 
