@@ -1,6 +1,6 @@
 {
     "name": "eyes.sdk",
-    "version": "0.0.49",
+    "version": "0.0.50",
     "description": "Applitools Eyes SDK For JavaScript",
     "author": "Applitools Team <team@applitools.com> (http://www.applitools.com/)",
     "keywords": [
@@ -23,7 +23,7 @@
     "dependencies": {
         "request": "^2.69.0",
         "winston": "*",
-        "eyes.utils": "0.0.18"
+        "eyes.utils": "0.0.19"
     },
     "devDependencies": {
         "mocha": "*",
