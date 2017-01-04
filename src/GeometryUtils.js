@@ -57,8 +57,8 @@
     /**
      * Crete new simple location object from values
      *
-     * @param {number} left
-     * @param {number} top
+     * @param {number} left (x)
+     * @param {number} top (y)
      * @returns {{x: number, y: number}} New location object
      */
     GeometryUtils.createLocation = function(left, top) {
