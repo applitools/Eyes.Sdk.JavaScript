@@ -88,8 +88,9 @@
             });
         }
 
+        var ratio = imageBmp.height / imageBmp.width;
         var scaledWidth = Math.ceil(imageBmp.width * scaleRatio);
-        var scaledHeight = Math.ceil(imageBmp.height * scaleRatio);
+        var scaledHeight = Math.ceil(scaledWidth * ratio);
         return ImageUtils.resizeImage(imageBmp, scaledWidth, scaledHeight, promiseFactory);
     };
 
@@ -108,7 +109,7 @@
             var a0 = x3 - x2 - x0 + x1;
             var a1 = x0 - x1 - a0;
             var a2 = x2 - x0;
-            return Math.max(0, Math.min(255, (a0 * (t * t * t)) + (a1 * (t * t)) + (a2 * t) + (x1)));
+            return Math.ceil(Math.max(0, Math.min(255, (a0 * (t * t * t)) + (a1 * (t * t)) + (a2 * t) + (x1))));
         }
 
         function _doBicubicInterpolation(src, dst) {
@@ -167,7 +168,6 @@
                         var y1 = buf1[kPos];
                         var y2 = buf1[kPos + wDst2 * 4];
                         var y3 = (yPos < hSrc - 2) ? buf1[kPos + wDst2 * 8] : 2 * buf1[kPos + wDst2 * 4] - buf1[kPos];
-
                         buf2[buf2Pos + k] = _interpolateCubic(y0, y1, y2, y3, t);
                     }
                 }
@@ -270,9 +270,6 @@
         }
 
         return promiseFactory.makePromise(function (resolve) {
-            var ratio = imageBmp.height / imageBmp.width;
-            targetHeight = Math.round(targetWidth * ratio);
-
             var dst = {
                 data: new Buffer(targetWidth * targetHeight * 4),
                 width: targetWidth,
@@ -476,7 +473,18 @@
                 stitchingPromise = _stitchPart(stitchingPromise, stitchedImage, parts[i], promiseFactory);
             }
 
+            var lastPart = parts[parts.length - 1];
+            var actualImageWidth = lastPart.position.x + lastPart.size.width;
+            var actualImageHeight = lastPart.position.y + lastPart.size.height;
+
             stitchingPromise.then(function () {
+                // If the actual image size is smaller than the extracted size, we crop the image.
+                if (actualImageWidth < stitchedImage.width || actualImageHeight < stitchedImage.height) {
+                    var newWidth = stitchedImage.width > actualImageWidth ? actualImageWidth : stitchedImage.width;
+                    var newHeight = stitchedImage.height > actualImageHeight ? actualImageHeight : stitchedImage.height;
+                    return ImageUtils.cropImage(stitchedImage, {left: 0, top: 0, width: newWidth, height: newHeight}, promiseFactory);
+                }
+            }).then(function () {
                 return ImageUtils.packImage(stitchedImage, promiseFactory);
             }).then(function (buffer) {
                 resolve(buffer);
