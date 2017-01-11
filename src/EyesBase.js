@@ -150,6 +150,8 @@
             this._sessionEventHandlers = [];
 			this._autSessionId = undefined;
             this._lastScreenshot = undefined;
+            this._saveDebugScreenshots = false;
+            this._debugScreenshotsPath = null;
         }
     }
 
@@ -580,6 +582,25 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @param {boolean} saveDebugScreenshots If true, will save all screenshots to local directory
+     * @param {string} pathToSave Path where you want to save debug screenshots
+     */
+    EyesBase.prototype.setSaveDebugScreenshots = function (saveDebugScreenshots, pathToSave) {
+        this._saveDebugScreenshots = saveDebugScreenshots;
+        var lastChar = pathToSave.substr(pathToSave.length - 1);
+        this._debugScreenshotsPath = lastChar === '/' ? pathToSave : pathToSave + '/';
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @returns {boolean}
+     */
+    EyesBase.prototype.getSaveDebugScreenshots = function () {
+        return this._saveDebugScreenshots;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * Sets the branch name.
      *
      * @param branchName {String} The branch name.
@@ -869,16 +890,15 @@
      * @private
      * @param {RegionProvider} regionProvider
      * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
-     * @param {string} tag
      * @return {Promise<Object<{appOutput: object}>>}
      */
-    function _getAppData(regionProvider, lastScreenshot, tag) {
+    function _getAppData(regionProvider, lastScreenshot) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             var data = {appOutput: {}};
             var parsedImage;
-            return that.getScreenShot(tag)
+            return that.getScreenShot()
                 .then(function (screenshot) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                     parsedImage = screenshot;

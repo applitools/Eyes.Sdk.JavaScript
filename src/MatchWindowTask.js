@@ -81,7 +81,7 @@
 
     function _match(regionProvider, tag, ignoreMismatch, userInputs, lastScreenshot, resolve) {
         this._logger.verbose('MatchWindowTask.matchWindow - _match calls for app output');
-        return this._getAppOutput(regionProvider, lastScreenshot, tag).then(function (appOutput) {
+        return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput) {
             this._logger.verbose('MatchWindowTask.matchWindow - _match retrieved app output');
             var data = {
                 userInputs: userInputs,
@@ -103,7 +103,7 @@
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask._retryMatch will retry');
             this._logger.verbose('MatchWindowTask._retryMatch calls for app output');
-            return this._getAppOutput(regionProvider, lastScreenshot, tag).then(function (appOutput) {
+            return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput) {
                 this._logger.verbose('MatchWindowTask._retryMatch retrieved app output');
                 screenshot = appOutput.screenShot;
                 var data = {
