@@ -469,7 +469,7 @@
     /**
      * @return {boolean} Whether or not HTTP client debugging mode is active.
      */
-    ServerConnector.prototype.getIsDebugMode = function () {
+    EyesBase.prototype.getIsDebugMode = function () {
         return this._serverConnector.getIsDebugMode();
     };
 
@@ -633,6 +633,26 @@
      */
     EyesBase.prototype.getParentBranchName = function () {
         return this._parentBranchName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the proxy settings to be used by the request module.
+     *
+     * @return {String} proxySettings The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
+     * @return {String} [username]
+     * @return {String} [password]
+     */
+    EyesBase.prototype.setProxy = function (url, username, password) {
+        return this._serverConnector.setProxy(url, username, password);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} current proxy settings used by the server connector, or {@code null} if no proxy is set.
+     */
+    EyesBase.prototype.getProxy = function () {
+        return this._serverConnector.getProxy();
     };
 
     //noinspection JSUnusedGlobalSymbols
