@@ -626,7 +626,11 @@
 
                 if (Math.abs(currWidthChange) <= Math.abs(widthDiff) || Math.abs(currHeightChange) <= Math.abs(heightDiff)) {
                     return _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize,
-                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory);
+                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory).then(function () {
+                        resolve();
+                    }, function () {
+                        reject();
+                    });
                 }
 
                 reject();
