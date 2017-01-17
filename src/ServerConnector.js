@@ -40,6 +40,7 @@
         this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._runKey = undefined;
         this._httpOptions = {
+            proxy: null,
             strictSSL: false,
             headers: DEFAULT_HEADERS,
             timeout: CONNECTION_TIMEOUT_MS,
@@ -84,6 +85,34 @@
      */
     ServerConnector.prototype.getApiKey = function () {
         return this._runKey;
+    };
+
+    /**
+     * Sets the proxy settings to be used by the request module.
+     *
+     * @param {String} url The proxy url to be used. If {@code null} then no proxy is set.
+     * @param {String} [username]
+     * @param {String} [password]
+     */
+    ServerConnector.prototype.setProxy = function (url, username, password) {
+        var proxyString;
+        if (username) {
+            var i = url.indexOf('://');
+            var protocol = i === -1 ? 'http' : url.slice(0, i);
+            proxyString = protocol + '://' + username + ':' + password + '@' + url;
+        } else {
+            proxyString = url;
+        }
+
+        this._httpOptions.proxy = proxyString;
+    };
+
+    /**
+     *
+     * @return {String} The current proxy settings used by the rest client, or {@code null} if no proxy is set.
+     */
+    ServerConnector.prototype.getProxy = function () {
+        return this._httpOptions.proxy;
     };
 
     /**
