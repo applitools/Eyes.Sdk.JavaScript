@@ -492,5 +492,24 @@
         });
     };
 
+    /**
+     *
+     * @param {Buffer} imageBuffer
+     * @param {string} filename
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<void>}
+     */
+    ImageUtils.saveImage = function (imageBuffer, filename, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            fs.writeFile(filename, imageBuffer, function(err) {
+                if(err) {
+                    reject(err);
+                }
+
+                resolve();
+            });
+        });
+    };
+
     module.exports = ImageUtils;
 }());

@@ -206,13 +206,5 @@
         return result;
     }
 
-    function _getTZOString(timezoneOffset){
-        var prefix = timezoneOffset > 0 ? '-' : '+';
-        var offsetHours = Math.abs(Math.floor(timezoneOffset/60));
-        var offsetMinutes = Math.abs(timezoneOffset%60);
-
-        return prefix + _numpad(offsetHours, 2) + _numpad(offsetMinutes, 2);
-    }
-
     module.exports = GeneralUtils;
 }());

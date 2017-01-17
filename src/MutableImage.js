@@ -226,16 +226,8 @@
      */
     MutableImage.prototype.saveImage = function (filename) {
         var that = this;
-        return this.asObject().then(function (imageObject) {
-            return that._promiseFactory.makePromise(function (resolve, reject) {
-                fs.writeFile(filename, imageObject.imageBuffer, function(err) {
-                    if(err) {
-                        reject(err);
-                    }
-
-                    resolve(that);
-                });
-            });
+        return that.asObject().then(function (imageObject) {
+            return ImageUtils.saveImage(imageObject.imageBuffer, filename, that._promiseFactory);
         });
     };
 
