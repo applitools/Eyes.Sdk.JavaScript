@@ -1,6 +1,6 @@
 {
   "name": "eyes.images",
-  "version": "0.0.38",
+  "version": "0.0.39",
   "description": "Applitools Eyes Javascript SDK for working directly with images.",
   "author": "Applitools Team <team@applitools.com> (http://www.applitools.com/)",
   "keywords": [
@@ -26,8 +26,8 @@
     "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
   },
   "dependencies": {
-    "eyes.utils": "0.0.18",
-    "eyes.sdk": "0.0.49",
+    "eyes.utils": "0.0.20",
+    "eyes.sdk": "0.0.51",
     "rsvp": "^3.3.0"
   },
   "devDependencies": {
