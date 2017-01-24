@@ -1,4 +1,5 @@
 exports.Eyes = require('./src/Eyes');
+exports.ImageProvider = require('./src/ImageProvider');
 var EyesSDK = require('eyes.sdk');
 exports.ConsoleLogHandler = EyesSDK.ConsoleLogHandler;
 exports.NullLogHandler  = EyesSDK.NullLogHandler;

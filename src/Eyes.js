@@ -35,6 +35,7 @@
             return RSVP.defer();
         });
         EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
+        this._imageProvider = undefined;
         this._screenshot = undefined;
         this._title = undefined;
         this._inferredEnvironment = undefined;
@@ -72,7 +73,7 @@
     /**
      * Perform visual validation for the current image.
      *
-     * @param {Buffer} image The image png bytes.
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
      * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
      * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
      * @param {number} [retryTimeout] optional timeout for performing the match (ms).
@@ -90,7 +91,7 @@
      * Perform visual validation for the current image.
      * @param {Object} region The region of the image which should be verified, or {undefined}/{null} if
      *                          the entire image should be verified.
-     * @param {Buffer} image The image png bytes.
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
      * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
      * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
      * @param {number} [retryTimeout] optional timeout for performing the match (ms).
@@ -123,13 +124,17 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {Promise} An updated screenshot.
+     * @return {Promise.<MutableImage>} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
+        if (this._imageProvider) {
+            return this._imageProvider.getScreenshot();
+        }
+
         var parsedImage = new MutableImage(this._screenshot, this._promiseFactory);
         return this._promiseFactory.makePromise(function (resolve) {
             resolve(parsedImage);
-        }.bind(this));
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -164,7 +169,7 @@
     /**
      * Internal function for performing an image verification for an image (or a region of an image).
      *
-     * @param {Buffer} image The image png bytes.
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
      * @param {string} tag An optional tag to be associated with the validation checkpoint.
      * @param {boolean} ignoreMismatch True if the server should ignore a negative result for the visual validation.
      * @param {number} retryTimeout The amount of time to retry matching in milliseconds or a negative value to use the default retry timeout.
@@ -174,7 +179,12 @@
      * @private
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
-        this._screenshot = image;
+        if (image instanceof Buffer) {
+            this._screenshot = image;
+        } else {
+            this._imageProvider = image;
+        }
+
         this._title = tag || '';
         return EyesBase.prototype.checkWindow.call(this, tag, ignoreMismatch, retryTimeout, regionProvider);
     };
