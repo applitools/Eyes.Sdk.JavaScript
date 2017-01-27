@@ -18,7 +18,9 @@
         SessionEventHandler = require('./SessionEventHandler'),
         RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
         FixedScaleProvider = require('./FixedScaleProvider'),
+        FixedCutProvider = require('./FixedCutProvider'),
         NullScaleProvider = require('./NullScaleProvider'),
+        NullCutProvider = require('./NullCutProvider'),
         Triggers = require('./Triggers'),
         Logger = require('./Logger');
 
@@ -136,7 +138,8 @@
             this._saveFailedTests = false;
             this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
             this._positionProvider = null;
-            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
+            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider());
+            this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());
             this._isDisabled = isDisabled;
             this._defaultMatchTimeout = 2000;
             this._agentId = undefined;
@@ -560,6 +563,21 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * Manually set the the sizes to cut from an image before it's validated.
+     *
+     * @param {CutProvider} cutProvider the provider doing the cut. If {@code null},
+     *          Eyes would automatically infer if cutting is needed.
+     */
+    EyesBase.prototype.setImageCut = function (cutProvider) {
+        if (cutProvider != null) {
+            this._cutProviderHandler = new ReadOnlyPropertyHandler(this._logger, cutProvider);
+        } else {
+            this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());
+        }
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * @return {number} The ratio used to scale the images being validated.
      */
     EyesBase.prototype.getScaleRatio = function () {
@@ -576,7 +594,7 @@
         if (scaleRatio != null) {
             this._scaleProviderHandler = new ReadOnlyPropertyHandler(this._logger, new FixedScaleProvider(scaleRatio));
         } else {
-            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider(this._promiseFactory));
+            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider());
         }
     };
 
@@ -710,7 +728,7 @@
             this._isOpen = true;
             this._userInputs = [];
             this._viewportSize = viewportSize;
-            this._scaleProviderHandler.set(new NullScaleProvider(this._promiseFactory));
+            this._scaleProviderHandler.set(new NullScaleProvider());
             this._testName = testName;
             this._appName = appName;
             this._validationId = -1;

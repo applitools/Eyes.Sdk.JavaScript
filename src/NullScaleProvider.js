@@ -8,10 +8,9 @@
      *
      * @constructor
      * @augments FixedScaleProvider
-     * @param {PromiseFactory} promiseFactory
      **/
-    function NullScaleProvider(promiseFactory) {
-        FixedScaleProvider.call(this, 1, undefined, promiseFactory)
+    function NullScaleProvider() {
+        FixedScaleProvider.call(this, 1);
     }
 
     NullScaleProvider.prototype = Object.create(FixedScaleProvider.prototype);
