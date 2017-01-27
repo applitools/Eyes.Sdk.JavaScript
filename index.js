@@ -1,6 +1,7 @@
 exports.ArgumentGuard = require('./src/ArgumentGuard');
 exports.BrowserUtils = require('./src/BrowserUtils');
 exports.CoordinatesType = require('./src/CoordinatesType');
+exports.CutProvider = require('./src/CutProvider');
 exports.GeneralUtils = require('./src/GeneralUtils');
 exports.GeometryUtils = require('./src/GeometryUtils');
 exports.ImageDeltaCompressor = require('./src/ImageDeltaCompressor');
