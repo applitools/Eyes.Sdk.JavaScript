@@ -24,16 +24,24 @@
     /**
      * @constructor
      *
-     * @param {String} serverUrl
-     * @param {Boolean} isDisabled - set to true to disable Applitools Eyes and use the web driver directly.
+     * @param {String} [serverUrl]
+     * @param {Boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
+     * @param {PromiseFactory} [promiseFactory] If not specified will be created from RSVP lib
      * @augments EyesBase
      **/
-    function Eyes(serverUrl, isDisabled) {
-        this._promiseFactory = new PromiseFactory(function (asyncAction) {
-            return new RSVP.Promise(asyncAction);
-        }, function () {
-            return RSVP.defer();
-        });
+    function Eyes(serverUrl, isDisabled, promiseFactory) {
+        if (promiseFactory) {
+            this._promiseFactory = promiseFactory;
+        } else if (RSVP && RSVP.Promise) {
+            this._promiseFactory = new PromiseFactory(function (asyncAction) {
+                return new RSVP.Promise(asyncAction);
+            }, function () {
+                return RSVP.defer();
+            });
+        } else {
+            throw new Error("PromiseFactory is required.");
+        }
+
         EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
         this._imageProvider = undefined;
         this._screenshot = undefined;
@@ -191,15 +199,13 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._waitTimeout = function (ms) {
-        // Notice we have to use deferred here, since we want the setTimeout to call resolve..
-        var deferred = this._promiseFactory.makeDeferred();
         var logger = this._logger;
-        logger.log('waiting' + ms + 'ms');
-        setTimeout(function () {
-            logger.log('Finished waiting...');
-            deferred.resolve();
-        }, ms);
-        return deferred.promise;
+        return this._promiseFactory.makePromise(function (resolve) {
+            setTimeout(function () {
+                logger.log('Finished waiting...');
+                resolve();
+            }, ms);
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols

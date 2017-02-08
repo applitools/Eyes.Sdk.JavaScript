@@ -33,8 +33,11 @@
   "devDependencies": {
     "browserify": "latest",
     "uglify-js": "latest",
-    "browserify-fs": "1.0.0",
+    "browserify-fs": "^1.0.0",
     "browserify-zlib": "ipfs/browserify-zlib#9993eff"
+  },
+  "browser": {
+    "rsvp": false
   },
   "engines": {
     "node": ">= 6.9.0"
