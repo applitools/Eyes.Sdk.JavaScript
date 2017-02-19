@@ -36,28 +36,28 @@
         });
 
         if (this._header > 0) {
-            promise.then(function (image) {
+            promise = promise.then(function (image) {
                 var region = GeometryUtils.createRegion(0, that._header, image.width, image.height - that._header);
                 return image.cropImage(region);
             });
         }
 
         if (this._footer > 0) {
-            promise.then(function (image) {
+            promise = promise.then(function (image) {
                 var region = GeometryUtils.createRegion(0, 0, image.width, image.height - that._footer);
                 return image.cropImage(region);
             });
         }
 
         if (this._left > 0) {
-            promise.then(function (image) {
+            promise = promise.then(function (image) {
                 var region = GeometryUtils.createRegion(that._left, 0, image.width - that._left, image.height);
                 return image.cropImage(region);
             });
         }
 
         if (this._right > 0) {
-            promise.then(function (image) {
+            promise = promise.then(function (image) {
                 var region = GeometryUtils.createRegion(0, 0, image.width - that._right, image.height);
                 return image.cropImage(region);
             });
