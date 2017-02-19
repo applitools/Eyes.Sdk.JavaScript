@@ -565,11 +565,10 @@
     /**
      * Manually set the the sizes to cut from an image before it's validated.
      *
-     * @param {CutProvider} cutProvider the provider doing the cut. If {@code null},
-     *          Eyes would automatically infer if cutting is needed.
+     * @param {CutProvider} [cutProvider] the provider doing the cut.
      */
     EyesBase.prototype.setImageCut = function (cutProvider) {
-        if (cutProvider != null) {
+        if (!cutProvider) {
             this._cutProviderHandler = new ReadOnlyPropertyHandler(this._logger, cutProvider);
         } else {
             this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());
