@@ -165,9 +165,17 @@
 
                 if (response.statusCode === 200 || response.statusCode === 201) {
                     this._logger.verbose('ServerConnector.startSession - post succeeded');
-                    resolve({sessionId: body.id, legacySessionId: body.legacySessionId, sessionUrl: body.url,
-                        isNewSession: response.statusCode === 201});
+                    resolve({
+                        sessionId: body.id,
+                        legacySessionId: body.legacySessionId,
+                        sessionUrl: body.url,
+                        isNewSession: response.statusCode === 201
+                    });
+                    return;
                 }
+
+                reject(new Error('ServerConnector.startSession - unexpected status ' +
+                    '(statusCode: '+ response.statusCode + ', statusMessage: ' + response.statusMessage + ')'));
             }.bind(this));
         }.bind(this));
     };
