@@ -65,11 +65,16 @@
 
     /**
      * @constructor
-     * @param {Buffer} imageBuffer
+     * @param {Buffer|string} image Buffer or base64 encoded bytes of image
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      **/
-    function MutableImage(imageBuffer, promiseFactory) {
-        this._imageBuffer = imageBuffer;
+    function MutableImage(image, promiseFactory) {
+        if (Buffer.isBuffer(image)) {
+            this._imageBuffer = image;
+        } else {
+            this._imageBuffer = new Buffer(image, 'base64');
+        }
+
         this._promiseFactory = promiseFactory;
         this._isParsed = false;
         this._imageBmp = undefined;
