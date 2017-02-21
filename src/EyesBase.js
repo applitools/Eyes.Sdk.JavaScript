@@ -72,11 +72,11 @@
                 isAborted: isAborted,
                 isSaved: false,
                 stepsInfo: []
-                };
+            };
         }
 
         // If we're here, the test was actually started, and we have results from the server.
-        var results = Object.create(serverResults);
+        var results = GeneralUtils.clone(serverResults);
         results.isPassed = (!results.isAborted && !results.isNew && results.mismatches === 0 && results.missing === 0);
         results.isSaved = isSaved;
         return results;
@@ -568,7 +568,7 @@
      * @param {CutProvider} [cutProvider] the provider doing the cut.
      */
     EyesBase.prototype.setImageCut = function (cutProvider) {
-        if (!cutProvider) {
+        if (cutProvider) {
             this._cutProviderHandler = new ReadOnlyPropertyHandler(this._logger, cutProvider);
         } else {
             this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());

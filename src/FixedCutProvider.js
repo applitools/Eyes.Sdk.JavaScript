@@ -32,33 +32,41 @@
     FixedCutProvider.prototype.cut = function (image, promiseFactory) {
         var that = this;
         var promise = promiseFactory.makePromise(function (resolve) {
-            resolve(image);
+            resolve();
         });
 
         if (this._header > 0) {
-            promise = promise.then(function (image) {
-                var region = GeometryUtils.createRegion(0, that._header, image.width, image.height - that._header);
+            promise = promise.then(function () {
+                return image.getSize();
+            }).then(function (imageSize) {
+                var region = GeometryUtils.createRegion(0, that._header, imageSize.width, imageSize.height - that._header);
                 return image.cropImage(region);
             });
         }
 
         if (this._footer > 0) {
-            promise = promise.then(function (image) {
-                var region = GeometryUtils.createRegion(0, 0, image.width, image.height - that._footer);
+            promise = promise.then(function () {
+                return image.getSize();
+            }).then(function (imageSize) {
+                var region = GeometryUtils.createRegion(0, 0, imageSize.width, imageSize.height - that._footer);
                 return image.cropImage(region);
             });
         }
 
         if (this._left > 0) {
-            promise = promise.then(function (image) {
-                var region = GeometryUtils.createRegion(that._left, 0, image.width - that._left, image.height);
+            promise = promise.then(function () {
+                return image.getSize();
+            }).then(function (imageSize) {
+                var region = GeometryUtils.createRegion(that._left, 0, imageSize.width - that._left, imageSize.height);
                 return image.cropImage(region);
             });
         }
 
         if (this._right > 0) {
-            promise = promise.then(function (image) {
-                var region = GeometryUtils.createRegion(0, 0, image.width - that._right, image.height);
+            promise = promise.then(function () {
+                return image.getSize();
+            }).then(function (imageSize) {
+                var region = GeometryUtils.createRegion(0, 0, imageSize.width - that._right, imageSize.height);
                 return image.cropImage(region);
             });
         }
