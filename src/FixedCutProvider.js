@@ -32,7 +32,7 @@
     FixedCutProvider.prototype.cut = function (image, promiseFactory) {
         var that = this;
         var promise = promiseFactory.makePromise(function (resolve) {
-            resolve();
+            resolve(image);
         });
 
         if (this._header > 0) {
