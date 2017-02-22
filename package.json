@@ -1,6 +1,6 @@
 {
   "name": "eyes.utils",
-  "version": "0.0.20",
+  "version": "0.0.21",
   "description": "General purpose Javascript utilities.",
   "main": "index.js",
   "scripts": {
