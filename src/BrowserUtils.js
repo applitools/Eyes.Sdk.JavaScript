@@ -553,28 +553,34 @@
                             return browser.manage().window().getSize().then(function (browserSize) {
                                 var MAX_DIFF = 3;
                                 var widthDiff = actualViewportSize.width - requiredSize.width;
-                                var widthStep = widthDiff != 0 ? (widthDiff / (-widthDiff)) : 1; // -1 for smaller size, 1 for larger
+                                var widthStep = widthDiff > 0 ? -1 : 1; // -1 for smaller size, 1 for larger
                                 var heightDiff = actualViewportSize.height - requiredSize.height;
-                                var heightStep = heightDiff != 0 ? (heightDiff / (-heightDiff)) : 1;
+                                var heightStep = heightDiff > 0 ? -1 : 1;
 
                                 var currWidthChange = 0;
                                 var currHeightChange = 0;
                                 // We try the zoom workaround only if size difference is reasonable.
                                 if (Math.abs(widthDiff) <= MAX_DIFF && Math.abs(heightDiff) <= MAX_DIFF) {
                                     logger.verbose("Trying workaround for zoom...");
+                                    var retriesLeft = Math.abs((widthDiff == 0 ? 1 : widthDiff) * (heightDiff == 0 ? 1 : heightDiff)) * 2;
+                                    var lastRequiredBrowserSize = null;
                                     return _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize,
-                                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory).then(function () {
+                                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange,
+                                        retriesLeft, lastRequiredBrowserSize, promiseFactory).then(function () {
                                         resolve();
                                     }, function () {
                                         logger.verbose("Zoom workaround failed.");
                                         reject();
                                     });
                                 }
+
+                                logger.verbose("Failed to set viewport size!");
+                                reject();
                             });
                         });
                     });
-                }).catch(function () {
-                    reject("Failed to set viewport size!");
+                }).catch(function (err) {
+                    reject(err);
                 });
             } catch (err) {
                 reject(new Error(err));
@@ -595,11 +601,29 @@
      * @param heightStep
      * @param currWidthChange
      * @param currHeightChange
+     * @param retriesLeft
+     * @param lastRequiredBrowserSize
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<void>}
      */
-    function _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize, widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory) {
+    function _setWindowSize(
+        logger,
+        browser,
+        requiredSize,
+        actualViewportSize,
+        browserSize,
+        widthDiff,
+        widthStep,
+        heightDiff,
+        heightStep,
+        currWidthChange,
+        currHeightChange,
+        retriesLeft,
+        lastRequiredBrowserSize,
+        promiseFactory
+    ) {
         return promiseFactory.makePromise(function (resolve, reject) {
+            logger.verbose("Retries left: " + retriesLeft);
             // We specifically use "<=" (and not "<"), so to give an extra resize attempt
             // in addition to reaching the diff, due to floating point issues.
             if (Math.abs(currWidthChange) <= Math.abs(widthDiff) && actualViewportSize.width != requiredSize.width) {
@@ -610,12 +634,21 @@
                 currHeightChange += heightStep;
             }
 
-            var sizeToSet = {
+            var requiredBrowserSize = {
                 width: browserSize.width + currWidthChange,
                 height: browserSize.height + currHeightChange
             };
 
-            return BrowserUtils.setBrowserSize(logger, browser, sizeToSet, promiseFactory).then(function () {
+            if (lastRequiredBrowserSize && requiredBrowserSize.width === lastRequiredBrowserSize.width && requiredBrowserSize.height === lastRequiredBrowserSize.height) {
+                logger.verbose("Browser size is as required but viewport size does not match!");
+                logger.verbose("Browser size: " + requiredBrowserSize + " , Viewport size: " + actualViewportSize);
+                logger.verbose("Stopping viewport size attempts.");
+                resolve();
+                return;
+            }
+
+            return BrowserUtils.setBrowserSize(logger, browser, requiredBrowserSize, promiseFactory).then(function () {
+                lastRequiredBrowserSize = requiredBrowserSize;
                 return BrowserUtils.getViewportSize(browser, promiseFactory);
             }).then(function (actualViewportSize) {
                 logger.verbose("Current viewport size:", actualViewportSize);
@@ -624,9 +657,10 @@
                     return;
                 }
 
-                if (Math.abs(currWidthChange) <= Math.abs(widthDiff) || Math.abs(currHeightChange) <= Math.abs(heightDiff)) {
+                if ((Math.abs(currWidthChange) <= Math.abs(widthDiff) || Math.abs(currHeightChange) <= Math.abs(heightDiff)) && (--retriesLeft > 0)) {
                     return _setWindowSize(logger, browser, requiredSize, actualViewportSize, browserSize,
-                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange, promiseFactory).then(function () {
+                        widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange,
+                        retriesLeft, lastRequiredBrowserSize, promiseFactory).then(function () {
                         resolve();
                     }, function () {
                         reject();
