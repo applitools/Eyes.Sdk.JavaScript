@@ -24,7 +24,7 @@
     /**
      * Returns a part of the screenshot based on the given region.
      *
-     * @param {{top: number, left: number, width: number, height: number}} region The region for which we should get the sub screenshot.
+     * @param {{left: number, top: number, width: number, height: number}} region The region for which we should get the sub screenshot.
      * @param {CoordinatesType} coordinatesType How should the region be calculated on the
      * screenshot image.
      * @param {boolean} throwIfClipped Throw an EyesException if the region is not
@@ -61,10 +61,10 @@
     /**
      * Get the intersection of the given region with the screenshot.
      *
-     * @param {{top: number, left: number, width: number, height: number}} region The region to intersect.
+     * @param {{left: number, top: number, width: number, height: number}} region The region to intersect.
      * @param {CoordinatesType} originalCoordinatesType The coordinates type of {@code region}.
      * @param {CoordinatesType} resultCoordinatesType The coordinates type of the resulting region.
-     * @return {{top: number, left: number, width: number, height: number}} The intersected region, in {@code resultCoordinatesType} coordinates.
+     * @return {{left: number, top: number, width: number, height: number}} The intersected region, in {@code resultCoordinatesType} coordinates.
      */
     EyesScreenshot.prototype.getIntersectedRegion = function (region, originalCoordinatesType, resultCoordinatesType) {};
 
@@ -72,10 +72,10 @@
      * Converts a region's location coordinates with the {@code from}
      * coordinates type to the {@code to} coordinates type.
      *
-     * @param {{top: number, left: number, width: number, height: number}} region The region which location's coordinates needs to be converted.
+     * @param {{left: number, top: number, width: number, height: number}} region The region which location's coordinates needs to be converted.
      * @param {CoordinatesType} from The current coordinates type for {@code region}.
      * @param {CoordinatesType} to The target coordinates type for {@code region}.
-     * @return {{top: number, left: number, width: number, height: number}} A new region which is the transformation of {@code region} to the {@code to} coordinates type.
+     * @return {{left: number, top: number, width: number, height: number}} A new region which is the transformation of {@code region} to the {@code to} coordinates type.
      */
     EyesScreenshot.prototype.convertRegionLocation = function (region, from, to) {
         ArgumentGuard.notNull(region, "region");
