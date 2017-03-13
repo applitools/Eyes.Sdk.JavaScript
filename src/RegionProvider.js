@@ -4,7 +4,7 @@
     var GeometryUtils = require('./GeometryUtils');
 
     /**
-     * @param {{top: number, left: number, width: number, height: number}} region
+     * @param {{left: number, top: number, width: number, height: number}} region
      * @param {CoordinatesType} coordinatesType
      * @constructor
      */
@@ -14,7 +14,7 @@
     }
 
     /**
-     * @return {{top: number, left: number, width: number, height: number}} A region with "as is" viewport coordinates.
+     * @return {{left: number, top: number, width: number, height: number}} A region with "as is" viewport coordinates.
      */
     RegionProvider.prototype.getRegion = function () {
         return this._region;
@@ -24,7 +24,7 @@
      * @param {MutableImage} image
      * @param {CoordinatesType} toCoordinatesType
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<{top: number, left: number, width: number, height: number}>} A region in selected viewport coordinates.
+     * @return {Promise<{left: number, top: number, width: number, height: number}>} A region in selected viewport coordinates.
      */
     RegionProvider.prototype.getRegionInLocation = function (image, toCoordinatesType, promiseFactory) {};
 
