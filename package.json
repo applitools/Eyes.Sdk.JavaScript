@@ -3,9 +3,6 @@
   "version": "0.0.21",
   "description": "General purpose Javascript utilities.",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [
     "applitools",
     "eyes",
@@ -26,7 +23,12 @@
   "dependencies": {
     "pngjs": "^3.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "ava": "^0.18.0"
+  },
+  "scripts": {
+    "test": "ava"
+  },
   "browser": {
     "fs": "browserify-fs",
     "zlib": "browserify-zlib"
