@@ -311,9 +311,9 @@
         this._logger.log("Baseline environment name: " + baselineName);
 
         if(!baselineName) {
-            this.baselineEnvName = null;
+            this._baselineEnvName = null;
         } else {
-            this.baselineEnvName = baselineName.trim();
+            this._baselineEnvName = baselineName.trim();
         }
     };
 
@@ -336,9 +336,9 @@
         this._logger.log("Baseline environment name: " + baselineEnvName);
 
         if(!baselineEnvName) {
-            this.baselineEnvName = null;
+            this._baselineEnvName = null;
         } else {
-            this.baselineEnvName = baselineEnvName.trim();
+            this._baselineEnvName = baselineEnvName.trim();
         }
     };
 
