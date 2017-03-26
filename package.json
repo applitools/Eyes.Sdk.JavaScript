@@ -25,10 +25,6 @@
         "winston": "*",
         "eyes.utils": "0.0.21"
     },
-    "devDependencies": {
-        "mocha": "*",
-        "chai": "*"
-    },
     "browser": {
         "./src/FileLogHandler": false
     },
