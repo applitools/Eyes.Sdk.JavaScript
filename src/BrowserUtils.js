@@ -674,7 +674,7 @@
 
     /**
      * @private
-     * @param {{top: number, left: number, width: number, height: number}} part
+     * @param {{left: number, top: number, width: number, height: number}} part
      * @param {Array<{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}>} parts
      * @param {{imageBuffer: Buffer, width: number, height: number}} imageObj
      * @param {WebDriver} browser
@@ -874,6 +874,7 @@
      * @param {{width: number, height: number}} viewportSize
      * @param {PositionProvider} positionProvider
      * @param {ScaleProviderFactory} scaleProviderFactory
+     * @param {CutProvider} cutProvider
      * @param {boolean} fullPage
      * @param {boolean} hideScrollbars
      * @param {boolean} useCssTransition
