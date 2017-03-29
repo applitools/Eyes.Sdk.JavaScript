@@ -79,7 +79,7 @@
         resolve(this._matchResult);
     }
 
-    function _match(regionProvider, tag, ignoreMismatch, userInputs, lastScreenshot, resolve) {
+    function _match(regionProvider, tag, ignoreMismatch, ignoreRegions, floatingRegions, userInputs, lastScreenshot, resolve) {
         this._logger.verbose('MatchWindowTask.matchWindow - _match calls for app output');
         return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput) {
             this._logger.verbose('MatchWindowTask.matchWindow - _match retrieved app output');
@@ -87,7 +87,16 @@
                 userInputs: userInputs,
                 appOutput: appOutput.appOutput,
                 tag: tag,
-                ignoreMismatch: ignoreMismatch
+                ignoreMismatch: ignoreMismatch,
+                options: {
+                    name: tag,
+                    userInputs: userInputs,
+                    imageMatchSettings: {
+                        ignore: ignoreRegions,
+                        floating: floatingRegions
+                    },
+                    ignoreMismatch: ignoreMismatch,
+                }
             };
             return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
                 .then(function (matchResult) {
@@ -98,8 +107,8 @@
         }.bind(this));
     }
 
-    function _retryMatch(start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, screenshot, resolve) {
-
+    function _retryMatch(start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot,
+                         ignoreMismatch, ignoreRegions, floatingRegions, screenshot, resolve) {
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask._retryMatch will retry');
             this._logger.verbose('MatchWindowTask._retryMatch calls for app output');
@@ -110,7 +119,16 @@
                     userInputs: userInputs,
                     appOutput: appOutput.appOutput,
                     tag: tag,
-                    ignoreMismatch: true
+                    ignoreMismatch: true,
+                    options: {
+                        name: tag,
+                        userInputs: userInputs,
+                        imageMatchSettings: {
+                            ignore: ignoreRegions,
+                            floating: floatingRegions
+                        },
+                        ignoreMismatch: true,
+                    }
                 };
                 this._logger.verbose('MatchWindowTask._retryMatch calls matchWindow');
                 return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
@@ -128,7 +146,7 @@
                                 this._logger.verbose('MatchWindowTask.matchWindow -',
                                     '_retryMatch timeout passed -  retrying');
                                 return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot,
-                                    ignoreMismatch, screenshot, resolve);
+                                    ignoreMismatch, ignoreRegions, floatingRegions, screenshot, resolve);
                             }.bind(this));
                         }
                         this._logger.verbose('MatchWindowTask.matchWindow -',
@@ -141,7 +159,7 @@
         if (!this._matchResult.asExpected) {
             // Try one last time...
             this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch last attempt because we got failure');
-            return _match.call(this, regionProvider, tag, ignoreMismatch, userInputs, lastScreenshot, resolve);
+            return _match.call(this, regionProvider, tag, ignoreMismatch, ignoreRegions, floatingRegions, userInputs, lastScreenshot, resolve);
         }
 
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch no need for ',
@@ -149,8 +167,8 @@
         return _finalize.call(this, regionProvider, ignoreMismatch, screenshot, resolve);
     }
 
-    MatchWindowTask.prototype.matchWindow = function (userInputs, lastScreenshot, regionProvider, tag,
-                                                      shouldRunOnceOnRetryTimeout, ignoreMismatch, retryTimeout) {
+    MatchWindowTask.prototype.matchWindow = function (userInputs, lastScreenshot, regionProvider, tag, shouldRunOnceOnRetryTimeout,
+                                                      ignoreMismatch, retryTimeout, ignoreRegions, floatingRegions) {
 
         this._logger.verbose("MatchWindowTask.matchWindow called with shouldRunOnceOnRetryTimeout: ",
             shouldRunOnceOnRetryTimeout, ", ignoreMismatch:", ignoreMismatch, ", retryTimeout:", retryTimeout);
@@ -166,17 +184,17 @@
                     this._logger.verbose('MatchWindowTask.matchWindow - running once but after going into timeout');
                     return this._waitTimeout(retryTimeout).then(function () {
                         this._logger.verbose('MatchWindowTask.matchWindow - back from timeout - calling match');
-                        return _match.call(this, regionProvider, tag, ignoreMismatch, userInputs, lastScreenshot, resolve);
+                        return _match.call(this, regionProvider, tag, ignoreMismatch, ignoreRegions, floatingRegions, userInputs, lastScreenshot, resolve);
                     }.bind(this));
                 }
                 this._logger.verbose('MatchWindowTask.matchWindow - running once immediately');
-                return _match.call(this, regionProvider, tag, ignoreMismatch, userInputs, lastScreenshot, resolve);
+                return _match.call(this, regionProvider, tag, ignoreMismatch, ignoreRegions, floatingRegions, userInputs, lastScreenshot, resolve);
             }
             // Retry matching and ignore mismatches while the retry timeout does not expires.
             var start = new Date().getTime();
             this._logger.verbose('MatchWindowTask.matchWindow - starting retry sequence. start:', start);
-            return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, undefined,
-                resolve);
+            return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot,
+                ignoreMismatch, ignoreRegions, floatingRegions, undefined, resolve);
         }.bind(this));
     };
 

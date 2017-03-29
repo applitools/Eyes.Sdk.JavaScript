@@ -1008,7 +1008,7 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
-    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider) {
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, ignoreRegions, floatingRegions) {
         ignoreMismatch = ignoreMismatch || false;
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
@@ -1046,7 +1046,7 @@
 				.then(function () {
 					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
 					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
-						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout)
+						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, ignoreRegions, floatingRegions)
 				}.bind(this))
 				.then(function (result) {
 					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
