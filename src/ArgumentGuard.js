@@ -33,7 +33,7 @@
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notNull = function (param, paramName) {
-        if (null == param) {
+        if (null === param || undefined === param) {
             throw new Error("IllegalArgument: " + paramName + " is null");
         }
     };
@@ -45,7 +45,7 @@
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.isNull = function (param, paramName) {
-        if (null != param) {
+        if (null !== param && undefined !== param) {
             throw new Error("IllegalArgument: " + paramName + " is not null");
         }
     };
@@ -57,7 +57,6 @@
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notNullOrEmpty = function (param, paramName) {
-        notNull(param, paramName);
         if (!param) {
             throw new Error("IllegalArgument: " + paramName + " is empty");
         }
@@ -93,7 +92,7 @@
      * @param paramName The input parameter name.
      */
     ArgumentGuard.notZero = function (param, paramName) {
-        if (0 == param) {
+        if (0 === param) {
             throw new Error("IllegalArgument: " + paramName + " == 0");
         }
     };

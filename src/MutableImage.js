@@ -65,7 +65,7 @@
 
     /**
      * @constructor
-     * @param {Buffer|string} image Buffer or base64 encoded bytes of image
+     * @param {Buffer} image Encoded bytes of image
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      **/
     function MutableImage(image, promiseFactory) {
@@ -234,6 +234,16 @@
         return that.asObject().then(function (imageObject) {
             return ImageUtils.saveImage(imageObject.imageBuffer, filename, that._promiseFactory);
         });
+    };
+
+    /**
+     * @param {String} image64 base64 encoded bytes of image
+     * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
+     * @return {MutableImage}
+     * @constructor
+     */
+    MutableImage.fromBase64 = function (image64, promiseFactory) {
+        return new MutableImage(new Buffer(image64, 'base64'), promiseFactory);
     };
 
     module.exports = MutableImage;

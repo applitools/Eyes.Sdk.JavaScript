@@ -34,6 +34,16 @@
     };
 
     /**
+     * Check if the given object contains all region's attributes
+     *
+     * @param {Object} object
+     * @return {boolean} true if the object has all region's attributes, false otherwise.
+     */
+    GeometryUtils.isRegion = function(object) {
+        return object instanceof Object && "left" in object && "top" in object && "width" in object && "height" in object;
+    };
+
+    /**
      * Crate new simple region object from location and size objects
      *
      * @param {{x: number, y: number}} location
@@ -51,7 +61,7 @@
      * @return {boolean} true if the region is empty, false otherwise.
      */
     GeometryUtils.isRegionEmpty = function(region) {
-        return region.left == 0 && region.top == 0 && region.width == 0 && region.height == 0;
+        return region.left === 0 && region.top === 0 && region.width === 0 && region.height === 0;
     };
 
     /**
@@ -66,6 +76,16 @@
             x: Math.ceil(left) || 0,
             y: Math.ceil(top) || 0
         };
+    };
+
+    /**
+     * Check if the given object contains all location's attributes
+     *
+     * @param {Object} object
+     * @return {boolean} true if the object has all location's attributes, false otherwise.
+     */
+    GeometryUtils.isLocation = function(object) {
+        return object instanceof Object && "x" in object && "y" in object;
     };
 
     /**
@@ -100,6 +120,16 @@
             width: Math.ceil(width) || 0,
             height: Math.ceil(height) || 0
         };
+    };
+
+    /**
+     * Check if the given object contains all size's attributes
+     *
+     * @param {Object} object
+     * @return {boolean} true if the object has all size's attributes, false otherwise.
+     */
+    GeometryUtils.isSize = function(object) {
+        return object instanceof Object && "width" in object && "height" in object;
     };
 
     /**
@@ -258,7 +288,7 @@
         var subRegionHeight = Math.min(region.height, subRegionSize.height);
 
         // If the requested size is greater or equal to the entire region size, we return a copy of the region.
-        if (subRegionWidth == region.width && subRegionHeight == region.height) {
+        if (subRegionWidth === region.width && subRegionHeight === region.height) {
             subRegions.push({left: region.left, top: region.top, width: region.width, height: region.height});
             return subRegions;
         }
