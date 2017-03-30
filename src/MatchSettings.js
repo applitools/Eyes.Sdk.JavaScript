@@ -132,23 +132,23 @@
         return this._matchThreshold;
     };
 
-
     /**
      * Encapsulates the match settings for a session.
      *
      * @param {MatchLevel} matchLevel The "strictness" level to use.
      * @param {ExactMatchSettings} [exact] Additional threshold parameters when the {@code Exact} match level is used.
+     * @param {boolean} [ignoreCaret]
      *
      * @constructor
      **/
-    function ImageMatchSettings(matchLevel, exact) {
+    function ImageMatchSettings(matchLevel, exact, ignoreCaret) {
         this._matchLevel = matchLevel;
         this._exact = exact || null;
+        this._ignoreCaret = ignoreCaret || true;
     }
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
      * @return {MatchLevel} The match level to use.
      */
     ImageMatchSettings.prototype.getMatchLevel = function () {
@@ -157,7 +157,6 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
      * @param {MatchLevel} matchLevel The match level to use.
      */
     ImageMatchSettings.prototype.setMatchLevel = function (matchLevel) {
@@ -166,9 +165,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
-     * @return {ExactMatchSettings} The additional threshold parameters when the {@code Exact} match level is used,
-     *                              if any.
+     * @return {ExactMatchSettings} The additional threshold parameters when the {@code Exact} match level is used, if any.
      */
     ImageMatchSettings.prototype.getExact = function () {
         return this._exact;
@@ -176,12 +173,26 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
-     * @param {ExactMatchSettings|null} exact The additional threshold parameters when the {@code Exact} match level
-     *                                  is used.
+     * @param {ExactMatchSettings|null} exact The additional threshold parameters when the {@code Exact} match level is used.
      */
     ImageMatchSettings.prototype.setExact = function (exact) {
         this._exact = exact;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean}
+     */
+    ImageMatchSettings.prototype.isIgnoreCaret = function () {
+        return this._ignoreCaret;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {boolean} ignoreCaret
+     */
+    ImageMatchSettings.prototype.setIgnoreCaret = function (ignoreCaret) {
+        this._ignoreCaret = ignoreCaret;
     };
 
     var MatchSettings = {};
