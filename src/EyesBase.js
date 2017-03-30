@@ -132,6 +132,7 @@
             this._logger = new Logger();
             this._serverUrl = serverUrl;
             this._defaultMatchSettings = new ImageMatchSettings(MatchLevel.Strict);
+            this._compareWithParentBranch = false;
             this._failureReport = EyesBase.FailureReport.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
@@ -528,8 +529,8 @@
         return this._defaultMatchSettings.getMatchLevel();
     };
 
+    //noinspection JSUnusedGlobalSymbols
     /**
-     *
      * @param {ImageMatchSettings} defaultMatchSettings The match settings for the session.
      */
     EyesBase.prototype.setDefaultMatchSettings = function (defaultMatchSettings) {
@@ -538,11 +539,26 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
      * @return {ImageMatchSettings} The match settings for the session.
      */
     EyesBase.prototype.getDefaultMatchSettings = function () {
         return this._defaultMatchSettings;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean} The currently compareWithParentBranch value
+     */
+    EyesBase.prototype.isCompareWithParentBranch = function () {
+        return this._compareWithParentBranch;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {boolean} compareWithParentBranch New compareWithParentBranch value, default is false
+     */
+    EyesBase.prototype.setCompareWithParentBranch = function (compareWithParentBranch) {
+        this._compareWithParentBranch = compareWithParentBranch;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1008,7 +1024,7 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
-    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, ignoreRegions, floatingRegions) {
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, ignoreCaret, ignoreRegions, floatingRegions) {
         ignoreMismatch = ignoreMismatch || false;
         tag = tag || '';
         retryTimeout = retryTimeout || -1;
@@ -1046,7 +1062,7 @@
 				.then(function () {
 					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
 					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
-						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, ignoreRegions, floatingRegions)
+						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, ignoreCaret, ignoreRegions, floatingRegions)
 				}.bind(this))
 				.then(function (result) {
 					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
@@ -1221,6 +1237,7 @@
 				}
 				var defaultMatchSettings = {
 					matchLevel: this._defaultMatchSettings.getMatchLevel(),
+                    ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
 					exact: exact
 				};
 				this._sessionStartInfo = {
@@ -1229,6 +1246,7 @@
 					scenarioIdOrName: this._testName,
 					batchInfo: testBatch,
                     baselineEnvName: this._baselineEnvName,
+                    compareWithParentBranch: this.isCompareWithParentBranch(),
                     environmentName: this._environmentName,
 					environment: appEnv,
 					defaultMatchSettings: defaultMatchSettings,
