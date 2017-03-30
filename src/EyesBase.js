@@ -1057,12 +1057,31 @@
 				// default result
 				var validationResult = new SessionEventHandler.ValidationResult();
 
+				// copy matchLevel and exact from defaultMatchSettings
+                var exactObj = this._defaultMatchSettings.getExact();
+                var exact = null;
+                if (exactObj) {
+                    exact = {
+                        minDiffIntensity: exactObj.getMinDiffIntensity(),
+                        minDiffWidth: exactObj.getMinDiffWidth(),
+                        minDiffHeight: exactObj.getMinDiffHeight(),
+                        matchThreshold: exactObj.getMatchThreshold()
+                    };
+                }
+				var imageMatchSettings = {
+                    matchLevel: this._defaultMatchSettings.getMatchLevel(),
+                    ignoreCaret: ignoreCaret || this._defaultMatchSettings.isIgnoreCaret(),
+                    ignore: ignoreRegions,
+                    floating: floatingRegions,
+                    exact: exact
+                };
+
 				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
 					'validationWillStart', this._autSessionId, validationInfo)
 				.then(function () {
 					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
 					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
-						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, ignoreCaret, ignoreRegions, floatingRegions)
+						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, imageMatchSettings)
 				}.bind(this))
 				.then(function (result) {
 					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
