@@ -156,6 +156,7 @@
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;
+            this._properties = {};
         }
     }
 
@@ -686,6 +687,17 @@
      */
     EyesBase.prototype.getProxy = function () {
         return this._serverConnector.getProxy();
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Used for grouping test results by custom test properties
+     *
+     * @param {string} name The name of property
+     * @param {string} value The value of property
+     */
+    EyesBase.prototype.addProperty = function (name, value) {
+        return this._properties[name] = value;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1271,7 +1283,8 @@
 					defaultMatchSettings: defaultMatchSettings,
 					branchName: this._branchName || null,
 					parentBranchName: this._parentBranchName || null,
-					autSessionId: this._autSessionId
+					autSessionId: this._autSessionId,
+                    properties: this._properties
 				};
 
 				return this._serverConnector.startSession(this._sessionStartInfo)
