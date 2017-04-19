@@ -12,10 +12,10 @@
     "use strict";
 
     //noinspection JSUnresolvedFunction
-    var EyesSDK = require('eyes.sdk'),
-        RSVP = require('rsvp'),
-        EyesBase = EyesSDK.EyesBase,
+    var RSVP = require('rsvp'),
+        EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
+        EyesBase = EyesSDK.EyesBase,
         MutableImage = EyesUtils.MutableImage,
         RegionProvider = EyesUtils.RegionProvider,
         CoordinatesType = EyesUtils.CoordinatesType,
@@ -26,7 +26,7 @@
      *
      * @param {String} [serverUrl]
      * @param {Boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
-     * @param {PromiseFactory} [promiseFactory] If not specified will be created from RSVP lib
+     * @param {PromiseFactory} [promiseFactory] If not specified will be created using RSVP lib
      * @augments EyesBase
      **/
     function Eyes(serverUrl, isDisabled, promiseFactory) {
@@ -39,7 +39,7 @@
                 return RSVP.defer();
             });
         } else {
-            throw new Error("PromiseFactory is required.");
+            throw new Error("PromiseFactory or RSVP module is required.");
         }
 
         EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
@@ -194,6 +194,7 @@
             this._screenshot = new MutableImage(image, this._promiseFactory);
             this._imageProvider = null;
         } else {
+            this._screenshot = null;
             this._imageProvider = image;
         }
 
@@ -203,10 +204,11 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._waitTimeout = function (ms) {
-        var logger = this._logger;
+        var that = this;
         return this._promiseFactory.makePromise(function (resolve) {
+            that._logger.log('Waiting', ms, 'ms...');
             setTimeout(function () {
-                logger.log('Finished waiting...');
+                that._logger.log('Waiting finished.');
                 resolve();
             }, ms);
         });
