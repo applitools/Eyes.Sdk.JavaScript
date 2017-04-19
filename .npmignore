@@ -1,4 +1,4 @@
 .idea/*
-tests/*
+test/*
 dist/*
 eyes-browser-loader.js

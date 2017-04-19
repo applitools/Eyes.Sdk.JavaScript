@@ -12,10 +12,10 @@
     "use strict";
 
     //noinspection JSUnresolvedFunction
-    var EyesSDK = require('eyes.sdk'),
-        RSVP = require('rsvp'),
-        EyesBase = EyesSDK.EyesBase,
+    var RSVP = require('rsvp'),
+        EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
+        EyesBase = EyesSDK.EyesBase,
         MutableImage = EyesUtils.MutableImage,
         RegionProvider = EyesUtils.RegionProvider,
         CoordinatesType = EyesUtils.CoordinatesType,
@@ -24,17 +24,26 @@
     /**
      * @constructor
      *
-     * @param {String} serverUrl
-     * @param {Boolean} isDisabled - set to true to disable Applitools Eyes and use the web driver directly.
+     * @param {String} [serverUrl]
+     * @param {Boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
+     * @param {PromiseFactory} [promiseFactory] If not specified will be created using RSVP lib
      * @augments EyesBase
      **/
-    function Eyes(serverUrl, isDisabled) {
-        this._promiseFactory = new PromiseFactory(function (asyncAction) {
-            return new RSVP.Promise(asyncAction);
-        }, function () {
-            return RSVP.defer();
-        });
+    function Eyes(serverUrl, isDisabled, promiseFactory) {
+        if (promiseFactory) {
+            this._promiseFactory = promiseFactory;
+        } else if (RSVP && RSVP.Promise) {
+            this._promiseFactory = new PromiseFactory(function (asyncAction) {
+                return new RSVP.Promise(asyncAction);
+            }, function () {
+                return RSVP.defer();
+            });
+        } else {
+            throw new Error("PromiseFactory or RSVP module is required.");
+        }
+
         EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
+        this._imageProvider = undefined;
         this._screenshot = undefined;
         this._title = undefined;
         this._inferredEnvironment = undefined;
@@ -62,12 +71,20 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {boolean} Whether or not session is opened
+     */
+    Eyes.prototype.isOpen = function () {
+        return this._isOpen;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * Perform visual validation for the current image.
      *
-     * @param {Buffer} image The image png bytes.
-     * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch  True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout optional timeout for performing the match (ms).
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
+     * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
      *
      * @return {Promise}
      */
@@ -82,10 +99,10 @@
      * Perform visual validation for the current image.
      * @param {Object} region The region of the image which should be verified, or {undefined}/{null} if
      *                          the entire image should be verified.
-     * @param {Buffer} image The image png bytes.
-     * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch  True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout optional timeout for performing the match (ms).
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
+     * @param {string} [tag] An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch]  True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
      *
      * @return {Promise}
      */
@@ -115,13 +132,20 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {Promise} An updated screenshot.
+     * @return {Promise.<MutableImage>} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
-        var parsedImage = new MutableImage(this._screenshot, this._promiseFactory);
+        var that = this;
+        if (this._imageProvider) {
+            return this._imageProvider.getScreenshot().then(function (screenshot) {
+                that._screenshot = screenshot;
+                return screenshot;
+            });
+        }
+
         return this._promiseFactory.makePromise(function (resolve) {
-            resolve(parsedImage);
-        }.bind(this));
+            resolve(that._screenshot);
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -156,7 +180,7 @@
     /**
      * Internal function for performing an image verification for an image (or a region of an image).
      *
-     * @param {Buffer} image The image png bytes.
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
      * @param {string} tag An optional tag to be associated with the validation checkpoint.
      * @param {boolean} ignoreMismatch True if the server should ignore a negative result for the visual validation.
      * @param {number} retryTimeout The amount of time to retry matching in milliseconds or a negative value to use the default retry timeout.
@@ -166,31 +190,51 @@
      * @private
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
-        this._screenshot = image;
+        if (image instanceof Buffer) {
+            this._screenshot = new MutableImage(image, this._promiseFactory);
+            this._imageProvider = null;
+        } else {
+            this._screenshot = null;
+            this._imageProvider = image;
+        }
+
         this._title = tag || '';
         return EyesBase.prototype.checkWindow.call(this, tag, ignoreMismatch, retryTimeout, regionProvider);
     };
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._waitTimeout = function (ms) {
-        // Notice we have to use deferred here, since we want the setTimeout to call resolve..
-        var deferred = this._promiseFactory.makeDeferred();
-        var logger = this._logger;
-        logger.log('waiting' + ms + 'ms');
-        setTimeout(function () {
-            logger.log('Finished waiting...');
-            deferred.resolve();
-        }, ms);
-        return deferred.promise;
+        var that = this;
+        return this._promiseFactory.makePromise(function (resolve) {
+            that._logger.log('Waiting', ms, 'ms...');
+            setTimeout(function () {
+                that._logger.log('Waiting finished.');
+                resolve();
+            }, ms);
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.getViewportSize = function () {
-        // FIXME Replace this with getting the image size.
-        //noinspection JSLint
-        return this._promiseFactory.makePromise(function (resolve, reject) {
-            reject(new Error("Automatic viewport size not implemented yet!"));
-        }.bind(this));
+        var that = this;
+        return this._promiseFactory.makePromise(function (resolve) {
+            resolve();
+        }).then(function () {
+            if (that._screenshot) {
+                // if screenshot is specified, then use it
+                return that._screenshot;
+            }
+
+            // if screenshot is not specified, then retrieving it from provider
+            return that.getScreenShot();
+        }).then(function (screenshot) {
+            return screenshot.asObject();
+        }).then(function (imageObject) {
+            return {
+                width: imageObject.width,
+                height: imageObject.height
+            }
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols
