@@ -135,13 +135,16 @@
      * @return {Promise.<MutableImage>} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
+        var that = this;
         if (this._imageProvider) {
-            return this._imageProvider.getScreenshot();
+            return this._imageProvider.getScreenshot().then(function (screenshot) {
+                that._screenshot = screenshot;
+                return screenshot;
+            });
         }
 
-        var parsedImage = new MutableImage(this._screenshot, this._promiseFactory);
         return this._promiseFactory.makePromise(function (resolve) {
-            resolve(parsedImage);
+            resolve(that._screenshot);
         });
     };
 
@@ -188,7 +191,8 @@
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
         if (image instanceof Buffer) {
-            this._screenshot = image;
+            this._screenshot = new MutableImage(image, this._promiseFactory);
+            this._imageProvider = null;
         } else {
             this._imageProvider = image;
         }
@@ -210,11 +214,25 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype.getViewportSize = function () {
-        // FIXME Replace this with getting the image size.
-        //noinspection JSLint
-        return this._promiseFactory.makePromise(function (resolve, reject) {
-            reject(new Error("Automatic viewport size not implemented yet!"));
-        }.bind(this));
+        var that = this;
+        return this._promiseFactory.makePromise(function (resolve) {
+            resolve();
+        }).then(function () {
+            if (that._screenshot) {
+                // if screenshot is specified, then use it
+                return that._screenshot;
+            }
+
+            // if screenshot is not specified, then retrieving it from provider
+            return that.getScreenShot();
+        }).then(function (screenshot) {
+            return screenshot.asObject();
+        }).then(function (imageObject) {
+            return {
+                width: imageObject.width,
+                height: imageObject.height
+            }
+        });
     };
 
     //noinspection JSUnusedGlobalSymbols
