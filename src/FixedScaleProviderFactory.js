@@ -1,9 +1,8 @@
 (function() {
     'use strict';
 
-    var EyesUtils = require('eyes.utils'),
-        FixedScaleProvider = require('./FixedScaleProvider');
-    var ScaleProviderFactory = EyesUtils.ScaleProviderFactory;
+    var FixedScaleProvider = require('./FixedScaleProvider'),
+        ScaleProviderFactory = require('./ScaleProviderFactory');
 
     /**
      * @constructor

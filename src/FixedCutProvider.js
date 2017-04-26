@@ -1,9 +1,8 @@
 (function () {
     "use strict";
 
-    var EyesUtils = require('eyes.utils');
-    var CutProvider = EyesUtils.CutProvider,
-        GeometryUtils = EyesUtils.GeometryUtils;
+    var CutProvider = require('./CutProvider'),
+        GeometryUtils = require('eyes.utils').GeometryUtils;
 
     /**
      * @constructor

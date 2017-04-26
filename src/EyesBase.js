@@ -153,6 +153,7 @@
             this.validationId = -1;
             this._sessionEventHandlers = [];
 			this._autSessionId = undefined;
+			/** @type {{imageBuffer: Buffer, width: number, height: number}} */
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;
@@ -955,7 +956,7 @@
      * @private
      * @param {RegionProvider} regionProvider
      * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
-     * @return {Promise<Object<{appOutput: object}>>}
+     * @return {Promise<Object<{appOutput: {screenShot64: string, title: string}, screenShot: {imageBuffer: Buffer, width: number, height: number}}>>}
      */
     function _getAppData(regionProvider, lastScreenshot) {
         var that = this;
