@@ -175,6 +175,22 @@
 	};
 
     //noinspection JSUnusedGlobalSymbols
+    /**
+     * Waits a specified amount of time before resolving the returned promise.
+     *
+     * @param {int} ms The amount of time to sleep in milliseconds.
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<void>} A promise which is resolved when sleep is done.
+     */
+    GeneralUtils.sleep = function sleep(ms, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve) {
+            setTimeout(function () {
+                resolve();
+            }, ms);
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
 	/**
 	 * Convert a Date object to a RFC-1123 date string
 	 *

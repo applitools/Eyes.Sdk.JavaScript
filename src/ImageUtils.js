@@ -11,11 +11,10 @@
 (function () {
     "use strict";
 
-    var StreamUtils = require('./StreamUtils'),
-        fs = require('fs'),
+    var fs = require('fs'),
         /** @type {PNG} */
-        PNG = require('pngjs').PNG;
-
+        PNG = require('pngjs').PNG,
+        StreamUtils = require('./StreamUtils');
     var ReadableBufferStream = StreamUtils.ReadableBufferStream,
         WritableBufferStream = StreamUtils.WritableBufferStream;
 
