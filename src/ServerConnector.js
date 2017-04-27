@@ -248,6 +248,7 @@
      * @private
      */
     function _createDataBytes(jsonData) {
+        delete jsonData["appOutput"]["screenShot64"];
         var dataStr = JSON.stringify(jsonData);
         var dataLen = Buffer.byteLength(dataStr, 'utf8');
         // The result buffer will contain the length of the data + 4 bytes of size
@@ -260,15 +261,12 @@
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            // TODO Daniel - Use binary image instead of base64 (see line below)
-            //options.headers['Content-Type'] = 'application/octet-stream';
-            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
 
             var options = Object.create(this._httpOptions);
+            options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
-            options.body = matchWindowData;
-            options.json = true;
+            options.body = Buffer.concat([_createDataBytes(matchWindowData), screenshot]);
             options.method = "post";
             request(options, function (err, response, body) {
                 if (err) {
@@ -299,14 +297,12 @@
     ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
-            // TODO Daniel - Use binary image instead of base64 (see line below)
-            //options.headers['Content-Type'] = 'application/octet-stream';
-            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
+
             var options = Object.create(this._httpOptions);
+            options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
-            options.body = replaceWindowData;
-            options.json = true;
+            options.body = Buffer.concat([_createDataBytes(replaceWindowData), screenshot]);
             options.method = "put";
             request(options, function (err, response, body) {
                 if (err) {
