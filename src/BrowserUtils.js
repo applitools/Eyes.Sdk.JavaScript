@@ -464,14 +464,14 @@
                 }
 
                 if (retries === 0) {
-                    reject();
+                    reject("Failed to set browser size: retries is out.");
                     return;
                 }
 
                 _setBrowserSize(logger, browser, requiredSize, retries - 1, promiseFactory).then(function () {
                     resolve();
-                }, function () {
-                    reject();
+                }, function (err) {
+                    reject(err);
                 });
             });
         });
@@ -569,13 +569,11 @@
                                         retriesLeft, lastRequiredBrowserSize, promiseFactory).then(function () {
                                         resolve();
                                     }, function () {
-                                        logger.verbose("Zoom workaround failed.");
-                                        reject();
+                                        reject("Failed to set viewport size: zoom workaround failed.");
                                     });
                                 }
 
-                                logger.verbose("Failed to set viewport size!");
-                                reject();
+                                reject("Failed to set viewport size!");
                             });
                         });
                     });
@@ -662,12 +660,12 @@
                         widthDiff, widthStep, heightDiff, heightStep, currWidthChange, currHeightChange,
                         retriesLeft, lastRequiredBrowserSize, promiseFactory).then(function () {
                         resolve();
-                    }, function () {
-                        reject();
+                    }, function (err) {
+                        reject(err);
                     });
                 }
 
-                reject();
+                reject("Failed to set window size!");
             });
         });
     }
