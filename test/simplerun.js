@@ -8,7 +8,7 @@ var TestResultsFormatter = require('../index.js').TestResultsFormatter;
 var eyes = new Eyes();
 eyes.setLogHandler(new ConsoleLogHandler(true));
 eyes.setApiKey(process.env.APPLITOOLS_API_KEY);
-//process.env.HTTPS_PROXY = 'http://localhost:8888';
+// eyes.setProxy('http://localhost:9999');
 eyes.setHostOS('Mac OS X 10.10');
 eyes.setHostingApp("My browser");
 var image1 = fs.readFileSync('image1.png');
