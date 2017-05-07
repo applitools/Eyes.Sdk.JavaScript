@@ -1284,7 +1284,7 @@
 					branchName: this._branchName || null,
 					parentBranchName: this._parentBranchName || null,
 					autSessionId: this._autSessionId,
-                    properties: this._properties
+                    // properties: this._properties
 				};
 
 				return this._serverConnector.startSession(this._sessionStartInfo)
