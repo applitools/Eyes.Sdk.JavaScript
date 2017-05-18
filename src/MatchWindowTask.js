@@ -124,7 +124,7 @@
                     }
                 };
                 this._logger.verbose('MatchWindowTask._retryMatch calls matchWindow');
-                return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
+                return this._serverConnector.matchWindow(this._runningSession, data, appOutput.compressScreenshot || appOutput.screenShot)
                     .then(function (result) {
                         this._logger.verbose(
                             'MatchWindowTask.matchWindow - _retryMatch received server connector result:',

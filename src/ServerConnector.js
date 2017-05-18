@@ -248,7 +248,6 @@
      * @private
      */
     function _createDataBytes(jsonData) {
-        delete jsonData["appOutput"]["screenShot64"];
         var dataStr = JSON.stringify(jsonData);
         var dataLen = Buffer.byteLength(dataStr, 'utf8');
         // The result buffer will contain the length of the data + 4 bytes of size
@@ -275,6 +274,7 @@
                     return;
                 }
 
+                body = JSON.parse(body); // we need to do it manually, because our content-type is not json
                 this._logger.verbose('ServerConnector.matchWindow result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
                     resolve({asExpected: body.asExpected});
@@ -311,6 +311,7 @@
                     return;
                 }
 
+                body = JSON.parse(body); // we need to do it manually, because our content-type is not json
                 this._logger.verbose('ServerConnector.replaceWindow result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
                     resolve();
