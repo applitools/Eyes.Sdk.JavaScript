@@ -21,7 +21,7 @@
     "license": "Apache-2.0",
     "main": "index",
     "dependencies": {
-        "request": "^2.79.0",
+        "request": "^2.81.0",
         "winston": "*",
         "eyes.utils": "0.0.22"
     },
