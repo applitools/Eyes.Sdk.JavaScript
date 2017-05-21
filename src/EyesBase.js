@@ -82,43 +82,43 @@
         return results;
     };
 
-	/**
-	 * Notifies all handlers of an event.
-	 *
-	 * @param {Logger} logger A logger to use.
-	 * @param {PromiseFactory} promiseFactory The promise factory to use.
-	 * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
-	 * @param {string} eventName The event to notify
-	 * @param {...Object} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
-	 * 							notification function. May also be undefined.
-	 * @returns {Promise} A promise which resolves when the event was delivered/failed to all handlers.
-	 *
+    /**
+     * Notifies all handlers of an event.
+     *
+     * @param {Logger} logger A logger to use.
+     * @param {PromiseFactory} promiseFactory The promise factory to use.
+     * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
+     * @param {string} eventName The event to notify
+     * @param {...Object} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
+     *                            notification function. May also be undefined.
+     * @returns {Promise} A promise which resolves when the event was delivered/failed to all handlers.
+     *
      * @private
      */
     var _notifyEvent = function (logger, promiseFactory, handlers, eventName, param1) {
-    	var args = arguments;
+        var args = arguments;
 
-    	return promiseFactory.makePromise(function (resolve) {
-			logger.verbose('notifying event: ', eventName);
-			var notificationPromises = [];
-			for (var i = 0; i < handlers.length; ++i) {
-				var currentHanlder = handlers[i];
-				// Call the event with the rest of the (hidden) parameters supplied to this function.
-				var currentPromise =
-					currentHanlder[eventName].apply(currentHanlder, Array.prototype.slice.call(args, 4))
-					.then(null, function (err) {
-						if (logger) {
-							logger.verbose("'" + eventName + "'" + " notification handler returned an error: " + err);
-						}
-					});
-				notificationPromises.push(currentPromise)
-			}
+        return promiseFactory.makePromise(function (resolve) {
+            logger.verbose("notifying event: ", eventName);
+            var notificationPromises = [];
+            for (var i = 0; i < handlers.length; ++i) {
+                var currentHanlder = handlers[i];
+                // Call the event with the rest of the (hidden) parameters supplied to this function.
+                var currentPromise =
+                    currentHanlder[eventName].apply(currentHanlder, Array.prototype.slice.call(args, 4))
+                        .then(null, function (err) {
+                            if (logger) {
+                                logger.verbose("'" + eventName + "'" + " notification handler returned an error: " + err);
+                            }
+                        });
+                notificationPromises.push(currentPromise)
+            }
 
-			Promise.all(notificationPromises).then(function () {
-				resolve();
-			})
-		});
-	};
+            Promise.all(notificationPromises).then(function () {
+                resolve();
+            })
+        });
+    };
 
     /**
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
@@ -152,7 +152,7 @@
             this._appName = null;
             this.validationId = -1;
             this._sessionEventHandlers = [];
-			this._autSessionId = undefined;
+            this._autSessionId = undefined;
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;
