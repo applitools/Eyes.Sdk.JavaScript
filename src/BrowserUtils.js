@@ -719,7 +719,7 @@
         return promise.then(function () {
             return promiseFactory.makePromise(function (resolve) {
                 // Skip 0,0 as we already got the screenshot
-                if (part.left == 0 && part.top == 0) {
+                if (part.left === 0 && part.top === 0) {
                     parts.push({
                         image: imageObj.imageBuffer,
                         size: {width: imageObj.width, height: imageObj.height},
@@ -730,18 +730,15 @@
                     return;
                 }
 
-                var currentPosition;
-                var partCoords = {x: part.left, y: part.top};
-                return positionProvider.setPosition(partCoords).then(function () {
-                    return positionProvider.getCurrentPosition().then(function (position) {
-                        currentPosition = position;
-                    });
-                }).then(function () {
+                var partPosition = {x: part.left, y: part.top};
+                return positionProvider.setPosition(partPosition).then(function () {
+                    return positionProvider.getCurrentPosition();
+                }).then(function (currentPosition) {
                     return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, cutProvider, entirePageSize,
                         pixelRatio, rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape,
-                        waitBeforeScreenshots, regionInScreenshot, saveDebugScreenshots, debugScreenshotsPath);
-                }).then(function (partImage) {
-                    return partImage.asObject().then(function (partObj) {
+                        waitBeforeScreenshots, regionInScreenshot, saveDebugScreenshots, debugScreenshotsPath).then(function (partImage) {
+                        return partImage.asObject();
+                    }).then(function (partObj) {
                         parts.push({
                             image: partObj.imageBuffer,
                             size: {width: partObj.width, height: partObj.height},
@@ -791,76 +788,71 @@
         saveDebugScreenshots,
         debugScreenshotsPath
     ) {
-        var parsedImage, imageSize, scaleProvider;
+        var mutableImage, scaleRatio = 1;
         return BrowserUtils.sleep(waitBeforeScreenshots, promiseFactory).then(function () {
             return browser.takeScreenshot().then(function (screenshot64) {
                 return new MutableImage(new Buffer(screenshot64, 'base64'), promiseFactory);
-            })
-                .then(function (image) {
-                    parsedImage = image;
-                    if (saveDebugScreenshots) {
-                        var filename = "screenshot " + (new Date()).getTime()+ " original.png";
-                        return parsedImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
-                    }
-                })
-                .then(function () {
-                    return cutProvider.cut(parsedImage, promiseFactory);
-                })
-                .then(function (image) {
-                    parsedImage = image;
-                    return parsedImage.getSize();
-                })
-                .then(function (imgSize) {
-                    imageSize = imgSize;
-                    scaleProvider = scaleProviderFactory.getScaleProvider(imageSize.width);
-                    if (regionInScreenshot) {
-                        var scaledRegion = GeometryUtils.scaleRegion(regionInScreenshot, 1 / scaleProvider.getScaleRatio());
-                        return parsedImage.cropImage(scaledRegion);
-                    }
-                })
-                .then(function () {
-                    if (saveDebugScreenshots) {
-                        var filename = "screenshot " +  (new Date()).getTime() + " cropped.png";
-                        return parsedImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
-                    }
-                })
-                .then(function () {
-                    if (isLandscape && automaticRotation && imageSize.height > imageSize.width) {
-                        rotationDegrees = automaticRotationDegrees;
-                    }
+            }).then(function (image) {
+                mutableImage = image;
+                if (saveDebugScreenshots) {
+                    var filename = "screenshot " + (new Date()).getTime()+ " original.png";
+                    return mutableImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
+                }
+            }).then(function () {
+                if (cutProvider) {
+                    return cutProvider.cut(mutableImage, promiseFactory).then(function (image) {
+                        mutableImage = image;
+                    });
+                }
+            }).then(function () {
+                return mutableImage.getSize();
+            }).then(function (imageSize) {
+                if (isLandscape && automaticRotation && imageSize.height > imageSize.width) {
+                    rotationDegrees = automaticRotationDegrees;
+                }
 
-                    if (scaleProvider && scaleProvider.getScaleRatio() !== 1) {
-                        return parsedImage.scaleImage(scaleProvider.getScaleRatio());
-                    }
-                })
-                .then(function () {
-                    if (saveDebugScreenshots) {
-                        var filename = "screenshot " + (new Date()).getTime() + " scaled.png";
-                        return parsedImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
-                    }
-                })
-                .then(function () {
-                    if (rotationDegrees !== 0) {
-                        return parsedImage.rotateImage(rotationDegrees);
-                    }
-                })
-                .then(function () {
-                    return parsedImage.getSize();
-                })
-                .then(function (imgSize) {
-                    // If the image is a viewport screenshot, we want to save the current scroll position (we'll need it for check region).
-                    if (imgSize.width <= viewportSize.width && imgSize.height <= viewportSize.height) {
-                        return BrowserUtils.getCurrentScrollPosition(browser).then(function (scrollPosition) {
-                            return parsedImage.setCoordinates(scrollPosition);
-                        }, function () {
-                            // Failed to get Scroll position, setting coordinates to default.
-                            return parsedImage.setCoordinates({x: 0, y: 0});
-                        });
-                    }
-                })
-                .then(function () {
-                    return parsedImage;
-                });
+                if (scaleProviderFactory) {
+                    var scaleProvider = scaleProviderFactory.getScaleProvider(imageSize.width);
+                    scaleRatio = scaleProvider.getScaleRatio();
+                }
+
+                if (regionInScreenshot) {
+                    var scaledRegion = GeometryUtils.scaleRegion(regionInScreenshot, 1 / scaleRatio);
+                    return mutableImage.cropImage(scaledRegion);
+                }
+            }).then(function () {
+                if (saveDebugScreenshots) {
+                    var filename = "screenshot " +  (new Date()).getTime() + " cropped.png";
+                    return mutableImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
+                }
+            }).then(function () {
+                if (scaleRatio !== 1) {
+                    return mutableImage.scaleImage(scaleRatio);
+                }
+            }).then(function () {
+                if (saveDebugScreenshots) {
+                    var filename = "screenshot " + (new Date()).getTime() + " scaled.png";
+                    return mutableImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
+                }
+            }).then(function () {
+                if (rotationDegrees !== 0) {
+                    return mutableImage.rotateImage(rotationDegrees);
+                }
+            }).then(function () {
+                return mutableImage.getSize();
+            }).then(function (imageSize) {
+                // If the image is a viewport screenshot, we want to save the current scroll position (we'll need it for check region).
+                if (imageSize.width <= viewportSize.width && imageSize.height <= viewportSize.height) {
+                    return BrowserUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (scrollPosition) {
+                        return mutableImage.setCoordinates(scrollPosition);
+                    }, function () {
+                        // Failed to get Scroll position, setting coordinates to default.
+                        return mutableImage.setCoordinates({x: 0, y: 0});
+                    });
+                }
+            }).then(function () {
+                return mutableImage;
+            });
         });
     };
 
@@ -925,123 +917,112 @@
         }, function () {
             // Couldn't get entire page size, using viewport size as default.
             entirePageSize = viewportSize;
-        })
-            .then(function () {
-                // step #2 - get the device pixel ratio (scaling)
-                return BrowserUtils.getDevicePixelRatio(browser, promiseFactory)
-                    .then(function (ratio) {
-                        pixelRatio = ratio;
-                    }, function () {
-                        // Couldn't get pixel ratio, using 1 as default.
-                        pixelRatio = 1;
-                    });
-            })
-            .then(function () {
-                // step #3 - hide the scrollbars if instructed
-                if (hideScrollbars) {
-                    return BrowserUtils.setOverflow(browser, "hidden", promiseFactory).then(function (originalVal) {
-                        originalOverflow = originalVal;
-                    });
-                }
-            })
-            .then(function () {
-                // step #4 - if this is a full page screenshot we need to scroll to position 0,0 before taking the first
-                if (fullPage) {
-                    return positionProvider.getState().then(function (state) {
-                        originalPosition = state;
-                        return positionProvider.setPosition({x: 0, y: 0}).then(function () {
-                            return positionProvider.getCurrentPosition().then(function (location) {
-                                if (location.x != 0 || location.y != 0) {
-                                    throw new Error("Could not scroll to the x/y corner of the screen");
-                                }
-                            });
-                        });
-                    });
-                }
-            })
-            .then(function () {
-                if (regionProvider) {
-                    return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio,
-                        rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots).then(function (image) {
-                            return regionProvider.getRegionInLocation(image, CoordinatesType.SCREENSHOT_AS_IS, promiseFactory);
-                        }).then(function (region) {
-                            regionInScreenshot = region;
-                        });
-                }
-            })
-            .then(function () {
-                // step #5 - Take screenshot of the 0,0 tile / current viewport
-                return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio, rotationDegrees,
-                    automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
-                    checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, debugScreenshotsPath)
-                    .then(function (image) {
-                        screenshot = image;
-                        return screenshot.asObject().then(function (imageObj) {
-                            imageObject = imageObj;
-                        });
-                    });
-            })
-            .then(function () {
-                return promiseFactory.makePromise(function (resolve) {
-                    if (!fullPage && !checkFrameOrElement) {
-                        resolve();
-                        return;
+        }).then(function () {
+            // step #2 - get the device pixel ratio (scaling)
+            return BrowserUtils.getDevicePixelRatio(browser, promiseFactory).then(function (ratio) {
+                pixelRatio = ratio;
+            }, function () {
+                // Couldn't get pixel ratio, using 1 as default.
+                pixelRatio = 1;
+            });
+        }).then(function () {
+            // step #3 - hide the scrollbars if instructed
+            if (hideScrollbars) {
+                return BrowserUtils.setOverflow(browser, "hidden", promiseFactory).then(function (originalVal) {
+                    originalOverflow = originalVal;
+                });
+            }
+        }).then(function () {
+            // step #4 - if this is a full page screenshot we need to scroll to position 0,0 before taking the first
+            if (fullPage) {
+                return positionProvider.getState().then(function (state) {
+                    originalPosition = state;
+                    return positionProvider.setPosition({x: 0, y: 0});
+                }).then(function () {
+                    return positionProvider.getCurrentPosition();
+                }).then(function (location) {
+                    if (location.x !== 0 || location.y !== 0) {
+                        throw new Error("Could not scroll to the x/y corner of the screen");
                     }
-                    // IMPORTANT This is required! Since when calculating the screenshot parts for full size,
-                    // we use a screenshot size which is a bit smaller (see comment below).
-                    if (imageObject.width >= entirePageSize.width && imageObject.height >= entirePageSize.height) {
-                        resolve();
-                        return;
-                    }
-
-                    // We use a smaller size than the actual screenshot size in order to eliminate duplication
-                    // of bottom scroll bars, as well as footer-like elements with fixed position.
-                    var screenshotPartSize = {
-                        width: imageObject.width,
-                        height: Math.max(imageObject.height - MAX_SCROLLBAR_SIZE, MIN_SCREENSHOT_PART_HEIGHT)
-                    };
-
-                    var screenshotParts = GeometryUtils.getSubRegions({
-                        left: 0, top: 0, width: entirePageSize.width,
-                        height: entirePageSize.height
-                    }, screenshotPartSize, false);
-
-                    var parts = [];
-                    var promise = promiseFactory.makePromise(function (resolve) {
-                        resolve();
+                });
+            }
+        }).then(function () {
+            if (regionProvider) {
+                return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio,
+                    rotationDegrees, automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots).then(function (image) {
+                        return regionProvider.getRegionInLocation(image, CoordinatesType.SCREENSHOT_AS_IS, promiseFactory);
+                    }).then(function (region) {
+                        regionInScreenshot = region;
                     });
+            }
+        }).then(function () {
+            // step #5 - Take screenshot of the 0,0 tile / current viewport
+            return _captureViewport(browser, promiseFactory, viewportSize, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio, rotationDegrees,
+                automaticRotation, automaticRotationDegrees, isLandscape, waitBeforeScreenshots,
+                checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, debugScreenshotsPath)
+                .then(function (image) {
+                    screenshot = image;
+                    return screenshot.asObject();
+                }).then(function (imageObj) {
+                    imageObject = imageObj;
+                });
+        }).then(function () {
+            return promiseFactory.makePromise(function (resolve) {
+                if (!fullPage && !checkFrameOrElement) {
+                    resolve();
+                    return;
+                }
+                // IMPORTANT This is required! Since when calculating the screenshot parts for full size,
+                // we use a screenshot size which is a bit smaller (see comment below).
+                if (imageObject.width >= entirePageSize.width && imageObject.height >= entirePageSize.height) {
+                    resolve();
+                    return;
+                }
 
-                    screenshotParts.forEach(function (part) {
-                        promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
-                            viewportSize, positionProvider, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
-                            automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, debugScreenshotsPath);
-                    });
-                    promise.then(function () {
-                        return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {
-                            screenshot = new MutableImage(stitchedBuffer, promiseFactory);
-                            resolve();
-                        });
+                // We use a smaller size than the actual screenshot size in order to eliminate duplication
+                // of bottom scroll bars, as well as footer-like elements with fixed position.
+                var screenshotPartSize = {
+                    width: imageObject.width,
+                    height: Math.max(imageObject.height - MAX_SCROLLBAR_SIZE, MIN_SCREENSHOT_PART_HEIGHT)
+                };
+
+                var screenshotParts = GeometryUtils.getSubRegions({
+                    left: 0, top: 0, width: entirePageSize.width,
+                    height: entirePageSize.height
+                }, screenshotPartSize, false);
+
+                var parts = [];
+                var promise = promiseFactory.makePromise(function (resolve) {
+                    resolve();
+                });
+
+                screenshotParts.forEach(function (part) {
+                    promise = _processPart(part, parts, imageObject, browser, promise, promiseFactory,
+                        viewportSize, positionProvider, scaleProviderFactory, cutProvider, entirePageSize, pixelRatio, rotationDegrees, automaticRotation,
+                        automaticRotationDegrees, isLandscape, waitBeforeScreenshots, checkFrameOrElement ? regionInScreenshot : null, saveDebugScreenshots, debugScreenshotsPath);
+                });
+                promise.then(function () {
+                    return ImageUtils.stitchImage(entirePageSize, parts, promiseFactory).then(function (stitchedBuffer) {
+                        screenshot = new MutableImage(stitchedBuffer, promiseFactory);
+                        resolve();
                     });
                 });
-            })
-            .then(function () {
-                if (hideScrollbars) {
-                    return BrowserUtils.setOverflow(browser, originalOverflow, promiseFactory);
-                }
-            })
-            .then(function () {
-                if (fullPage) {
-                    return positionProvider.restoreState(originalPosition);
-                }
-            })
-            .then(function () {
-                if (!checkFrameOrElement && regionInScreenshot) {
-                    return screenshot.cropImage(regionInScreenshot);
-                }
-            })
-            .then(function () {
-                return screenshot;
             });
+        }).then(function () {
+            if (hideScrollbars) {
+                return BrowserUtils.setOverflow(browser, originalOverflow, promiseFactory);
+            }
+        }).then(function () {
+            if (fullPage) {
+                return positionProvider.restoreState(originalPosition);
+            }
+        }).then(function () {
+            if (!checkFrameOrElement && regionInScreenshot) {
+                return screenshot.cropImage(regionInScreenshot);
+            }
+        }).then(function () {
+            return screenshot;
+        });
     };
 
     module.exports = BrowserUtils;
