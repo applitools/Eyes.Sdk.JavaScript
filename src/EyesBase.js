@@ -156,7 +156,7 @@
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;
-            this._properties = {};
+            this._properties = [];
         }
     }
 
@@ -697,7 +697,9 @@
      * @param {string} value The value of property
      */
     EyesBase.prototype.addProperty = function (name, value) {
-        return this._properties[name] = value;
+        var prop = {};
+        prop[name] = value;
+        return this._properties.push(prop);
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1324,7 +1326,7 @@
 					branchName: this._branchName || null,
 					parentBranchName: this._parentBranchName || null,
 					autSessionId: this._autSessionId,
-                    // properties: this._properties
+                    properties: this._properties
 				};
 
 				return this._serverConnector.startSession(this._sessionStartInfo)
