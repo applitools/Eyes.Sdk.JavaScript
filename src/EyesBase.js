@@ -697,9 +697,7 @@
      * @param {string} value The value of property
      */
     EyesBase.prototype.addProperty = function (name, value) {
-        var prop = {};
-        prop[name] = value;
-        return this._properties.push(prop);
+        return this._properties.push({name: name, value: value});
     };
 
     //noinspection JSUnusedGlobalSymbols
