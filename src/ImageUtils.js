@@ -11,6 +11,9 @@
 (function () {
     "use strict";
 
+    // for better compatibility with browserify
+    global.setImmediate = require('timers').setImmediate;
+
     var fs = require('fs'),
         png = require('png-async'),
         StreamUtils = require('./StreamUtils');
