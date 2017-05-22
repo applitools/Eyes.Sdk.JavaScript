@@ -82,43 +82,43 @@
         return results;
     };
 
-	/**
-	 * Notifies all handlers of an event.
-	 *
-	 * @param {Logger} logger A logger to use.
-	 * @param {PromiseFactory} promiseFactory The promise factory to use.
-	 * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
-	 * @param {string} eventName The event to notify
-	 * @param {...Object} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
-	 * 							notification function. May also be undefined.
-	 * @returns {Promise} A promise which resolves when the event was delivered/failed to all handlers.
-	 *
+    /**
+     * Notifies all handlers of an event.
+     *
+     * @param {Logger} logger A logger to use.
+     * @param {PromiseFactory} promiseFactory The promise factory to use.
+     * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
+     * @param {string} eventName The event to notify
+     * @param {...Object} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
+     *                            notification function. May also be undefined.
+     * @returns {Promise} A promise which resolves when the event was delivered/failed to all handlers.
+     *
      * @private
      */
     var _notifyEvent = function (logger, promiseFactory, handlers, eventName, param1) {
-    	var args = arguments;
+        var args = arguments;
 
-    	return promiseFactory.makePromise(function (resolve) {
-			logger.verbose('notifying event: ', eventName);
-			var notificationPromises = [];
-			for (var i = 0; i < handlers.length; ++i) {
-				var currentHanlder = handlers[i];
-				// Call the event with the rest of the (hidden) parameters supplied to this function.
-				var currentPromise =
-					currentHanlder[eventName].apply(currentHanlder, Array.prototype.slice.call(args, 4))
-					.then(null, function (err) {
-						if (logger) {
-							logger.verbose("'" + eventName + "'" + " notification handler returned an error: " + err);
-						}
-					});
-				notificationPromises.push(currentPromise)
-			}
+        return promiseFactory.makePromise(function (resolve) {
+            logger.verbose("notifying event: ", eventName);
+            var notificationPromises = [];
+            for (var i = 0; i < handlers.length; ++i) {
+                var currentHanlder = handlers[i];
+                // Call the event with the rest of the (hidden) parameters supplied to this function.
+                var currentPromise =
+                    currentHanlder[eventName].apply(currentHanlder, Array.prototype.slice.call(args, 4))
+                        .then(null, function (err) {
+                            if (logger) {
+                                logger.verbose("'" + eventName + "'" + " notification handler returned an error: " + err);
+                            }
+                        });
+                notificationPromises.push(currentPromise)
+            }
 
-			Promise.all(notificationPromises).then(function () {
-				resolve();
-			})
-		});
-	};
+            Promise.all(notificationPromises).then(function () {
+                resolve();
+            })
+        });
+    };
 
     /**
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
@@ -152,12 +152,12 @@
             this._appName = null;
             this.validationId = -1;
             this._sessionEventHandlers = [];
-			this._autSessionId = undefined;
-			/** @type {{imageBuffer: Buffer, width: number, height: number}} */
+            this._autSessionId = undefined;
+            /** @type {{imageBuffer: Buffer, width: number, height: number}} */
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;
-            this._properties = {};
+            this._properties = [];
         }
     }
 
@@ -698,7 +698,9 @@
      * @param {string} value The value of property
      */
     EyesBase.prototype.addProperty = function (name, value) {
-        return this._properties[name] = value;
+        var prop = {};
+        prop[name] = value;
+        return this._properties.push(prop);
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -953,86 +955,123 @@
     };
 
     /**
+     * The viewport size of the AUT.
+     *
+     * @abstract
+     * @returns {Promise.<{width: number, height: number}>}
+     */
+    EyesBase.prototype.getViewportSize = function() {
+        throw new Error('getViewportSize method is not implemented!');
+    };
+
+    /**
+     * @abstract
+     * @param {{width: number, height: number}} size The required viewport size.
+     * @returns {Promise.<void>}
+     */
+    EyesBase.prototype.setViewportSize = function(size) {
+        throw new Error('setViewportSize method is not implemented!');
+    };
+
+    /**
+     * An updated screenshot.
+     *
+     * @abstract
+     * @returns {Promise.<MutableImage>}
+     */
+    EyesBase.prototype.getScreenShot = function() {
+        throw new Error('getScreenShot method is not implemented!');
+    };
+
+    /**
+     * The current title of of the AUT.
+     *
+     * @abstract
+     * @returns {Promise.<string>}
+     */
+    EyesBase.prototype.getTitle = function() {
+        throw new Error('getTitle method is not implemented!');
+    };
+
+    /**
      * @private
      * @param {RegionProvider} regionProvider
      * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
-     * @return {Promise<Object<{appOutput: {screenShot64: string, title: string}, screenShot: {imageBuffer: Buffer, width: number, height: number}}>>}
+     * @returns {Promise.<{appOutput: {screenShot64: string, title: string},
+     *                     screenShot: {imageBuffer: Buffer, width: number, height: number}}>}
      */
     function _getAppData(regionProvider, lastScreenshot) {
-        var that = this;
+        /** @type {!EyesBase} */ var that = this;
         return this._promiseFactory.makePromise(function (resolve) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
-            var data = {appOutput: {}};
-            var parsedImage;
-            return that.getScreenShot()
-                .then(function (screenshot) {
-                    that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
-                    parsedImage = screenshot;
-                    if (regionProvider && !GeometryUtils.isRegionEmpty(regionProvider.getRegion())) {
-                        return parsedImage.cropImage(regionProvider.getRegion());
-                    }
-                })
-                .then(function () {
-                    return parsedImage.asObject();
-                }, function (err) {
-                    throw new Error("EyesBase.checkWindow - getAppOutput empty buffer", err);
-                })
-                .then(function (imageObj) {
+            var data = {appOutput: {}, screenShot: null};
+            return that.getScreenShot().then(function (screenshot) {
+                that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
+                if (regionProvider && !GeometryUtils.isRegionEmpty(regionProvider.getRegion())) {
+                    return screenshot.cropImage(regionProvider.getRegion());
+                }
+                return screenshot;
+            }).then(function (screenshot) {
+                return screenshot.asObject().then(function (imageObj) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput image is ready');
                     data.screenShot = imageObj;
                     that._logger.verbose("EyesBase.checkWindow - getAppOutput compressing screenshot...");
-                    return _compressScreenshot64(that, imageObj, parsedImage._imageBmp, lastScreenshot);
-                })
-                .then(function (compressResult) {
-                    data.appOutput.screenShot64 = compressResult;
-                }, function (err) {
-                    that._logger.verbose("EyesBase.checkWindow - getAppOutput  failed to compress screenshot!", err);
-                    data.appOutput.screenShot64 = data.screenShot.imageBuffer.toString('base64');
-                })
-                .then(function () {
-                    that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
-                    return that.getTitle();
-                })
-                .then(function (title) {
+                    return _compressScreenshot64(screenshot, lastScreenshot, that._promiseFactory).then(function (compressResult) {
+                        data.compressScreenshot = compressResult;
+                    }, function (err) {
+                        that._logger.verbose("EyesBase.checkWindow - getAppOutput failed to compress screenshot!", err);
+                    });
+                });
+            }).then(function () {
+                that._logger.verbose('EyesBase.checkWindow - getAppOutput getting title');
+                return that.getTitle().then(function (title) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput received the title');
                     data.appOutput.title = title;
-                    resolve(data);
                 }, function () {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput failed to get title. Using "" instead.');
                     data.appOutput.title = '';
-                    resolve(data);
                 });
+            }).then(function () {
+                resolve(data);
+            });
         });
     }
 
     /**
      * @private
-     * @param {EyesBase} eyes
-     * @param {{imageBuffer: Buffer, width: number, height: number}} imageObj
-     * @param {PNG} imageBmp
-     * @param {{imageBuffer: Buffer, width: number, height: number}} [lastScreenshot=null]
-     * @return {Promise<string>}
+     * @param {MutableImage} screenshot
+     * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
+     * @param {PromiseFactory} promiseFactory
+     * @return {Promise<Buffer>}
      */
-    function _compressScreenshot64(eyes, imageObj, imageBmp, lastScreenshot) {
-        return eyes._promiseFactory.makePromise(function (resolve, reject) {
-            try {
-                var promise = eyes._promiseFactory.makePromise(function (resolve) {
-                    resolve();
-                });
+    function _compressScreenshot64(screenshot, lastScreenshot, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            var targetData, sourceData;
 
+            var promise = promiseFactory.makePromise(function (resolve2) {
                 if (lastScreenshot) {
-                    promise.then(function () {
-                        return ImageUtils.parseImage(lastScreenshot.imageBuffer, eyes._promiseFactory);
+                    return ImageUtils.parseImage(lastScreenshot.imageBuffer, promiseFactory).then(function (imageData) {
+                        sourceData = imageData;
+                        return screenshot.getImageData();
+                    }).then(function (imageData) {
+                        targetData = imageData;
+                        resolve2();
                     });
+                } else {
+                    resolve2();
                 }
+            });
 
-                promise.then(function (sourceBmp) {
-                    var compressedBuffer = ImageDeltaCompressor.compressByRawBlocks(imageBmp, imageObj, sourceBmp);
-                    resolve(compressedBuffer.toString('base64'));
-                });
-            } catch (err) {
-                reject(err);
-            }
+            promise.then(function () {
+                return screenshot.getImageBuffer();
+            }).then(function (targetBuffer) {
+                try {
+                    var compressedBuffer = ImageDeltaCompressor.compressByRawBlocks(targetData, targetBuffer, sourceData);
+                    resolve(compressedBuffer);
+                } catch (err) {
+                    reject(err);
+                }
+            });
         });
     }
 
@@ -1100,13 +1139,13 @@
 					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
 
 					validationResult.asExpected = result.asExpected;
-                    this._lastScreenshot = result.screenshot;
-
-					if (!ignoreMismatch) {
-						this._userInputs = [];
-					}
 
 					if (!result.asExpected) {
+                        if (!ignoreMismatch) {
+                            this._userInputs = [];
+                            this._lastScreenshot = result.screenshot;
+                        }
+
 						this._logger.verbose("EyesBase.checkWindow - match window result was not success");
 						this._shouldMatchWindowRunOnceOnTimeout = true;
 
@@ -1122,7 +1161,10 @@
 
 							reject(error);
 						}
-					}
+					} else { // Match successful
+                        this._userInputs = [];
+                        this._lastScreenshot = result.screenshot;
+                    }
 
 					resolve(result);
 				}.bind(this), function (err) {

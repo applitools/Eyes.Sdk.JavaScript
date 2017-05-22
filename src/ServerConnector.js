@@ -259,15 +259,12 @@
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
-            // TODO Daniel - Use binary image instead of base64 (see line below)
-            //options.headers['Content-Type'] = 'application/octet-stream';
-            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
 
             var options = Object.create(this._httpOptions);
+            options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
-            options.body = matchWindowData;
-            options.json = true;
+            options.body = Buffer.concat([_createDataBytes(matchWindowData), screenshot]);
             options.method = "post";
             request(options, function (err, response, body) {
                 if (err) {
@@ -276,6 +273,7 @@
                     return;
                 }
 
+                body = JSON.parse(body); // we need to do it manually, because our content-type is not json
                 this._logger.verbose('ServerConnector.matchWindow result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
                     resolve({asExpected: body.asExpected});
@@ -298,14 +296,12 @@
     ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
-            // TODO Daniel - Use binary image instead of base64 (see line below)
-            //options.headers['Content-Type'] = 'application/octet-stream';
-            //options.data = Buffer.concat([_createDataBytes(matchWindowData), screenshot]).toString('binary');
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
+
             var options = Object.create(this._httpOptions);
+            options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
-            options.body = replaceWindowData;
-            options.json = true;
+            options.body = Buffer.concat([_createDataBytes(replaceWindowData), screenshot]);
             options.method = "put";
             request(options, function (err, response, body) {
                 if (err) {
@@ -314,6 +310,7 @@
                     return;
                 }
 
+                body = JSON.parse(body); // we need to do it manually, because our content-type is not json
                 this._logger.verbose('ServerConnector.replaceWindow result', body, 'status code', response.statusCode);
                 if (response.statusCode === 200) {
                     resolve();
