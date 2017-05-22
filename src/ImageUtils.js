@@ -12,97 +12,88 @@
     "use strict";
 
     var fs = require('fs'),
-        /** @type {PNG} */
-        PNG = require('pngjs').PNG,
+        png = require('png-async'),
         StreamUtils = require('./StreamUtils');
+
     var ReadableBufferStream = StreamUtils.ReadableBufferStream,
         WritableBufferStream = StreamUtils.WritableBufferStream;
 
     var ImageUtils = {};
 
     /**
-     * Processes a PNG buffer - returns it as BMP.
+     * Processes a PNG buffer - returns it as parsed png.Image.
      *
-     * @param {Buffer} image
+     * @param {Buffer} buffer Original image as PNG Buffer
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<PNG>} imageBmp object
-     *
+     * @returns {Promise.<png.Image>} Decoded png image with byte buffer
      **/
-    ImageUtils.parseImage = function parseImage(image, promiseFactory) {
+    ImageUtils.parseImage = function parseImage(buffer, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve) {
+            if (!fs.open) {
+                return resolve(buffer);
+            }
+
+            // pass the file to PNG using read stream
+            var imageReadableStream = new ReadableBufferStream(buffer, undefined);
+            var image = png.createImage({filterType: 4});
+            imageReadableStream.pipe(image).on('parsed', function () {
+                resolve(image);
+            });
+        });
+    };
+
+    /**
+     * Repacks a parsed png.Image to a PNG buffer.
+     *
+     * @param {png.Image} image Parsed image as returned from parseImage
+     * @param {PromiseFactory} promiseFactory
+     * @returns {Promise.<Buffer>} PNG buffer which can be written to file or base64 string
+     **/
+    ImageUtils.packImage = function packImage(image, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
             if (!fs.open) {
                 return resolve(image);
             }
 
-            // pass the file to PNG using read stream
-            var origImageReadableStream = new ReadableBufferStream(image, undefined);
-            var origImage = new PNG({filterType: 4});
-            //noinspection JSUnresolvedFunction
-            origImageReadableStream.pipe(origImage)
-                .on('parsed', function () {
-                    resolve(origImage);
-                });
-        });
-    };
-
-    /**
-     * Repacks a parsed image to a PNG buffer.
-     *
-     * @param {PNG} imageBmp Parsed image as returned from parseImage
-     * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<Buffer>} when resolved contains a buffer
-     **/
-    ImageUtils.packImage = function packImage(imageBmp, promiseFactory) {
-        return promiseFactory.makePromise(function (resolve) {
-
-            var png = new PNG({
-                width: imageBmp.width,
-                height: imageBmp.height,
-                bitDepth: 8,
-                filterType: 4
-            });
-            png.data = new Buffer(imageBmp.data);
-
             // Write back to a temp png file
-            var croppedImageStream = new WritableBufferStream();
-            png.pack().pipe(croppedImageStream)
-                .on('finish', function () {
-                    resolve(croppedImageStream.getBuffer());
-                });
+            var imageWritableStream = new WritableBufferStream();
+            image.pack().pipe(imageWritableStream).on('finish', function () {
+                resolve(imageWritableStream.getBuffer());
+            });
         });
     };
 
     /**
      * Scaled a parsed image by a given factor.
      *
-     * @param {PNG} imageBmp - will be modified
+     * @param {png.Image} image - will be modified
      * @param {number} scaleRatio factor to multiply the image dimensions by (lower than 1 for scale down)
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<void>}
+     * @returns {Promise.<void>}
      **/
-    ImageUtils.scaleImage = function scaleImage(imageBmp, scaleRatio, promiseFactory) {
+    ImageUtils.scaleImage = function scaleImage(image, scaleRatio, promiseFactory) {
         if (scaleRatio === 1) {
             return promiseFactory.makePromise(function (resolve) {
-                resolve(imageBmp);
+                resolve(image);
             });
         }
 
-        var ratio = imageBmp.height / imageBmp.width;
-        var scaledWidth = Math.ceil(imageBmp.width * scaleRatio);
+        var ratio = image.height / image.width;
+        var scaledWidth = Math.ceil(image.width * scaleRatio);
         var scaledHeight = Math.ceil(scaledWidth * ratio);
-        return ImageUtils.resizeImage(imageBmp, scaledWidth, scaledHeight, promiseFactory);
+        return ImageUtils.resizeImage(image, scaledWidth, scaledHeight, promiseFactory);
     };
 
     /**
      * Resize a parsed image by a given dimensions.
      *
-     * @param {PNG} imageBmp - will be modified
+     * @param {png.Image} image - will be modified
      * @param {int} targetWidth The width to resize the image to
      * @param {int} targetHeight The height to resize the image to
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<void>}
+     * @returns {Promise.<void>}
      **/
-    ImageUtils.resizeImage = function resizeImage(imageBmp, targetWidth, targetHeight, promiseFactory) {
+    ImageUtils.resizeImage = function resizeImage(image, targetWidth, targetHeight, promiseFactory) {
 
         function _interpolateCubic(x0, x1, x2, x3, t) {
             var a0 = x3 - x2 - x0 + x1;
@@ -244,7 +235,7 @@
                 }
 
                 // Stop when we cannot incrementally step down anymore.
-                if (prevCurrentWidth == currentWidth && prevCurrentHeight == currentHeight)
+                if (prevCurrentWidth === currentWidth && prevCurrentHeight === currentHeight)
                     break;
 
                 // Render the incremental scaled image.
@@ -263,7 +254,7 @@
 
                 // Track how many times we go through this cycle to scale the image.
                 incrementCount++;
-            } while (currentWidth != targetWidth || currentHeight != targetHeight);
+            } while (currentWidth !== targetWidth || currentHeight !== targetHeight);
 
             return dst;
         }
@@ -275,74 +266,74 @@
                 height: targetHeight
             };
 
-            if (dst.width > imageBmp.width || dst.height > imageBmp.height) {
-                _doBicubicInterpolation(imageBmp, dst);
+            if (dst.width > image.width || dst.height > image.height) {
+                _doBicubicInterpolation(image, dst);
             } else {
-                _scaleImageIncrementally(imageBmp, dst);
+                _scaleImageIncrementally(image, dst);
             }
 
-            imageBmp.data = dst.data;
-            imageBmp.width = dst.width;
-            imageBmp.height = dst.height;
-            resolve(imageBmp);
+            image.data = dst.data;
+            image.width = dst.width;
+            image.height = dst.height;
+            resolve(image);
         });
     };
 
     /**
      * Crops a parsed image - the image is changed
      *
-     * @param {PNG} imageBmp
+     * @param {png.Image} image
      * @param {{left: number, top: number, width: number, height: number}} region Region to crop
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<void>}
+     * @returns {Promise.<png.Image>}
      **/
-    ImageUtils.cropImage = function cropImage(imageBmp, region, promiseFactory) {
+    ImageUtils.cropImage = function cropImage(image, region, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             if (!region) {
-                resolve(imageBmp);
+                resolve(image);
                 return;
             }
 
-            if (region.top < 0 || region.top >= imageBmp.height || region.left < 0 || region.left >= imageBmp.width) {
+            if (region.top < 0 || region.top >= image.height || region.left < 0 || region.left >= image.width) {
                 return reject(new Error('region is outside the image bounds!'));
             }
 
             // process the pixels - crop
             var croppedArray = [];
             var yStart = region.top,
-                yEnd = Math.min(region.top + region.height, imageBmp.height),
+                yEnd = Math.min(region.top + region.height, image.height),
                 xStart = region.left,
-                xEnd = Math.min(region.left + region.width, imageBmp.width);
+                xEnd = Math.min(region.left + region.width, image.width);
 
             var y, x, idx, i;
             for (y = yStart; y < yEnd; y++) {
                 for (x = xStart; x < xEnd; x++) {
-                    idx = (imageBmp.width * y + x) << 2;
+                    idx = (image.width * y + x) << 2;
                     for (i = 0; i < 4; i++) {
-                        croppedArray.push(imageBmp.data[idx + i]);
+                        croppedArray.push(image.data[idx + i]);
                     }
                 }
             }
 
-            imageBmp.data = new Buffer(croppedArray);
-            imageBmp.width = xEnd - xStart;
-            imageBmp.height = yEnd - yStart;
+            image.data = new Buffer(croppedArray);
+            image.width = xEnd - xStart;
+            image.height = yEnd - yStart;
 
-            resolve(imageBmp);
+            resolve(image);
         });
     };
 
     /**
      * Rotates a parsed image - the image is changed
      *
-     * @param {PNG} imageBmp
+     * @param {png.Image} image
      * @param {number} deg how many degrees to rotate (in actuality it's only by multipliers of 90)
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise<void>}
+     * @returns {Promise.<png.Image>}
      **/
-    ImageUtils.rotateImage = function rotateImage(imageBmp, deg, promiseFactory) {
+    ImageUtils.rotateImage = function rotateImage(image, deg, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
-            if (typeof deg != "number") {
+            if (typeof deg !== "number") {
                 return reject(new Error('deg must be a number!'));
             }
 
@@ -350,45 +341,46 @@
             if (i < 0) i += 4;
 
             while (i > 0) {
-                var buffer = new Buffer(imageBmp.data.length);
+                var buffer = new Buffer(image.data.length);
                 var offset = 0;
-                for (var x = 0; x < imageBmp.width; x++) {
-                    for (var y = imageBmp.height - 1; y >= 0; y--) {
-                        var idx = (imageBmp.width * y + x) << 2;
-                        var data = imageBmp.data.readUInt32BE(idx, true);
+                for (var x = 0; x < image.width; x++) {
+                    for (var y = image.height - 1; y >= 0; y--) {
+                        var idx = (image.width * y + x) << 2;
+                        var data = image.data.readUInt32BE(idx, true);
                         buffer.writeUInt32BE(data, offset, true);
                         offset += 4;
                     }
                 }
 
-                imageBmp.data = Buffer.from(buffer);
-                var tmp = imageBmp.width;
+                image.data = Buffer.from(buffer);
+                var tmp = image.width;
                 //noinspection JSSuspiciousNameCombination
-                imageBmp.width = imageBmp.height;
-                imageBmp.height = tmp;
+                image.width = image.height;
+                image.height = tmp;
 
                 i--;
             }
 
-            resolve(imageBmp);
+            resolve(image);
         });
     };
 
     /**
      * Copies pixels from the source image to the destination image.
      *
-     * @param {PNG} dst The destination image.
+     * @param {png.Image} dstImage The destination image.
      * @param {{x: number, y: number}} dstPosition The pixel which is the starting point to copy to.
-     * @param {PNG} src The source image.
+     * @param {png.Image} srcImage The source image.
      * @param {{x: number, y: number}} srcPosition The pixel from which to start copying.
      * @param {{width: number, height: number}} size The region to be copied.
+     * @returns {void}
      */
-    ImageUtils.copyPixels = function copyPixels(dst, dstPosition, src, srcPosition, size) {
+    ImageUtils.copyPixels = function copyPixels(dstImage, dstPosition, srcImage, srcPosition, size) {
         var y, dstY, srcY, x, dstX, srcX, dstIndex, srcIndex;
 
         // Fix the problem when src image was out of dst image and pixels was copied to wrong position in dst image.
-        var maxHeight = dstPosition.y + size.height <= dst.height ? size.height : dst.height - dstPosition.y;
-        var maxWidth = dstPosition.x + size.width <= dst.width ? size.width : dst.width - dstPosition.x;
+        var maxHeight = dstPosition.y + size.height <= dstImage.height ? size.height : dstImage.height - dstPosition.y;
+        var maxWidth = dstPosition.x + size.width <= dstImage.width ? size.width : dstImage.width - dstPosition.x;
         for (y = 0; y < maxHeight; ++y) {
             dstY = dstPosition.y + y;
             srcY = srcPosition.y + y;
@@ -398,55 +390,34 @@
                 srcX = srcPosition.x + x;
 
                 // Since each pixel is composed of 4 values (RGBA) we multiply each index by 4.
-                dstIndex = (dstY * dst.width + dstX) << 2;
-                srcIndex = (srcY * src.width + srcX) << 2;
+                dstIndex = (dstY * dstImage.width + dstX) << 2;
+                srcIndex = (srcY * srcImage.width + srcX) << 2;
 
-                dst.data[dstIndex] = src.data[srcIndex];
-                dst.data[dstIndex + 1] = src.data[srcIndex + 1];
-                dst.data[dstIndex + 2] = src.data[srcIndex + 2];
-                dst.data[dstIndex + 3] = src.data[srcIndex + 3];
+                dstImage.data[dstIndex] = srcImage.data[srcIndex];
+                dstImage.data[dstIndex + 1] = srcImage.data[srcIndex + 1];
+                dstImage.data[dstIndex + 2] = srcImage.data[srcIndex + 2];
+                dstImage.data[dstIndex + 3] = srcImage.data[srcIndex + 3];
             }
         }
-    };
-
-    /**
-     * Creates a PNG instance from the given buffer.
-     *
-     * @param {Buffer} buffer A buffer containing PNG bytes.
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<PNG>} A promise which resolves to the PNG instance.
-     */
-    ImageUtils.createPngFromBuffer = function createPngFromBuffer(buffer, promiseFactory) {
-        return promiseFactory.makePromise(function(resolve) {
-            // In order to create a PNG instance from part.image, we first need to create a stream from it.
-            var pngImageStream = new ReadableBufferStream(buffer);
-            // Create the PNG
-            var pngImage = new PNG({filterType: 4});
-            //noinspection JSUnresolvedFunction
-            pngImageStream.pipe(pngImage);
-            pngImage.on('parsed', function () {
-                resolve(pngImage);
-            });
-        });
     };
 
     /**
      * Stitches a part into the image.
      *
      * @private
-     * @param {Promise<void>} stitchingPromise A promise which its "then" block will execute the stitching.
-     * @param {PNG} stitchedImage A PNG instance into which the part will be stitched.
+     * @param {Promise.<void>} stitchingPromise A promise which its "then" block will execute the stitching.
+     * @param {png.Image} stitchedImage A PNG instance into which the part will be stitched.
      * @param {{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}} part
      *         A "part" object given in the {@code parts} argument of {@link ImageUtils.stitchImage}.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>} A promise which is resolved when the stitching is done.
+     * @return {Promise.<void>} A promise which is resolved when the stitching is done.
      */
     var _stitchPart = function (stitchingPromise, stitchedImage, part, promiseFactory) {
         //noinspection JSUnresolvedFunction
         return stitchingPromise.then(function () {
             return promiseFactory.makePromise(function(resolve) {
                 //noinspection JSUnresolvedFunction
-                ImageUtils.createPngFromBuffer(part.image, promiseFactory).then(function (pngImage) {
+                ImageUtils.parseImage(part.image, promiseFactory).then(function (pngImage) {
                     ImageUtils.copyPixels(stitchedImage, part.position, pngImage, {x: 0, y: 0}, part.size);
                     resolve(stitchedImage);
                 });
@@ -461,11 +432,11 @@
      * @param {Array<{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}>} parts
      *         The parts to stitch into an image.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<Buffer>} A promise which resolves to the stitched image.
+     * @return {Promise.<png.Image>} A promise which resolves to the stitched image.
      */
     ImageUtils.stitchImage = function stitchImage(fullSize, parts, promiseFactory) {
         return promiseFactory.makePromise(function(resolve) {
-            var stitchedImage = new PNG({filterType: 4, width: fullSize.width, height: fullSize.height});
+            var stitchedImage = png.createImage({filterType: 4, width: fullSize.width, height: fullSize.height});
             var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
 
             for (var i = 0; i < parts.length; ++i) {
@@ -492,11 +463,31 @@
     };
 
     /**
+     * Get png size from image buffer. Don't require parsing the image
+     *
+     * @param {Buffer} imageBuffer
+     * @param {PromiseFactory} promiseFactory
+     * @return {{width: number, height: number}}
+     */
+    ImageUtils.getImageSizeFromBuffer = function (imageBuffer, promiseFactory) {
+        return promiseFactory.makePromise(function (resolve, reject) {
+            if (imageBuffer[12] === 0x49 && imageBuffer[13] === 0x48 && imageBuffer[14] === 0x44 && imageBuffer[15] === 0x52) {
+                var width = (imageBuffer[16] * 256 * 256 * 256) + (imageBuffer[17] * 256 * 256) + (imageBuffer[18] * 256) + imageBuffer[19];
+                var height = (imageBuffer[20] * 256 * 256 * 256) + (imageBuffer[21] * 256 * 256) + (imageBuffer[22] * 256) + imageBuffer[23];
+                resolve({width: width, height: height});
+                return;
+            }
+
+            reject("Buffer contains unsupported image type.");
+        });
+    };
+
+    /**
      *
      * @param {Buffer} imageBuffer
      * @param {string} filename
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>}
+     * @return {Promise.<void>}
      */
     ImageUtils.saveImage = function (imageBuffer, filename, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {

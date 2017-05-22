@@ -93,36 +93,36 @@
     /**
      * Compresses a target image based on a difference from a source image.
      * {@code blockSize} defaults to 10.
-     * @param {PNG} target The image we want to compress.
-     * @param {{imageBuffer: Buffer, width: number, height: number}} targetPacked
-     * @param {PNG} source The baseline image by which a compression will be performed.
+     * @param {png.Image} targetData The image we want to compress.
+     * @param {Buffer} targetBuffer
+     * @param {png.Image} sourceData The baseline image by which a compression will be performed.
      * @param {int} [blockSize=10] How many pixels per block.
      * @return {Buffer} The compression result.
      * @throws java.io.IOException If there was a problem reading/writing from/to the streams which are created during the process.
      */
-    ImageDeltaCompressor.compressByRawBlocks = function (target, targetPacked, source, blockSize) {
+    ImageDeltaCompressor.compressByRawBlocks = function (targetData, targetBuffer, sourceData, blockSize) {
         if (!blockSize) {
             blockSize = 10;
         }
 
         // If there's no image to compare to, or the images are in different
         // sizes, we simply return the encoded target.
-        if (target == null || source == null || (source.width != target.width) || (source.height != target.height)) {
-            return targetPacked.imageBuffer;
+        if (!targetData || !sourceData || (sourceData.width !== targetData.width) || (sourceData.height !== targetData.height)) {
+            return targetBuffer;
         }
 
         // IMPORTANT: Notice that the pixel bytes are (A)RGB!
-        var targetPixels = target.data;
-        var sourcePixels = source.data;
+        var targetPixels = targetData.data;
+        var sourcePixels = sourceData.data;
 
         // The number of bytes comprising a pixel (depends if there's an Alpha channel).
         // target.data[25] & 4 equal 0 if there is no alpha channel but 4 if there is an alpha channel.
-        var pixelLength = (target.data[25] & 4) === 4 ? 4 : 3;
-        var imageSize = {width: target.width, height: target.height};
+        var pixelLength = (targetData.data[25] & 4) === 4 ? 4 : 3;
+        var imageSize = {width: targetData.width, height: targetData.height};
 
         // Calculating how many block columns and rows we've got.
-        var blockColumnsCount = parseInt((target.width / blockSize) + ((target.width % blockSize) == 0 ? 0 : 1));
-        var blockRowsCount = parseInt((target.height / blockSize) + ((target.height % blockSize) == 0 ? 0 : 1));
+        var blockColumnsCount = parseInt((targetData.width / blockSize) + ((targetData.width % blockSize) === 0 ? 0 : 1));
+        var blockRowsCount = parseInt((targetData.height / blockSize) + ((targetData.height % blockSize) === 0 ? 0 : 1));
 
         // Writing the header
         var stream = new WritableBufferStream();
@@ -140,7 +140,7 @@
 
             // The image is RGB, so all that's left is to skip the Alpha
             // channel if there is one.
-            var actualChannelIndex = (pixelLength == 4) ? channel + 1 : channel;
+            var actualChannelIndex = (pixelLength === 4) ? channel + 1 : channel;
 
             var blockNumber = 0;
             for (var blockRow = 0; blockRow < blockRowsCount; ++blockRow) {
@@ -156,8 +156,8 @@
                         // If the number of bytes already written is greater
                         // then the number of bytes for the uncompressed
                         // target, we just return the uncompressed target.
-                        if (stream.getBuffer().length + blocksStream.getBuffer().length > targetPacked.imageBuffer.length) {
-                            return targetPacked.imageBuffer;
+                        if (stream.getBuffer().length + blocksStream.getBuffer().length > targetBuffer.length) {
+                            return targetBuffer;
                         }
                     }
 
@@ -170,8 +170,8 @@
             level: zlib.Z_BEST_COMPRESSION,
         }));
 
-        if (stream.getBuffer().length > targetPacked.imageBuffer.length) {
-            return targetPacked.imageBuffer;
+        if (stream.getBuffer().length > targetBuffer.length) {
+            return targetBuffer;
         }
 
         return stream.getBuffer();
