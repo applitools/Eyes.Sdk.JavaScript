@@ -228,11 +228,11 @@
             // if screenshot is not specified, then retrieving it from provider
             return that.getScreenShot();
         }).then(function (screenshot) {
-            return screenshot.asObject();
-        }).then(function (imageObject) {
+            return screenshot.getSize()
+        }).then(function (imageSize) {
             return {
-                width: imageObject.width,
-                height: imageObject.height
+                width: imageSize.width,
+                height: imageSize.height
             }
         });
     };
