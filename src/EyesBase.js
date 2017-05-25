@@ -1074,10 +1074,11 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
-    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, ignoreCaret, ignoreRegions, floatingRegions) {
-        ignoreMismatch = ignoreMismatch || false;
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings) {
         tag = tag || '';
+        ignoreMismatch = ignoreMismatch || false;
         retryTimeout = retryTimeout || -1;
+        imageMatchSettings = imageMatchSettings || {matchLevel: null, ignoreCaret: null, exact: null};
 
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.checkWindow - running');
@@ -1108,24 +1109,21 @@
 				var validationResult = new SessionEventHandler.ValidationResult();
 
 				// copy matchLevel and exact from defaultMatchSettings
-                var exactObj = this._defaultMatchSettings.getExact();
-                var exact = null;
-                if (exactObj) {
-                    exact = {
+                if (!imageMatchSettings.matchLevel) {
+                    imageMatchSettings.matchLevel = this._defaultMatchSettings.getMatchLevel();
+                }
+                if (!imageMatchSettings.ignoreCaret) {
+                    imageMatchSettings.ignoreCaret = this._defaultMatchSettings.isIgnoreCaret();
+                }
+                if (!imageMatchSettings.exact && this._defaultMatchSettings.getExact()) {
+                    var exactObj = this._defaultMatchSettings.getExact();
+                    imageMatchSettings.exact = {
                         minDiffIntensity: exactObj.getMinDiffIntensity(),
                         minDiffWidth: exactObj.getMinDiffWidth(),
                         minDiffHeight: exactObj.getMinDiffHeight(),
                         matchThreshold: exactObj.getMatchThreshold()
                     };
                 }
-				var imageMatchSettings = {
-                    matchLevel: this._defaultMatchSettings.getMatchLevel(),
-                    ignoreCaret: ignoreCaret || this._defaultMatchSettings.isIgnoreCaret(),
-                    ignore: ignoreRegions,
-                    floating: floatingRegions,
-                    exact: exact
-                };
-
 				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
 					'validationWillStart', this._autSessionId, validationInfo)
 				.then(function () {
