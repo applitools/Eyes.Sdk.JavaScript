@@ -1,9 +1,9 @@
 (function() {
     'use strict';
 
-    var EyesUtils = require('eyes.utils');
-    var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard;
+    var ScaleProvider = require('./ScaleProvider'),
+        ArgumentGuard = require('eyes.utils').ArgumentGuard;
+
     /**
      * @constructor
      * @param {number} scaleRatio The scale ratio to use.

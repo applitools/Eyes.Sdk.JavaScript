@@ -18,8 +18,7 @@
         request = require('request'),
         fs = require('fs');
 
-    var GeneralUtils = EyesUtils.GeneralUtils,
-        BrowserUtils = EyesUtils.BrowserUtils;
+    var GeneralUtils = EyesUtils.GeneralUtils;
 
     // Constants
     var CONNECTION_TIMEOUT_MS = 5 * 60 * 1000,
@@ -229,7 +228,7 @@
                 // Waiting a delay
                 logger.verbose("endSession: Still running... Retrying in " + delay + " ms");
 
-                return BrowserUtils.sleep(delay, promiseFactory).then(function () {
+                return GeneralUtils.sleep(delay, promiseFactory).then(function () {
                     // increasing the delay
                     delay = Math.min(MAX_DELAY, Math.floor(delay * 1.5));
                     return sendLongRequest(options, delay, logger, promiseFactory);

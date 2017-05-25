@@ -153,6 +153,7 @@
             this.validationId = -1;
             this._sessionEventHandlers = [];
             this._autSessionId = undefined;
+            /** @type {{imageBuffer: Buffer, width: number, height: number}} */
             this._lastScreenshot = undefined;
             this._saveDebugScreenshots = false;
             this._debugScreenshotsPath = null;

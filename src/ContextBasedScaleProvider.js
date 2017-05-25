@@ -1,9 +1,9 @@
 (function() {
     'use strict';
 
-    var EyesUtils = require('eyes.utils');
-    var ScaleProvider = EyesUtils.ScaleProvider,
-        ArgumentGuard = EyesUtils.ArgumentGuard;
+    var EyesUtils = require('eyes.utils'),
+        ScaleProvider = require('./ScaleProvider');
+    var ArgumentGuard = EyesUtils.ArgumentGuard;
 
     // Allowed deviations for viewport size and default content entire size.
     var ALLOWED_VS_DEVIATION = 1,
