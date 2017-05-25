@@ -148,7 +148,7 @@
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('ServerConnector.startSession will now post call');
 
-            var options = Object.create(this._httpOptions);
+            var options = GeneralUtils.clone(this._httpOptions);
             options.uri = this._serverUri;
             options.body = {startInfo: sessionStartInfo};
             options.json = true;
@@ -197,7 +197,7 @@
 
         var data = {aborted: isAborted, updateBaseline: save};
 
-        var options = Object.create(this._httpOptions);
+        var options = GeneralUtils.clone(this._httpOptions);
         options.uri = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
         options.qs.aborted = isAborted;
         options.qs.updateBaseline = save;
@@ -262,7 +262,7 @@
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
 
-            var options = Object.create(this._httpOptions);
+            var options = GeneralUtils.clone(this._httpOptions);
             options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
             options.body = Buffer.concat([_createDataBytes(matchWindowData), screenshot]);
@@ -299,7 +299,7 @@
             var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
 
-            var options = Object.create(this._httpOptions);
+            var options = GeneralUtils.clone(this._httpOptions);
             options.headers['Content-Type'] = 'application/octet-stream';
             options.uri = url;
             options.body = Buffer.concat([_createDataBytes(replaceWindowData), screenshot]);
