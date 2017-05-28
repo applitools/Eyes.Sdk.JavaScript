@@ -131,9 +131,7 @@
         if (obj instanceof Object) {
             copy = obj.constructor();
             for (var attr in obj) {
-                if (obj.hasOwnProperty(attr)) {
-                    copy[attr] = GeneralUtils.clone(obj[attr]);
-                }
+                copy[attr] = GeneralUtils.clone(obj[attr]);
             }
             return copy;
         }
