@@ -17,8 +17,11 @@
         // Images do not necessarily match.
         None: 'None',
 
+        // Images have the same layout (legacy algorithm).
+        LegacyLayout: 'Layout1',
+
         // Images have the same layout.
-        Layout: 'Layout',
+        Layout: 'Layout2',
 
         // Images have the same layout.
         Layout2: 'Layout2',
