@@ -26,8 +26,8 @@
     "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
   },
   "dependencies": {
-    "eyes.utils": "0.0.23",
-    "eyes.sdk": "0.0.58",
+    "eyes.utils": "0.0.25",
+    "eyes.sdk": "0.0.61",
     "rsvp": "^3.5.0"
   },
   "devDependencies": {
