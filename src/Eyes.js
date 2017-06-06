@@ -16,9 +16,9 @@
         EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
         EyesBase = EyesSDK.EyesBase,
-        MutableImage = EyesUtils.MutableImage,
-        RegionProvider = EyesUtils.RegionProvider,
-        CoordinatesType = EyesUtils.CoordinatesType,
+        MutableImage = EyesSDK.MutableImage,
+        RegionProvider = EyesSDK.RegionProvider,
+        CoordinatesType = EyesSDK.CoordinatesType,
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
