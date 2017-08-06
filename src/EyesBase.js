@@ -175,6 +175,25 @@
         this._logger.setLogHandler(logHandler);
     };
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the current server URL used by the rest client.
+     *
+     * @param serverUrl  {String} The URI of the rest server.
+     */
+    EyesBase.prototype.setServerUrl = function (serverUrl) {
+        this._serverUrl = serverUrl;
+        this._serverConnector.setServerUrl(serverUrl);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The URI of the eyes server.
+     */
+    EyesBase.prototype.getServerUrl = function () {
+        return this._serverConnector.getServerUrl();
+    };
+
     /**
      * Sets the API key of your applitools Eyes account.
      *

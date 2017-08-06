@@ -29,14 +29,14 @@
     /**
      *
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     * @param {String} serverUri
+     * @param {String} serverUrl
      * @param {Object} logger
      * @constructor
      **/
-    function ServerConnector(promiseFactory, serverUri, logger) {
+    function ServerConnector(promiseFactory, serverUrl, logger) {
+        this.setServerUrl(serverUrl);
         this._promiseFactory = promiseFactory;
         this._logger = logger;
-        this._serverUri = GeneralUtils.urlConcat(serverUri, SERVER_SUFFIX);
         this._runKey = undefined;
         this._httpOptions = {
             proxy: null,
@@ -61,6 +61,24 @@
      */
     ServerConnector.prototype.getIsDebugMode = function () {
         return request.debug;
+    };
+
+    /**
+     * Sets the current server URL used by the rest client.
+     *
+     * @param serverUrl {String} The URI of the rest server.
+     */
+    ServerConnector.prototype.setServerUrl = function (serverUrl) {
+        this._serverUrl = serverUrl;
+        this._endPoint = GeneralUtils.urlConcat(serverUrl, SERVER_SUFFIX);
+    };
+
+    /**
+     *
+     * @return {String} The URI of the eyes server.
+     */
+    ServerConnector.prototype.getServerUrl = function () {
+        return this._serverUrl;
     };
 
     /**
@@ -148,7 +166,7 @@
             this._logger.verbose('ServerConnector.startSession will now post call');
 
             var options = GeneralUtils.clone(this._httpOptions);
-            options.uri = this._serverUri;
+            options.uri = this._endPoint;
             options.body = {startInfo: sessionStartInfo};
             options.json = true;
             options.method = "post";
@@ -197,7 +215,7 @@
         var data = {aborted: isAborted, updateBaseline: save};
 
         var options = GeneralUtils.clone(this._httpOptions);
-        options.uri = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
+        options.uri = GeneralUtils.urlConcat(this._endPoint, runningSession.sessionId.toString());
         options.qs.aborted = isAborted;
         options.qs.updateBaseline = save;
         options.headers["Eyes-Expect"] = "202-accepted";
@@ -258,7 +276,7 @@
 
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
-            var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString());
+            var url = GeneralUtils.urlConcat(this._endPoint, runningSession.sessionId.toString());
             this._logger.verbose("ServerConnector.matchWindow will now post to:", url);
 
             var options = GeneralUtils.clone(this._httpOptions);
@@ -295,7 +313,7 @@
      */
     ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
         return this._promiseFactory.makePromise(function (resolve, reject) {
-            var url = GeneralUtils.urlConcat(this._serverUri, runningSession.sessionId.toString() + '/' + stepIndex);
+            var url = GeneralUtils.urlConcat(this._endPoint, runningSession.sessionId.toString() + '/' + stepIndex);
             this._logger.verbose("ServerConnector.replaceWindow will now post to:", url);
 
             var options = GeneralUtils.clone(this._httpOptions);
