@@ -149,7 +149,7 @@
             }.bind(this));
         }
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch exhausted the retry interval');
-        if (!this._matchResult.asExpected) {
+        if (!this._matchResult || !this._matchResult.asExpected) {
             // Try one last time...
             this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch last attempt because we got failure');
             return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, resolve);
