@@ -795,29 +795,30 @@
      * @returns {Error|null} An error object representing the tets.
      */
     EyesBase.buildTestError = function (results, testName, appName) {
-        var message, header;
-        var instructions = 'See details at'; // Default
+        var header,
+            message = "Test '" + testName + "' of '" + appName + "'.", // Default
+            instructions = 'See details at', // Default
+            url = results.appUrls && results.appUrls.session ? results.appUrls.session : '';
 
         // Specifically handle the build test error
         if (results.asExpected === false) {
-            return new Error('[EYES: TEST FAILED (Immediate failure report on mismatch)]');
-        }
-
-        if (results.isAborted) {
+            header = "[EYES: DIFFS FOUND]";
+            message = "Test '" + testName + "' of '" + appName + "' detected differences!";
+        } else if (results.isAborted) {
             header = "[EYES: TEST ABORTED]";
         } else if (results.isNew) {
             header = "[EYES: NEW TEST ENDED]";
             instructions = "It is recommended to review the new baseline at";
 
-        // We explicitly check 'asExpected' as this method is also called by "checkWindow" in wrapper SDKs.
+            // We explicitly check 'asExpected' as this method is also called by "checkWindow" in wrapper SDKs.
         } else if ((!results.isPassed) && (results.asExpected === undefined)) {
             header = "[EYES: TEST FAILED]";
         } else {
             // TODO - Do we really need this? (Is there a case when this function is called when a test is not failed/all the above?)
             return null;
         }
-        var url = results.appUrls && results.appUrls.session ? results.appUrls.session : '';
-        message = header + " '" + testName + "' of '" + appName + "'. " + instructions + ' ' + url + '.';
+
+        message = header + ' ' + message + ' ' + instructions + ' ' + url;
         var error = new Error(message + "\r\nResults: " + JSON.stringify(results));
         error.results = results;
         return error;
@@ -885,7 +886,11 @@
 				}
 				this._logger.log('Results:', flattenedResults);
 
-				if (!testResults.isPassed) {
+				if (!testResults.isPassed && !(testResults.isNew && this._saveNewTests)) {
+				    if (!testResults.isNew && (testResults.mismatches > 0 || testResults.missing > 0)) {
+                        testResults.asExpected = false;
+                    }
+
 					var error = EyesBase.buildTestError(testResults, this._testName, this._appName);
 
 					this._logger.log(error.message);
