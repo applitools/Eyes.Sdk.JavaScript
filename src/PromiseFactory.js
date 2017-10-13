@@ -51,6 +51,69 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @template T
+     * @param {T} [resolveValue]
+     * @return {Promise.<T>}
+     */
+    PromiseFactory.prototype.resolve = function (resolveValue) {
+        return this.makePromise(function (resolve) {
+            resolve(resolveValue);
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @template T
+     * @param {T} [rejectValue]
+     * @return {Promise.<T>}
+     */
+    PromiseFactory.prototype.reject = function (rejectValue) {
+        return this.makePromise(function (resolve, reject) {
+            reject(rejectValue);
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     @param {Promise[]} promises
+     @return {Promise.<[*]>}
+     */
+    PromiseFactory.prototype.all = function (promises) {
+        const accumulator = [];
+        var ready = this.resolve(null);
+
+        promises.forEach(function (promise, ndx) {
+            ready = ready.then(function () {
+                return promise;
+            }).then(function (value) {
+                accumulator[ndx] = value;
+            });
+        });
+
+        return ready.then(function () {
+            return accumulator;
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {Function<boolean>} condition
+     * @param {Function<Promise>} action
+     * @return {Promise}
+     */
+    PromiseFactory.prototype.promiseWhile = function (condition, action) {
+        if (!condition()) {
+            return this.resolve();
+        }
+
+        const that = this;
+        return action().then(function () {
+            return that.promiseWhile(condition, action)
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * @deprecated
      * @returns {*}
      */
