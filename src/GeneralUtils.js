@@ -141,6 +141,42 @@
 
     //noinspection JSUnusedGlobalSymbols
 	/**
+	 * Object.assign() polyfill
+	 *
+	 * @param {Object} target
+	 * @param {Object...} source
+     */
+    GeneralUtils.objectAssign = function (target, source) {
+        if (typeof Object.assign === 'function') {
+            return Object.assign.apply(Object, [target].concat(Array.prototype.slice.call(arguments, 1)));
+        }
+
+        if (target === undefined || target === null) {
+            throw new TypeError('Cannot convert first argument to object');
+        }
+
+        var to = Object(target);
+        for (var i = 1; i < arguments.length; i++) {
+            var nextSource = arguments[i];
+            if (nextSource === undefined || nextSource === null) {
+                continue;
+            }
+            nextSource = Object(nextSource);
+
+            var keysArray = Object.keys(Object(nextSource));
+            for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
+                var nextKey = keysArray[nextIndex];
+                var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+                if (desc !== undefined && desc.enumerable) {
+                    to[nextKey] = nextSource[nextKey];
+                }
+            }
+        }
+        return to;
+	};
+
+    //noinspection JSUnusedGlobalSymbols
+	/**
 	 * Creates a property with default configuration (writable, enumerable, configurable).
 	 *
 	 * @param {object} obj The object to create the property on.
@@ -192,10 +228,12 @@
 	/**
 	 * Convert a Date object to a RFC-1123 date string
 	 *
-	 * @param {Date} date Date which will be converted
+	 * @param {Date} [date=new Date()] Date which will be converted
      * @return {string} String formatted as RFC-1123 (ddd, dd MMM yyyy HH:mm:ss GMT)
 	 */
 	GeneralUtils.getRfc1123Date = function (date) {
+	    date = date || new Date();
+
         if (date.toUTCString) {
             return date.toUTCString()
         } else {
