@@ -568,6 +568,25 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * Sets the ignore blinking caret value.
+     *
+     * @param {boolean} ignoreCaret The ignore value.
+     */
+    EyesBase.prototype.setIgnoreCaret = function (ignoreCaret) {
+        this._defaultMatchSettings.setIgnoreCaret(ignoreCaret)
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean} Whether to ignore or the blinking caret or not when comparing images.
+     */
+    EyesBase.prototype.getIgnoreCaret = function () {
+        var ignoreCaret = this._defaultMatchSettings.getIgnoreCaret();
+        return ignoreCaret || true;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * @return {boolean} The currently compareWithParentBranch value
      */
     EyesBase.prototype.isCompareWithParentBranch = function () {
