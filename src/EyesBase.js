@@ -820,17 +820,16 @@
             url = results.appUrls && results.appUrls.session ? results.appUrls.session : '';
 
         // Specifically handle the build test error
-        if (results.asExpected === false) {
+        if (results.status === "Unresolved" && results.isNew) {
+            header = "[EYES: NEW TEST ENDED]";
+            instructions = "It is recommended to review the new baseline at";
+        } else if (results.status === "Unresolved" && !results.isNew) {
             header = "[EYES: DIFFS FOUND]";
             message = "Test '" + testName + "' of '" + appName + "' detected differences!";
         } else if (results.isAborted) {
             header = "[EYES: TEST ABORTED]";
-        } else if (results.isNew) {
-            header = "[EYES: NEW TEST ENDED]";
-            instructions = "It is recommended to review the new baseline at";
-
             // We explicitly check 'asExpected' as this method is also called by "checkWindow" in wrapper SDKs.
-        } else if ((!results.isPassed) && (results.asExpected === undefined)) {
+        } else if (results.status === "Failed") {
             header = "[EYES: TEST FAILED]";
         } else {
             // TODO - Do we really need this? (Is there a case when this function is called when a test is not failed/all the above?)
@@ -905,7 +904,7 @@
 				}
 				this._logger.log('Results:', flattenedResults);
 
-				if (!testResults.isPassed && !(testResults.isNew && this._saveNewTests)) {
+				if (testResults.status !== 'Passed' && !(testResults.isNew && this._saveNewTests)) {
 				    if (!testResults.isNew && (testResults.mismatches > 0 || testResults.missing > 0)) {
                         testResults.asExpected = false;
                     }
