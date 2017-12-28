@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git://github.com/applitools/eyes.images.javascript.git"
   },
-  "license": "Apache-2.0",
+  "license": "SEE LICENSE IN LICENSE",
   "main": "index",
   "scripts": {
     "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
