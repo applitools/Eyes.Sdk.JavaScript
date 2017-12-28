@@ -757,6 +757,22 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {Boolean} Whether eyes is disabled.
+     */
+    EyesBase.prototype.getIsDisabled = function () {
+        return this._isDisabled;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param isDisabled {Boolean} If true, all interactions with this API will be silently ignored.
+     */
+    EyesBase.prototype.setIsDisabled = function (isDisabled) {
+        this._isDisabled = isDisabled;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      *
      * @return {Object} An object containing data about the currently running session.
      */
@@ -1294,6 +1310,11 @@
 			}.bind(this)).then(function () {
 				return this._viewportSize ? this.setViewportSize(this._viewportSize) : this.getViewportSize();
 			}.bind(this)).then(function (vpSizeResult) {
+                if (!vpSizeResult) {
+                    throw new Error("ViewportSize can't be null.");
+                }
+                return vpSizeResult;
+            }.bind(this)).then(function (vpSizeResult) {
 				this._viewportSize = this._viewportSize || vpSizeResult;
 				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
 					this._autSessionId);
