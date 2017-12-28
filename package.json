@@ -18,7 +18,7 @@
         "type": "git",
         "url": "git://github.com/applitools/Eyes.Sdk.JavaScript.git"
     },
-    "license": "Apache-2.0",
+    "license": "SEE LICENSE IN LICENSE",
     "main": "index",
     "dependencies": {
         "request": "^2.81.0",
