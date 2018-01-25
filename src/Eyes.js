@@ -189,6 +189,9 @@
      * @private
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
+        if (typeof image === "string") {
+            image = new Buffer(image, "base64");
+        }
         if (image instanceof Buffer) {
             this._screenshot = new MutableImage(image, this._promiseFactory);
             this._imageProvider = null;
