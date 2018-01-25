@@ -4,4 +4,3 @@
  */
 var EyesImages = require('./index.js');
 window.EyesImages = EyesImages;
-console.log("loaded EyesImages into the 'window' object");
