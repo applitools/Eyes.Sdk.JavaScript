@@ -848,7 +848,7 @@
         if (results.status === "Unresolved" && results.isNew) {
             header = "[EYES: NEW TEST ENDED]";
             instructions = "It is recommended to review the new baseline at";
-        } else if (results.status === "Unresolved" && !results.isNew) {
+        } else if (results.status === "Unresolved") {
             header = "[EYES: DIFFS FOUND]";
             message = "Test '" + testName + "' of '" + appName + "' detected differences!";
         } else if (results.isAborted) {
@@ -911,16 +911,13 @@
 				}
 			}
 
-			var save = !isAborted && ((runningSession.isNewSession && this._saveNewTests) ||
-			(!runningSession.isNewSession && this._saveFailedTests));
+			var save = !isAborted && ((runningSession.isNewSession && this._saveNewTests) || (!runningSession.isNewSession && this._saveFailedTests));
 
 			// Session was started, call the server to end the session.
 			var serverResults;
 			return this._serverConnector.endSession(runningSession, isAborted, save).then(function (serverResults_) {
 				serverResults = serverResults_;
-
-				var testResults = _buildTestResults(this._logger, this._testName, this._appName, runningSession,
-					serverResults, save, isAborted);
+				var testResults = _buildTestResults(this._logger, this._testName, this._appName, runningSession, serverResults, save, isAborted);
 
 				// printing the results
 				var flattenedResults = {};
@@ -929,23 +926,33 @@
 				}
 				this._logger.log('Results:', flattenedResults);
 
-				if (testResults.status !== 'Passed' && !(testResults.isNew && this._saveNewTests)) {
-				    if (!testResults.isNew && (testResults.mismatches > 0 || testResults.missing > 0)) {
-                        testResults.asExpected = false;
+                if (testResults.status === 'Unresolved') {
+                    if (testResults.isNew) {
+                        this._logger.log('--- New test ended. Please approve the new baseline at ' + runningSession.sessionUrl);
+
+                        if (throwEx) {
+                            return reject(EyesBase.buildTestError(testResults, this._testName, this._appName));
+                        }
+                        return resolve(testResults);
+                    } else {
+                        this._logger.log('--- Failed test ended. See details at ' + runningSession.sessionUrl);
+
+                        if (throwEx) {
+                            return reject(EyesBase.buildTestError(testResults, this._testName, this._appName));
+                        }
+                        return resolve(testResults);
                     }
+                } else if (testResults.status === 'Failed') {
+                    this._logger.log('--- Failed test ended. See details at ' + runningSession.sessionUrl);
 
-					var error = EyesBase.buildTestError(testResults, this._testName, this._appName);
-
-					this._logger.log(error.message);
-
-					if (throwEx) {
-						reject(error);
-						return;
-					}
-				} else {
-					this._logger.log("[EYES: TEST PASSED]: See details at", testResults.appUrls.session);
-				}
-				resolve(testResults);
+                    if (throwEx) {
+                        return reject(EyesBase.buildTestError(testResults, this._testName, this._appName));
+                    }
+                    return resolve(testResults);
+                } else {
+                    this._logger.log('--- Test passed. See details at ' + runningSession.sessionUrl);
+                    return resolve(testResults);
+                }
 			}.bind(this), function (err) {
 				serverResults = null;
 				this._logger.log(err);
