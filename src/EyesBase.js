@@ -79,6 +79,15 @@
         var results = GeneralUtils.clone(serverResults);
         results.isPassed = (!results.isAborted && !results.isNew && results.mismatches === 0 && results.missing === 0);
         results.isSaved = isSaved;
+
+        // for backwards compatibility with outdated servers
+        if (!results.status) {
+            if (results.missing === 0 && results.mismatches === 0) {
+                results.status = 'Passed';
+            } else {
+                results.status = 'Unresolved';
+            }
+        }
         return results;
     };
 
