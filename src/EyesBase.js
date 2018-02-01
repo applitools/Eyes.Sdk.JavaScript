@@ -1208,18 +1208,16 @@
 						}
 
 						if (this._failureReport === EyesBase.FailureReport.Immediate) {
-							var error = EyesBase.buildTestError(result, this._sessionStartInfo.scenarioIdOrName,
-								this._sessionStartInfo.appIdOrName);
-
+							var error = EyesBase.buildTestError(result, this._sessionStartInfo.scenarioIdOrName, this._sessionStartInfo.appIdOrName);
 							this._logger.log(error.message);
-
-							reject(error);
+							return reject(error);
 						}
 					} else { // Match successful
                         this._userInputs = [];
                         this._lastScreenshot = result.screenshot;
                     }
 
+                    delete result.screenshot;
 					resolve(result);
 				}.bind(this), function (err) {
 					this._logger.log(err);
