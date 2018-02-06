@@ -28,5 +28,6 @@ build/Release
 node_modules
 
 yarn.lock
+package-lock.json
 
 dist/eyes-browser.js
