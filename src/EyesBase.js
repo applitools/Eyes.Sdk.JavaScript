@@ -1326,12 +1326,10 @@
 			}.bind(this)).then(function () {
 				return this._viewportSize ? this.setViewportSize(this._viewportSize) : this.getViewportSize();
 			}.bind(this)).then(function (vpSizeResult) {
-                if (!vpSizeResult) {
+				this._viewportSize = this._viewportSize || vpSizeResult;
+                if (!this._viewportSize) {
                     throw new Error("ViewportSize can't be null.");
                 }
-                return vpSizeResult;
-            }.bind(this)).then(function (vpSizeResult) {
-				this._viewportSize = this._viewportSize || vpSizeResult;
 				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
 					this._autSessionId);
 			}.bind(this), function (err) {
