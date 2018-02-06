@@ -31,3 +31,7 @@ yarn.lock
 package-lock.json
 
 dist/eyes-browser.js
+
+# Filesystem files
+.DS_Store
+*.swp
