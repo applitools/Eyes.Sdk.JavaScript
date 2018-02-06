@@ -35,3 +35,4 @@ node_modules
 tests
 
 yarn.lock
+package-lock.json
