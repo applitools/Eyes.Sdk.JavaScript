@@ -142,6 +142,7 @@
             this._serverUrl = serverUrl;
             this._defaultMatchSettings = new ImageMatchSettings(MatchLevel.Strict);
             this._compareWithParentBranch = false;
+            this._ignoreBaseline = false;
             this._failureReport = EyesBase.FailureReport.OnClose;
             this._userInputs = [];
             this._saveNewTests = true;
@@ -608,6 +609,22 @@
      */
     EyesBase.prototype.setCompareWithParentBranch = function (compareWithParentBranch) {
         this._compareWithParentBranch = compareWithParentBranch;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean} The currently ignoreBaseline value
+     */
+    EyesBase.prototype.isIgnoreBaseline = function () {
+        return this._ignoreBaseline;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {boolean} ignoreBaseline New ignoreBaseline value, default is false
+     */
+    EyesBase.prototype.setIgnoreBaseline = function (ignoreBaseline) {
+        this._ignoreBaseline = ignoreBaseline;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1391,7 +1408,8 @@
 					scenarioIdOrName: this._testName,
 					batchInfo: testBatch,
                     baselineEnvName: this._baselineEnvName,
-                    compareWithParentBranch: this.isCompareWithParentBranch(),
+                    compareWithParentBranch: this._compareWithParentBranch,
+                    ignoreBaseline: this._ignoreBaseline,
                     environmentName: this._environmentName,
 					environment: appEnv,
 					defaultMatchSettings: defaultMatchSettings,
