@@ -16,6 +16,7 @@
 
     var PREAMBLE = new Buffer("applitools", "utf8");
     var COMPRESS_BY_RAW_BLOCKS_FORMAT = 3;
+    var DEFLATE_BUFFER_RATE = 0.6;
 
     var ImageDeltaCompressor = {};
 
@@ -75,11 +76,12 @@
             for (var w = 0; w < actualBlockWidth; ++w) {
                 sourceByte = sourcePixels[offset];
                 targetByte = targetPixels[offset];
-                if (sourceByte != targetByte) {
+                if (sourceByte !== targetByte) {
                     isIdentical = false;
                 }
 
-                channelBytes.writeUInt8(targetByte, channelBytesOffset++);
+                // noinspection IncrementDecrementResultUsedJS
+                channelBytes[channelBytesOffset++] = targetByte;
                 offset += pixelLength;
             }
         }
@@ -88,6 +90,27 @@
             isIdentical: isIdentical,
             buffer: channelBytes
         };
+    }
+
+    /**
+     * @param {Buffer} pixels
+     * @param {int} pixelLength
+     * @return {Buffer}
+     */
+    function _rgbaToAbgrColors(pixels, pixelLength) {
+        var r,g,b,a;
+        for (var offset = 0, length = pixels.length; offset < length; offset += pixelLength) {
+            r = pixels[offset + 0];
+            g = pixels[offset + 1];
+            b = pixels[offset + 2];
+            a = pixels[offset + 3];
+
+            pixels[offset + 0] = a;
+            pixels[offset + 1] = b;
+            pixels[offset + 2] = g;
+            pixels[offset + 3] = r;
+        }
+        return pixels;
     }
 
     /**
@@ -111,14 +134,15 @@
             return targetBuffer;
         }
 
-        // IMPORTANT: Notice that the pixel bytes are (A)RGB!
-        var targetPixels = targetData.data;
-        var sourcePixels = sourceData.data;
-
         // The number of bytes comprising a pixel (depends if there's an Alpha channel).
         // target.data[25] & 4 equal 0 if there is no alpha channel but 4 if there is an alpha channel.
-        var pixelLength = (targetData.data[25] & 4) === 4 ? 4 : 3;
+        // IMPORTANT: png-async always return data in following format RGBA.
+        var pixelLength = 4;
         var imageSize = {width: targetData.width, height: targetData.height};
+
+        // IMPORTANT: Notice that the pixel bytes are (A)RGB!
+        var targetPixels = _rgbaToAbgrColors(targetData.data, pixelLength);
+        var sourcePixels = _rgbaToAbgrColors(sourceData.data, pixelLength);
 
         // Calculating how many block columns and rows we've got.
         var blockColumnsCount = parseInt((targetData.width / blockSize) + ((targetData.width % blockSize) === 0 ? 0 : 1));
@@ -156,7 +180,7 @@
                         // If the number of bytes already written is greater
                         // then the number of bytes for the uncompressed
                         // target, we just return the uncompressed target.
-                        if (stream.getBuffer().length + blocksStream.getBuffer().length > targetBuffer.length) {
+                        if ((stream.getBuffer().length + blocksStream.getBuffer().length * DEFLATE_BUFFER_RATE) > targetBuffer.length) {
                             return targetBuffer;
                         }
                     }
@@ -167,7 +191,7 @@
         }
 
         stream.write(zlib.deflateRawSync(blocksStream.getBuffer(), {
-            level: zlib.Z_BEST_COMPRESSION,
+            level: zlib.Z_BEST_COMPRESSION
         }));
 
         if (stream.getBuffer().length > targetBuffer.length) {
