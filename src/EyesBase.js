@@ -77,7 +77,7 @@
 
         // If we're here, the test was actually started, and we have results from the server.
         var results = GeneralUtils.clone(serverResults);
-        results.isPassed = (!results.isAborted && !results.isNew && results.mismatches === 0 && results.missing === 0);
+        results.isPassed = (!results.isAborted && results.isNew && results.mismatches === 0 && results.missing === 0);
         results.isSaved = isSaved;
 
         // for backwards compatibility with outdated servers
