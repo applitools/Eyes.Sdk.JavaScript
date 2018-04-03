@@ -349,8 +349,8 @@
                 for (var x = 0; x < image.width; x++) {
                     for (var y = image.height - 1; y >= 0; y--) {
                         var idx = (image.width * y + x) << 2;
-                        var data = image.data.readUInt32BE(idx, true);
-                        buffer.writeUInt32BE(data, offset, true);
+                        var data = image.data.readUInt32BE(idx);
+                        buffer.writeUInt32BE(data, offset);
                         offset += 4;
                     }
                 }
