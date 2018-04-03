@@ -46,7 +46,6 @@
      * @varructor
      **/
     function ServerConnector(promiseFactory, serverUrl, logger) {
-        this.setServerUrl(serverUrl);
         this._promiseFactory = promiseFactory;
         this._logger = logger;
         this._runKey = undefined;
@@ -57,6 +56,9 @@
             timeout: TIMEOUT,
             qs: {}
         };
+
+        this.setServerUrl(serverUrl);
+        this.setApiKey(undefined);
     }
 
     /**
@@ -100,12 +102,12 @@
      * @param newAuthScheme {boolean} Whether or not the server uses the new authentication scheme.
      */
     ServerConnector.prototype.setApiKey = function (runKey, newAuthScheme) {
+        this._runKey = runKey || process.env.APPLITOOLS_API_KEY;
         if (newAuthScheme) {
-            this._httpOptions.qs.accessKey = runKey;
+            this._httpOptions.qs.accessKey = this._runKey;
         } else {
-            this._httpOptions.qs.apiKey = runKey;
+            this._httpOptions.qs.apiKey = this._runKey;
         }
-        this._runKey = runKey;
     };
 
     /**

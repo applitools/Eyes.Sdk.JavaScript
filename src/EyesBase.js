@@ -422,8 +422,8 @@
     EyesBase.prototype.setBatch = function (name) {
         //noinspection JSLint
         this._batch = {
-            id: arguments[1] || GeneralUtils.guid(),
-            name: name,
+            id: arguments[1] || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+            name: name || process.env.APPLITOOLS_BATCH_NAME,
             startedAt: arguments[2] || new Date().toUTCString()
         };
     };
@@ -713,7 +713,7 @@
      * @return {String} The branch name.
      */
     EyesBase.prototype.getBranchName = function () {
-        return this._branchName;
+        return this._branchName || process.env.APPLITOOLS_BRANCH;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -731,7 +731,25 @@
      * @return {String} The parent branch name.
      */
     EyesBase.prototype.getParentBranchName = function () {
-        return this._parentBranchName;
+        return this._parentBranchName || process.env.APPLITOOLS_PARENT_BRANCH;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the baseline branch under which new branches are created.
+     *
+     * @param baselineBranchName {String} Branch name or {@code null} to specify the default branch.
+     */
+    EyesBase.prototype.setBaselineBranchName = function (baselineBranchName) {
+        this._baselineBranchName = baselineBranchName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The name of the baseline branch.
+     */
+    EyesBase.prototype.getBaselineBranchName = function () {
+        return this._baselineBranchName || process.env.APPLITOOLS_BASELINE_BRANCH;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1372,7 +1390,11 @@
 			}.bind(this)).then(function () {
 				var testBatch = this._batch;
 				if (!testBatch) {
-					testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
+					testBatch = {
+					    id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+                        name: process.env.APPLITOOLS_BATCH_NAME,
+                        startedAt: new Date().toUTCString()
+					};
 				}
 
 				testBatch.toString = function () {
@@ -1413,8 +1435,9 @@
                     environmentName: this._environmentName,
 					environment: appEnv,
 					defaultMatchSettings: defaultMatchSettings,
-					branchName: this._branchName || null,
-					parentBranchName: this._parentBranchName || null,
+					branchName: this.getBranchName(),
+					parentBranchName: this.getParentBranchName(),
+                    baselineBranchName: this.getBaselineBranchName(),
 					autSessionId: this._autSessionId,
                     properties: this._properties
 				};
