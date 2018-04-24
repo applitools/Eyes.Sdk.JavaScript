@@ -7,7 +7,7 @@
     function ImageProvider() {}
 
     /**
-     * @return {Promise.<MutableImage>}
+     * @return {Promise<MutableImage>}
      */
     ImageProvider.prototype.getScreenshot = function () {};
 
