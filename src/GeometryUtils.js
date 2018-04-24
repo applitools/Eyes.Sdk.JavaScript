@@ -1,18 +1,11 @@
-/*
- ---
-
- name: GeometryUtils
-
- description: collection of utility methods for geometric shapes.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     var ArgumentGuard = require('./ArgumentGuard');
 
+    /**
+     * Collection of utility methods for geometric shapes.
+     */
     var GeometryUtils = {};
 
     /**
@@ -22,7 +15,7 @@
      * @param {number} top
      * @param {number} width
      * @param {number} height
-     * @returns {{left: number, top: number, width: number, height: number}} New region object
+     * @return {{left: number, top: number, width: number, height: number}} New region object
      */
     GeometryUtils.createRegion = function(left, top, width, height) {
         return {
@@ -36,7 +29,7 @@
     /**
      * Check if the given object contains all region's attributes
      *
-     * @param {Object} object
+     * @param {object} object
      * @return {boolean} true if the object has all region's attributes, false otherwise.
      */
     GeometryUtils.isRegion = function(object) {
@@ -48,7 +41,7 @@
      *
      * @param {{x: number, y: number}} location
      * @param {{width: number, height: number}} size
-     * @returns {{left: number, top: number, width: number, height: number}} New region object
+     * @return {{left: number, top: number, width: number, height: number}} New region object
      */
     GeometryUtils.createRegionFromLocationAndSize = function(location, size) {
         return GeometryUtils.createRegion(location.x, location.y, size.width, size.height);
@@ -69,7 +62,7 @@
      *
      * @param {number} left (x)
      * @param {number} top (y)
-     * @returns {{x: number, y: number}} New location object
+     * @return {{x: number, y: number}} New location object
      */
     GeometryUtils.createLocation = function(left, top) {
         return {
@@ -81,7 +74,7 @@
     /**
      * Check if the given object contains all location's attributes
      *
-     * @param {Object} object
+     * @param {object} object
      * @return {boolean} true if the object has all location's attributes, false otherwise.
      */
     GeometryUtils.isLocation = function(object) {
@@ -92,7 +85,7 @@
      * Crete new simple location object from region
      *
      * @param {{left: number, top: number, width: number, height: number}} region
-     * @returns {{x: number, y: number}} New location object
+     * @return {{x: number, y: number}} New location object
      */
     GeometryUtils.createLocationFromRegion = function(region) {
         return GeometryUtils.createLocation(region.left, region.top);
@@ -102,7 +95,7 @@
      * Crete new simple location object from location
      *
      * @param {{x: number, y: number}} location
-     * @returns {{x: number, y: number}} New location object
+     * @return {{x: number, y: number}} New location object
      */
     GeometryUtils.createLocationFromLocation = function(location) {
         return GeometryUtils.createLocation(location.x, location.y);
@@ -113,7 +106,7 @@
      *
      * @param {number} width
      * @param {number} height
-     * @returns {{width: number, height: number}} New size object
+     * @return {{width: number, height: number}} New size object
      */
     GeometryUtils.createSize = function(width, height) {
         return {
@@ -125,7 +118,7 @@
     /**
      * Check if the given object contains all size's attributes
      *
-     * @param {Object} object
+     * @param {object} object
      * @return {boolean} true if the object has all size's attributes, false otherwise.
      */
     GeometryUtils.isSize = function(object) {
@@ -137,7 +130,7 @@
      *
      * @param {{x: number, y: number}} location
      * @param {number} scaleRatio The ratio by which to scale the results.
-     * @returns {{x: number, y: number}} A scaled copy of the current location.
+     * @return {{x: number, y: number}} A scaled copy of the current location.
      */
     GeometryUtils.scaleLocation = function(location, scaleRatio) {
         return {
@@ -151,7 +144,7 @@
      *
      * @param {{width: number, height: number}} size
      * @param {number} scaleRatio The ratio by which to scale the results.
-     * @returns {{width: number, height: number}} A scaled version of the current size.
+     * @return {{width: number, height: number}} A scaled version of the current size.
      */
     GeometryUtils.scaleSize = function(size, scaleRatio) {
         return {
@@ -166,7 +159,7 @@
      *
      * @param {{left: number, top: number, width: number, height: number}} region
      * @param {number} scaleRatio The ratio by which to scale the results.
-     * @returns {{left: number, top: number, width: number, height: number}} A new region which is a scaled version of the current region.
+     * @return {{left: number, top: number, width: number, height: number}} A new region which is a scaled version of the current region.
      */
     GeometryUtils.scaleRegion = function(region, scaleRatio) {
         return {
@@ -181,7 +174,7 @@
      * Crete new simple size object from region
      *
      * @param {{left: number, top: number, width: number, height: number}} region
-     * @returns {{width: number, height: number}} New size object
+     * @return {{width: number, height: number}} New size object
      */
     GeometryUtils.createSizeFromRegion = function(region) {
         return GeometryUtils.createSize(region.width, region.height);
@@ -209,7 +202,7 @@
      *
      * @param {{left: number, top: number, width: number, height: number}} region1 The first region object
      * @param {{left: number, top: number, width: number, height: number}} region2 The second region object
-     * @returns {{left: number, top: number, width: number, height: number}}
+     * @return {{left: number, top: number, width: number, height: number}}
      */
     GeometryUtils.intersect = function (region1, region2) {
         if (!GeometryUtils.isRegionsIntersected(region1, region2)) {
@@ -228,7 +221,7 @@
      *
      * @param {{left: number, top: number, width: number, height: number}} region
      * @param {{x: number, y: number}} location
-     * @returns {boolean} rue if the location is contained within this region, false otherwise.
+     * @return {boolean} rue if the location is contained within this region, false otherwise.
      */
     GeometryUtils.isRegionContainsLocation = function (region, location) {
         return (region.left <= location.x
@@ -260,7 +253,7 @@
      * @param {{width: number, height: number}} subRegionSize The default sub-region size to use.
      * @param isFixedSize If {@code false}, then sub-regions might have a size which is smaller then {@code subRegionSize}
      *  (thus there will be no overlap of regions). Otherwise, all sub-regions will have the same size, but sub-regions might overlap.
-     * @return {Array.<{left: number, top: number, width: number, height: number}>} The sub-regions composing the current region.
+     * @return {{left: number, top: number, width: number, height: number}[]} The sub-regions composing the current region.
      * If {@code subRegionSize} is equal or greater than the current region, only a single region is returned.
      */
     GeometryUtils.getSubRegions = function (region, subRegionSize, isFixedSize) {
@@ -274,7 +267,7 @@
     /**
      * @param {{left: number, top: number, width: number, height: number}} region The region to divide into sub-regions.
      * @param {{width: number, height: number}} subRegionSize The maximum size of each sub-region.
-     * @return {Array.<{left: number, top: number, width: number, height: number}>} The sub-regions composing the current region.
+     * @return {{left: number, top: number, width: number, height: number}[]} The sub-regions composing the current region.
      * If subRegionSize is equal or greater than the current region,  only a single region is returned.
      */
     GeometryUtils.getSubRegionsWithFixedSize = function (region, subRegionSize) {
@@ -320,7 +313,7 @@
     /**
      * @param {{left: number, top: number, width: number, height: number}} region The region to divide into sub-regions.
      * @param {{width: number, height: number}} maxSubRegionSize The maximum size of each sub-region (some regions might be smaller).
-     * @return {Array.<{left: number, top: number, width: number, height: number}>} The sub-regions composing the current region.
+     * @return {{left: number, top: number, width: number, height: number}[]} The sub-regions composing the current region.
      * If maxSubRegionSize is equal or greater than the current region, only a single region is returned.
      */
     GeometryUtils.getSubRegionsWithVaryingSize = function (region, maxSubRegionSize) {
@@ -361,7 +354,7 @@
      *
      * @param {{x: number, y: number}} location The original location
      * @param {{x: number, y: number}} offset The amount of the offset
-     * @returns {{x: number, y: number}}
+     * @return {{x: number, y: number}}
      */
     GeometryUtils.locationOffset = function (location, offset) {
         return {
@@ -375,7 +368,7 @@
      *
      * @param {{left: number, top: number, width: number, height: number}} region The original region
      * @param {{x: number, y: number}} offset The amount of the offset
-     * @returns {{left: number, top: number, width: number, height: number}}
+     * @return {{left: number, top: number, width: number, height: number}}
      */
     GeometryUtils.regionOffset = function (region, offset) {
         return {
@@ -388,7 +381,7 @@
 
     /**
      * @param {{left: number, top: number, width: number, height: number}} region The region
-     * @returns {{x: number, y: number}}
+     * @return {{x: number, y: number}}
      */
     GeometryUtils.getMiddleOffsetOfRegion = function (region) {
         return {

@@ -1,34 +1,21 @@
-/*
- ---
-
- name: ImageUtils
-
- description: Provide means of image manipulations.
-
- ---
- */
-
 (function () {
-    "use strict";
-
-    // for better compatibility with browserify
-    global.setImmediate = require('timers').setImmediate;
+    'use strict';
 
     var fs = require('fs'),
-        png = require('png-async'),
+        Image = require('png-async').Image,
         StreamUtils = require('./StreamUtils');
 
-    var ReadableBufferStream = StreamUtils.ReadableBufferStream,
-        WritableBufferStream = StreamUtils.WritableBufferStream;
-
+    /**
+     * Provide means of image manipulations.
+     */
     var ImageUtils = {};
 
     /**
-     * Processes a PNG buffer - returns it as parsed png.Image.
+     * Processes a PNG buffer - returns it as parsed Image.
      *
      * @param {Buffer} buffer Original image as PNG Buffer
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<png.Image>} Decoded png image with byte buffer
+     * @return {Promise<Image>} Decoded png image with byte buffer
      **/
     ImageUtils.parseImage = function parseImage(buffer, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
@@ -37,8 +24,8 @@
             }
 
             // pass the file to PNG using read stream
-            var imageReadableStream = new ReadableBufferStream(buffer, undefined);
-            var image = png.createImage({filterType: 4});
+            var imageReadableStream = new StreamUtils.ReadableBufferStream(buffer);
+            var image = new Image({filterType: 4});
             imageReadableStream.pipe(image).on('parsed', function () {
                 resolve(image);
             });
@@ -46,11 +33,11 @@
     };
 
     /**
-     * Repacks a parsed png.Image to a PNG buffer.
+     * Repacks a parsed Image to a PNG buffer.
      *
-     * @param {png.Image} image Parsed image as returned from parseImage
+     * @param {Image} image Parsed image as returned from parseImage
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<Buffer>} PNG buffer which can be written to file or base64 string
+     * @return {Promise<Buffer>} PNG buffer which can be written to file or base64 string
      **/
     ImageUtils.packImage = function packImage(image, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
@@ -59,7 +46,7 @@
             }
 
             // Write back to a temp png file
-            var imageWritableStream = new WritableBufferStream();
+            var imageWritableStream = new StreamUtils.WritableBufferStream();
             image.pack().pipe(imageWritableStream).on('finish', function () {
                 resolve(imageWritableStream.getBuffer());
             });
@@ -69,10 +56,10 @@
     /**
      * Scaled a parsed image by a given factor.
      *
-     * @param {png.Image} image - will be modified
+     * @param {Image} image - will be modified
      * @param {number} scaleRatio factor to multiply the image dimensions by (lower than 1 for scale down)
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<void>}
+     * @return {Promise<void>}
      **/
     ImageUtils.scaleImage = function scaleImage(image, scaleRatio, promiseFactory) {
         if (scaleRatio === 1) {
@@ -90,11 +77,11 @@
     /**
      * Resize a parsed image by a given dimensions.
      *
-     * @param {png.Image} image - will be modified
-     * @param {int} targetWidth The width to resize the image to
-     * @param {int} targetHeight The height to resize the image to
+     * @param {Image} image - will be modified
+     * @param {number} targetWidth The width to resize the image to
+     * @param {number} targetHeight The height to resize the image to
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<void>}
+     * @return {Promise<void>}
      **/
     ImageUtils.resizeImage = function resizeImage(image, targetWidth, targetHeight, promiseFactory) {
 
@@ -285,10 +272,10 @@
     /**
      * Crops a parsed image - the image is changed
      *
-     * @param {png.Image} image
+     * @param {Image} image
      * @param {{left: number, top: number, width: number, height: number}} region Region to crop
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<png.Image>}
+     * @return {Promise<Image>}
      **/
     ImageUtils.cropImage = function cropImage(image, region, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
@@ -329,10 +316,10 @@
     /**
      * Rotates a parsed image - the image is changed
      *
-     * @param {png.Image} image
+     * @param {Image} image
      * @param {number} deg how many degrees to rotate (in actuality it's only by multipliers of 90)
      * @param {PromiseFactory} promiseFactory
-     * @returns {Promise.<png.Image>}
+     * @return {Promise<Image>}
      **/
     ImageUtils.rotateImage = function rotateImage(image, deg, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
@@ -371,12 +358,12 @@
     /**
      * Copies pixels from the source image to the destination image.
      *
-     * @param {png.Image} dstImage The destination image.
+     * @param {Image} dstImage The destination image.
      * @param {{x: number, y: number}} dstPosition The pixel which is the starting point to copy to.
-     * @param {png.Image} srcImage The source image.
+     * @param {Image} srcImage The source image.
      * @param {{x: number, y: number}} srcPosition The pixel from which to start copying.
      * @param {{width: number, height: number}} size The region to be copied.
-     * @returns {void}
+     * @return {void}
      */
     ImageUtils.copyPixels = function copyPixels(dstImage, dstPosition, srcImage, srcPosition, size) {
         var y, dstY, srcY, x, dstX, srcX, dstIndex, srcIndex;
@@ -408,12 +395,12 @@
      * Stitches a part into the image.
      *
      * @private
-     * @param {Promise.<void>} stitchingPromise A promise which its "then" block will execute the stitching.
-     * @param {png.Image} stitchedImage A PNG instance into which the part will be stitched.
+     * @param {Promise<void>} stitchingPromise A promise which its "then" block will execute the stitching.
+     * @param {Image} stitchedImage A PNG instance into which the part will be stitched.
      * @param {{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}} part
      *         A "part" object given in the {@code parts} argument of {@link ImageUtils.stitchImage}.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise.<void>} A promise which is resolved when the stitching is done.
+     * @return {Promise<void>} A promise which is resolved when the stitching is done.
      */
     var _stitchPart = function (stitchingPromise, stitchedImage, part, promiseFactory) {
         //noinspection JSUnresolvedFunction
@@ -432,14 +419,14 @@
      * Stitches the given parts to a full image.
      *
      * @param {{width: number, height: number}} fullSize The size of the stitched image.
-     * @param {Array<{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}>} parts
+     * @param {{position: {x: number, y: number}, size: {width: number, height: number}, image: Buffer}[]} parts
      *         The parts to stitch into an image.
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise.<png.Image>} A promise which resolves to the stitched image.
+     * @return {Promise<Image>} A promise which resolves to the stitched image.
      */
     ImageUtils.stitchImage = function stitchImage(fullSize, parts, promiseFactory) {
         return promiseFactory.makePromise(function(resolve) {
-            var stitchedImage = png.createImage({filterType: 4, width: fullSize.width, height: fullSize.height});
+            var stitchedImage = new Image({filterType: 4, width: fullSize.width, height: fullSize.height});
             var stitchingPromise = promiseFactory.makePromise(function (resolve) { resolve(); });
 
             for (var i = 0; i < parts.length; ++i) {
@@ -490,7 +477,7 @@
      * @param {Buffer} imageBuffer
      * @param {string} filename
      * @param {PromiseFactory} promiseFactory
-     * @return {Promise.<void>}
+     * @return {Promise<void>}
      */
     ImageUtils.saveImage = function (imageBuffer, filename, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {

@@ -1,15 +1,5 @@
-/*
- ---
-
- name: ImageDeltaCompressor
-
- description: Provides image compression based on delta between consecutive images
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     var zlib = require('zlib'),
         WritableBufferStream = require('./StreamUtils').WritableBufferStream;
@@ -18,6 +8,9 @@
     var COMPRESS_BY_RAW_BLOCKS_FORMAT = 3;
     var DEFLATE_BUFFER_RATE = 0.6;
 
+    /**
+     * Provides image compression based on delta between consecutive images
+     */
     var ImageDeltaCompressor = {};
 
     /**
@@ -25,9 +18,9 @@
      *
      * @private
      * @param {{width: number, height: number}} imageSize The image size in pixels.
-     * @param {int} blockSize The block size for which we would like to compute the image data width and height.
-     * @param {int} blockColumn The block column index
-     * @param {int} blockRow The block row index
+     * @param {number} blockSize The block size for which we would like to compute the image data width and height.
+     * @param {number} blockColumn The block column index
+     * @param {number} blockRow The block row index
      * @return {{width: number, height: number}} The width and height of the image data contained in the block.
      */
     function _getActualBlockSize(imageSize, blockSize, blockColumn, blockRow) {
@@ -45,11 +38,11 @@
      * @param {Buffer} sourcePixels
      * @param {Buffer} targetPixels
      * @param {{width: number, height: number}} imageSize
-     * @param {int} pixelLength
-     * @param {int} blockSize
-     * @param {int} blockColumn
-     * @param {int} blockRow
-     * @param {int} channel
+     * @param {number} pixelLength
+     * @param {number} blockSize
+     * @param {number} blockColumn
+     * @param {number} blockRow
+     * @param {number} channel
      * @return {{isIdentical: boolean, buffer: Buffer}}
      * @private
      */
@@ -94,18 +87,18 @@
 
     /**
      * @param {Buffer} pixels
-     * @param {int} pixelLength
+     * @param {number} pixelLength
      * @return {Buffer}
      */
     function _rgbaToAbgrColors(pixels, pixelLength) {
         var r,g,b,a;
         for (var offset = 0, length = pixels.length; offset < length; offset += pixelLength) {
-            r = pixels[offset + 0];
+            r = pixels[offset];
             g = pixels[offset + 1];
             b = pixels[offset + 2];
             a = pixels[offset + 3];
 
-            pixels[offset + 0] = a;
+            pixels[offset] = a;
             pixels[offset + 1] = b;
             pixels[offset + 2] = g;
             pixels[offset + 3] = r;
@@ -116,10 +109,10 @@
     /**
      * Compresses a target image based on a difference from a source image.
      * {@code blockSize} defaults to 10.
-     * @param {png.Image} targetData The image we want to compress.
+     * @param {Image} targetData The image we want to compress.
      * @param {Buffer} targetBuffer
-     * @param {png.Image} sourceData The baseline image by which a compression will be performed.
-     * @param {int} [blockSize=10] How many pixels per block.
+     * @param {Image} sourceData The baseline image by which a compression will be performed.
+     * @param {number} [blockSize=10] How many pixels per block.
      * @return {Buffer} The compression result.
      * @throws java.io.IOException If there was a problem reading/writing from/to the streams which are created during the process.
      */
@@ -145,8 +138,8 @@
         var sourcePixels = _rgbaToAbgrColors(sourceData.data, pixelLength);
 
         // Calculating how many block columns and rows we've got.
-        var blockColumnsCount = parseInt((targetData.width / blockSize) + ((targetData.width % blockSize) === 0 ? 0 : 1));
-        var blockRowsCount = parseInt((targetData.height / blockSize) + ((targetData.height % blockSize) === 0 ? 0 : 1));
+        var blockColumnsCount = Math.floor((targetData.width / blockSize) + ((targetData.width % blockSize) === 0 ? 0 : 1));
+        var blockRowsCount = Math.floor((targetData.height / blockSize) + ((targetData.height % blockSize) === 0 ? 0 : 1));
 
         // Writing the header
         var stream = new WritableBufferStream();
@@ -177,9 +170,7 @@
                         blocksStream.writeInt(blockNumber);
                         blocksStream.write(compareResult.buffer);
 
-                        // If the number of bytes already written is greater
-                        // then the number of bytes for the uncompressed
-                        // target, we just return the uncompressed target.
+                        // If the number of bytes already written is greater then the number of bytes for the uncompressed target, we just return the uncompressed target.
                         if ((stream.getBuffer().length + blocksStream.getBuffer().length * DEFLATE_BUFFER_RATE) > targetBuffer.length) {
                             return targetBuffer;
                         }

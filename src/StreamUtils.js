@@ -1,23 +1,8 @@
-/*
- ---
-
- name: StreamUtils
-
- description: Additional stream related classes.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     var util = require('util'),
-        Stream = require('stream');
-
-    //noinspection JSUnresolvedVariable
-    var Readable = Stream.Readable;
-    //noinspection JSUnresolvedVariable
-    var Writable = Stream.Writable;
+        stream = require('stream');
 
     /**
      * ReadableBufferStream constructor.
@@ -30,11 +15,11 @@
         if (!this instanceof ReadableBufferStream) {
             return new ReadableBufferStream(buffer, options);
         }
-        Readable.call(this, options);
+        stream.Readable.call(this, options);
         this._source = buffer;
     };
 
-    util.inherits(ReadableBufferStream, Readable);
+    util.inherits(ReadableBufferStream, stream.Readable);
 
     //noinspection JSUnusedGlobalSymbols
     /**
@@ -55,11 +40,11 @@
         if (!this instanceof WritableBufferStream) {
             return new WritableBufferStream(options);
         }
-        Writable.call(this, options);
+        stream.Writable.call(this, options);
         this._buffer = new Buffer(0);
     };
 
-    util.inherits(WritableBufferStream, Writable);
+    util.inherits(WritableBufferStream, stream.Writable);
 
     //noinspection JSUnusedGlobalSymbols
     /**

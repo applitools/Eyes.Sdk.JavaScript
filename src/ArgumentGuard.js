@@ -1,23 +1,16 @@
-/*
- ---
-
- name: ArgumentGuard
-
- description: Argument validation utilities.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
+    /**
+     * Argument validation utilities.
+     */
     var ArgumentGuard = {};
 
     /**
      * Fails if the input parameter equals the input value.
      *
-     * @param {Object} param The input parameter.
-     * @param {Object} value The input value.
+     * @param {*} param The input parameter.
+     * @param {*} value The input value.
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notEqual = function (param, value, paramName) {
@@ -29,7 +22,7 @@
     /**
      * Fails if the input parameter is null.
      *
-     * @param {Object} param The input parameter.
+     * @param {*} param The input parameter.
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notNull = function (param, paramName) {
@@ -41,7 +34,7 @@
     /**
      * Fails if the input parameter is not null.
      *
-     * @param {Object} param The input parameter.
+     * @param {*} param The input parameter.
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.isNull = function (param, paramName) {
@@ -53,7 +46,7 @@
     /**
      * Fails if the input parameter string is null or empty.
      *
-     * @param {Object} param The input parameter.
+     * @param {*} param The input parameter.
      * @param {string} paramName The input parameter name.
      */
     ArgumentGuard.notNullOrEmpty = function (param, paramName) {
@@ -112,7 +105,7 @@
     /**
      * Fails if isValid is false.
      *
-     * @param {Object} param The input parameter.
+     * @param {*} param The input parameter.
      * @param {Object} type The expected param type
      */
     ArgumentGuard.isValidType = function (param, type) {
