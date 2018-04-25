@@ -150,11 +150,21 @@ export declare class GeneralUtils {
      */
     static sleep(ms: number, promiseFactory: PromiseFactory): Promise<void>;
     /**
+     * @deprecated use GeneralUtils.toRfc1123DateTime() instead
+     */
+    static getRfc1123Date(date?: Date): string;
+    /**
      * Convert a Date object to a RFC-1123 date string
      * @param [date=new Date()] Date which will be converted
      * @return String formatted as RFC-1123 (E, dd MMM yyyy HH:mm:ss 'GMT')
      */
-    static getRfc1123Date(date: Date): string;
+    static toRfc1123DateTime(date?: Date): string;
+    /**
+     * Convert a Date object to a ISO-8601 date string
+     * @param [date=new Date()] Date which will be converted
+     * @return String formatted as ISO-8601 (yyyy-MM-dd'T'HH:mm:ss'Z')
+     */
+    static toISO8601DateTime(date?: Date): string;
 }
 
 
