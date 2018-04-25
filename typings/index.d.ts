@@ -139,9 +139,9 @@ export declare class Logger {
 }
 
 
-    /**
+/**
  * Handles log messages produces by the Eyes API.
-     */
+ */
 export declare abstract class LogHandler {
     /**
      * Whether to handle or ignore verbose log messages.
@@ -157,9 +157,9 @@ export declare abstract class LogHandler {
 }
 
 
-    /**
+/**
  * Ignores all log messages.
-     */
+ */
 export declare class NullLogHandler extends LogHandler {
 }
 
@@ -183,7 +183,7 @@ export declare class ConsoleLogHandler extends LogHandler {
 
 /**
  * Write log massages to the browser/node console
-     */
+ */
 export declare class FileLogHandler extends LogHandler {
     /**
      * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.

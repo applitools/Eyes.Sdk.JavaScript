@@ -915,9 +915,9 @@
      *
      * @param {boolean} isAborted Whether or not the test was aborted.
      * @param {boolean} throwEx Whether 'reject' should be called if the results returned from the server indicate
-     * 							a test failure.
-     * @return {Promise<void>} A promise which resolves (or rejected, dependeing on 'throwEx' and the test result) after
-     * 						ending the session.
+     *   a test failure.
+     * @return {Promise<void>} A promise which resolves (or rejected, dependeing on 'throwEx' and the test result)
+     *   after ending the session.
      * @private
      */
     EyesBase.prototype._endSession = function (isAborted, throwEx) {
@@ -1401,7 +1401,7 @@
             }.bind(this)).then(function () {
                 var testBatch = this._batch;
                 if (!testBatch) {
-					testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
+                    testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
                 }
 
                 testBatch.toString = function () {
@@ -1442,8 +1442,8 @@
                     environmentName: this._environmentName,
                     environment: appEnv,
                     defaultMatchSettings: defaultMatchSettings,
-					branchName: this._branchName || null,
-					parentBranchName: this._parentBranchName || null,
+                    branchName: this._branchName || null,
+                    parentBranchName: this._parentBranchName || null,
                     autSessionId: this._autSessionId,
                     properties: this._properties
                 };

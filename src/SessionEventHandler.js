@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-	var GeneralUtils = require('eyes.utils').GeneralUtils;
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
 
     /**
      * Encapsulates the information for the validation about to execute.
@@ -13,19 +13,19 @@
         this._tag = null;
     }
 
-	// get/set validationId
-	GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "validationId");
+    // get/set validationId
+    GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "validationId");
 
     // get/set tag
-	GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "tag");
+    GeneralUtils.defineStandardProperty(ValidationInfo.prototype, "tag");
 
-	//noinspection JSUnusedGlobalSymbols
-	ValidationInfo.prototype.toObject  = function (){
-		return {
-			validationId: this.validationId,
-			tag: this.tag
-		};
-	};
+    //noinspection JSUnusedGlobalSymbols
+    ValidationInfo.prototype.toObject  = function (){
+        return {
+            validationId: this.validationId,
+            tag: this.tag
+        };
+    };
 
     /**
      * Encapsulates the information for the validation about to execute.
@@ -36,8 +36,8 @@
         this._asExpected = null;
     }
 
-	// get/set asExpected
-	GeneralUtils.defineStandardProperty(ValidationResult.prototype, "asExpected");
+    // get/set asExpected
+    GeneralUtils.defineStandardProperty(ValidationResult.prototype, "asExpected");
 
 
 
@@ -73,7 +73,7 @@
          * Called 'set size' operation has ended (either failed/success).
          *
          */
-		setSizeEnded: function () { },
+        setSizeEnded: function () { },
 
         /**
          * Called after a session had started.
@@ -108,8 +108,8 @@
         validationEnded: function (autSessionId, validationId, validationResult) { }
     };
 
-	// get/set promiseFactory
-	GeneralUtils.defineStandardProperty(_baseSessionEventHandler, "promiseFactory");
+    // get/set promiseFactory
+    GeneralUtils.defineStandardProperty(_baseSessionEventHandler, "promiseFactory");
 
     // Factory
     var createSessionEventHandler = function () {
