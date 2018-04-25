@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var PropertyHandler = require('./PropertyHandler');
+    var PropertyHandler = require('./PropertyHandler').PropertyHandler;
 
     /**
      * A property handler for read-only properties (i.e., set always fails).
@@ -35,6 +35,5 @@
         return this._obj;
     };
 
-    module.exports = ReadOnlyPropertyHandler;
-
+    exports.ReadOnlyPropertyHandler = ReadOnlyPropertyHandler;
 }());

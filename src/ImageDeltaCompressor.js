@@ -192,5 +192,5 @@
         return stream.getBuffer();
     };
 
-    module.exports = ImageDeltaCompressor;
+    exports.ImageDeltaCompressor = ImageDeltaCompressor;
 }());

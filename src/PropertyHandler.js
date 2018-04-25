@@ -20,6 +20,5 @@
      */
     PropertyHandler.prototype.get = function () {};
 
-    module.exports = PropertyHandler;
-
+    exports.PropertyHandler = PropertyHandler;
 }());

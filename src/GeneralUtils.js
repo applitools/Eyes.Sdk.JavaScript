@@ -254,5 +254,5 @@
         return result;
     }
 
-    module.exports = GeneralUtils;
+    exports.GeneralUtils = GeneralUtils;
 }());

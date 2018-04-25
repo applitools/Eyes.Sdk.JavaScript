@@ -491,5 +491,5 @@
         });
     };
 
-    module.exports = ImageUtils;
+    exports.ImageUtils = ImageUtils;
 }());

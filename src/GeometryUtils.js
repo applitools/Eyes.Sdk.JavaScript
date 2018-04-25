@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var ArgumentGuard = require('./ArgumentGuard');
+    var ArgumentGuard = require('./ArgumentGuard').ArgumentGuard;
 
     /**
      * Collection of utility methods for geometric shapes.
@@ -390,5 +390,5 @@
         };
     };
 
-    module.exports = GeometryUtils;
+    exports.GeometryUtils = GeometryUtils;
 }());

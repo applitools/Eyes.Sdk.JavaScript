@@ -114,5 +114,5 @@
         }
     };
 
-    module.exports = ArgumentGuard;
+    exports.ArgumentGuard = ArgumentGuard;
 }());

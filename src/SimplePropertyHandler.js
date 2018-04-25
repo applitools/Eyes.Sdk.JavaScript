@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var PropertyHandler = require('./PropertyHandler');
+    var PropertyHandler = require('./PropertyHandler').PropertyHandler;
 
     /**
      * A simple implementation of {@link PropertyHandler}. Allows get/set.
@@ -32,6 +32,5 @@
         return this._obj;
     };
 
-    module.exports = SimplePropertyHandler;
-
+    exports.SimplePropertyHandler = SimplePropertyHandler;
 }());

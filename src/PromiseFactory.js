@@ -117,5 +117,5 @@
         throw new Error('Promise factory was not initialized with proper callback');
     };
 
-    module.exports = PromiseFactory;
+    exports.PromiseFactory = PromiseFactory;
 }());

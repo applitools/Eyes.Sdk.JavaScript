@@ -110,9 +110,6 @@
         return buffer;
     };
 
-    var StreamUtils = {};
-    StreamUtils.ReadableBufferStream = ReadableBufferStream;
-    StreamUtils.WritableBufferStream = WritableBufferStream;
-    //noinspection JSUnresolvedVariable
-    module.exports = StreamUtils;
+    exports.ReadableBufferStream = ReadableBufferStream;
+    exports.WritableBufferStream = WritableBufferStream;
 }());
