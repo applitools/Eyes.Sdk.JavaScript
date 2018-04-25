@@ -1,13 +1,5 @@
-/*
- ---
-
- name: ScreenshotTaker
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     var GeneralUtils = require('eyes.utils').GeneralUtils;
 

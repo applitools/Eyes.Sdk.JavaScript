@@ -1,24 +1,11 @@
-/*
- ---
-
- name: ConsoleLogHandler
-
- description: Write log massages to the browser/node console
-
- provides: [ConsoleLogHandler]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     /**
+     * Write log massages to the browser/node console
      *
-     * C'tor = initializes the module settings
-     *
-     * @param {Boolean} isVerbose
-     *
+     * @param {boolean} [isVerbose]
+     * @constructor
      **/
     function ConsoleLogHandler(isVerbose) {
         this._isVerbose = !!isVerbose;
@@ -28,7 +15,7 @@
     /**
      * Whether to handle or ignore verbose log messages.
      *
-     * @param {Boolean} isVerbose
+     * @param {boolean} isVerbose
      */
     ConsoleLogHandler.prototype.setIsVerbose = function (isVerbose) {
         this._isVerbose = !!isVerbose;
@@ -38,7 +25,7 @@
     /**
      * Whether to handle or ignore verbose log messages.
      *
-     * @return {Boolean} isVerbose
+     * @return {boolean} isVerbose
      */
     ConsoleLogHandler.prototype.getIsVerbose = function () {
         return this._isVerbose;
@@ -57,8 +44,8 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Write a message
-     * @param {Boolean} verbose - is the message verbose
-     * @param {String} message
+     * @param {boolean} verbose - is the message verbose
+     * @param {string} message
      */
     ConsoleLogHandler.prototype.onMessage = function (verbose, message) {
         if (!verbose || this._isVerbose) {

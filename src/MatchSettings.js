@@ -1,13 +1,5 @@
-/*
- ---
-
- description: Encapsulates match settings for the a session.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @readonly
@@ -198,6 +190,9 @@
         this._ignoreCaret = ignoreCaret;
     };
 
+    /**
+     * Encapsulates match settings for the a session.
+     */
     var MatchSettings = {};
     MatchSettings.MatchLevel = Object.freeze(MatchLevel);
     MatchSettings.ImageMatchSettings = ImageMatchSettings;

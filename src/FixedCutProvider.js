@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     var CutProvider = require('./CutProvider'),
         GeometryUtils = require('eyes.utils').GeometryUtils;
@@ -89,5 +89,4 @@
     };
 
     module.exports = FixedCutProvider;
-
 }());

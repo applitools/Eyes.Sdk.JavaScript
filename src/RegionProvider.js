@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     var EyesUtils = require('eyes.utils');
     var GeometryUtils = EyesUtils.GeometryUtils;
@@ -37,5 +37,4 @@
     };
 
     module.exports = RegionProvider;
-
 }());

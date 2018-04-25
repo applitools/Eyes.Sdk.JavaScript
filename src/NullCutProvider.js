@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     var FixedCutProvider = require('./FixedCutProvider');
 
@@ -15,5 +15,4 @@
     NullCutProvider.prototype.constructor = NullCutProvider;
 
     module.exports = NullCutProvider;
-
 }());

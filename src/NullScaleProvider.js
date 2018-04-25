@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     var FixedScaleProvider = require('./FixedScaleProvider');
 
@@ -17,5 +17,4 @@
     NullScaleProvider.prototype.constructor = NullScaleProvider;
 
     module.exports = NullScaleProvider;
-
 }());

@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @constructor
@@ -15,6 +15,7 @@
     /**
      * Go to the specified location.
      * @param {{x: number, y: number}} location The position to set.
+     * @return {Promise<void>}
      */
     PositionProvider.prototype.setPosition = function (location) {};
 
@@ -24,16 +25,15 @@
     PositionProvider.prototype.getEntireSize = function () {};
 
     /**
-     * @returns {Promise<object>}
+     * @return {Promise<Object>}
      */
     PositionProvider.prototype.getState = function () {};
 
     /**
-     * @param {object} state The initial state of position
-     * @returns {Promise<void>}
+     * @param {Object} state The initial state of position
+     * @return {Promise<void>}
      */
     PositionProvider.prototype.restoreState = function (state) {};
 
     module.exports = PositionProvider;
-
 }());

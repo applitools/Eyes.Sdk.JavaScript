@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @constructor
@@ -23,5 +23,4 @@
     CutProvider.prototype.scale = function (scaleRatio) {};
 
     module.exports = CutProvider;
-
 }());

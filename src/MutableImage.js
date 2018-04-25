@@ -1,17 +1,5 @@
-/*
- ---
-
- name: MutableImage
-
- description: A wrapper for image buffer that parses it to BMP to allow editing and extracting its dimensions
-
- provides: [MutableImage]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
 
     var fs = require("fs"),
@@ -81,6 +69,8 @@
     }
 
     /**
+     * A wrapper for image buffer that parses it to BMP to allow editing and extracting its dimensions
+     *
      * @constructor
      * @param {Buffer} image Encoded bytes of image
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
@@ -101,7 +91,7 @@
      * Coordinates represent the image's position in a larger context (if any).
      * E.g., A screenshot of the browser's viewport of a web page.
      *
-     * @return {Promise.<{x: number, y: number}>} The coordinates of the image in the larger context (if any)
+     * @return {Promise<{x: number, y: number}>} The coordinates of the image in the larger context (if any)
      */
     MutableImage.prototype.getCoordinates = function () {
         var that = this;
@@ -119,7 +109,7 @@
      * E.g., A screenshot of the browser's viewport of a web page.
      *
      * @param {{x: number, y: number}} coordinates
-     * @return {Promise.<void>}
+     * @return {Promise<void>}
      */
     MutableImage.prototype.setCoordinates = function (coordinates) {
         var that = this;
@@ -134,7 +124,7 @@
     /**
      * Size of the image. Parses the image if necessary
      *
-     * @return {Promise.<{width: number, height: number}>}
+     * @return {Promise<{width: number, height: number}>}
      */
     MutableImage.prototype.getSize = function () {
         var that = this;
@@ -150,7 +140,7 @@
     /**
      * Return the image as buffer and image width and height.
      *
-     * @return {Promise.<{imageBuffer: Buffer, width: number, height: number}>}
+     * @return {Promise<{imageBuffer: Buffer, width: number, height: number}>}
      */
     MutableImage.prototype.asObject = function () {
         var that = this;
@@ -170,7 +160,7 @@
      * Scales the image in place (used to downsize by 2 for retina display chrome bug - and tested accordingly).
      *
      * @param {number} scaleRatio
-     * @return {Promise.<MutableImage>}
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.scaleImage = function (scaleRatio) {
         var that = this;
@@ -198,7 +188,7 @@
      * Crops the image according to the given region.
      *
      * @param {{left: number, top: number, width: number, height: number, relative: boolean=}} region
-     * @return {Promise.<MutableImage>}
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.cropImage = function (region) {
         var that = this;
@@ -219,8 +209,8 @@
     /**
      * Rotates the image according to the given degrees.
      *
-     * @param {Number} degrees
-     * @return {Promise.<MutableImage>}
+     * @param {number} degrees
+     * @return {Promise<MutableImage>}
      */
     MutableImage.prototype.rotateImage = function (degrees) {
         var that = this;
@@ -249,7 +239,7 @@
      * Write image to local directory
      *
      * @param {string} filename
-     * @return {Promise.<void>}
+     * @return {Promise<void>}
      */
     MutableImage.prototype.saveImage = function (filename) {
         var that = this;
@@ -260,7 +250,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?Promise.<Buffer>}
+     * @return {?Promise<Buffer>}
      */
     MutableImage.prototype.getImageBuffer = function () {
         var that = this;
@@ -271,7 +261,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?Promise.<png.Image>}
+     * @return {?Promise<png.Image>}
      */
     MutableImage.prototype.getImageData = function () {
         var that = this;
@@ -281,7 +271,7 @@
     };
 
     /**
-     * @param {String} image64 base64 encoded bytes of image
+     * @param {string} image64 base64 encoded bytes of image
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @return {MutableImage}
      * @constructor

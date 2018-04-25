@@ -65,7 +65,7 @@
         /**
          * Called when setting the size of the appolication window is about to start.
          *
-         * @param sizeToSet {Object} an object with 'width' and 'height' properties.
+         * @param sizeToSet {{width: number, height: number}} an object with 'width' and 'height' properties.
          */
         setSizeWillStart: function (sizeToSet) { },
 
@@ -86,7 +86,7 @@
          * Called after a session had ended.
          *
          * @param autSessionId {string} The AUT session ID.
-         * @param testResults {Object} The test results.
+         * @param testResults {TestResults} The test results.
          */
         testEnded: function (autSessionId, testResults) { },
 

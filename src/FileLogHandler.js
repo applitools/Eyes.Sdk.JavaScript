@@ -1,28 +1,14 @@
-/*
- ---
-
- name: FileLogHandler
-
- description: Write log massages to the browser/node console
-
- provides: [FileLogHandler]
- requires: [winston]
-
- ---
- */
-
 (function () {
-  "use strict";
+  'use strict';
 
   var winston = require('winston'),
     timeStringFn = require('./ConsoleLogHandler').getTimeString;
 
   /**
+   * Write log massages to the browser/node console
    *
-   * C'tor = initializes the module settings
-   *
-   * @param {Boolean} isVerbose
-   *
+   * @param {boolean} [isVerbose]
+   * @constructor
    **/
   function FileLogHandler(isVerbose) {
     this._isVerbose = !!isVerbose;
@@ -35,7 +21,7 @@
   /**
    * Whether to handle or ignore verbose log messages.
    *
-   * @param {Boolean} isVerbose
+   * @param {boolean} isVerbose
    */
   FileLogHandler.prototype.setIsVerbose = function (isVerbose) {
     this._isVerbose = !!isVerbose;
@@ -45,7 +31,7 @@
   /**
    * Whether to handle or ignore verbose log messages.
    *
-   * @return {Boolean} isVerbose
+   * @return {boolean} isVerbose
    */
   FileLogHandler.prototype.getIsVerbose = function () {
     return this._isVerbose;
@@ -54,7 +40,7 @@
   /**
    * Whether to append messages to the log file or to reset it on open.
    *
-   * @param {Boolean} shouldAppend
+   * @param {boolean} shouldAppend
    */
 //    FileLogHandler.prototype.setAppendToFile = function (shouldAppend) {
 //        this._appendToFile = !!shouldAppend;
@@ -63,7 +49,7 @@
   /**
    * Whether to append messages to the log file or to reset it on open.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
 //    FileLogHandler.prototype.getAppendToFile = function () {
 //        return this._appendToFile;
@@ -73,7 +59,7 @@
   /**
    * The name of the log file.
    *
-   * @param {String} fileName
+   * @param {string} fileName
    */
   FileLogHandler.prototype.setFileName = function (fileName) {
     this._fileName = fileName;
@@ -83,7 +69,7 @@
   /**
    * The name of the log file.
    *
-   * @return {String} the file name
+   * @return {string} the file name
    */
   FileLogHandler.prototype.getFileName = function () {
     return this._fileName;
@@ -93,7 +79,7 @@
   /**
    * The path of the log file folder.
    *
-   * @param {String} fileDirectory
+   * @param {string} fileDirectory
    */
   FileLogHandler.prototype.setFileDirectory = function (fileDirectory) {
     this._fileDirectory = fileDirectory;
@@ -103,7 +89,7 @@
   /**
    * The path of the log file folder.
    *
-   * @return {String} the file Directory
+   * @return {string} the file Directory
    */
   FileLogHandler.prototype.getFileDirectory = function () {
     return this._fileDirectory;
@@ -136,8 +122,8 @@
   //noinspection JSUnusedGlobalSymbols
   /**
    * Write a message
-   * @param {Boolean} verbose - is the message verbose
-   * @param {String} message
+   * @param {boolean} verbose - is the message verbose
+   * @param {string} message
    */
   FileLogHandler.prototype.onMessage = function (verbose, message) {
     var logger = this._logger || this.open();

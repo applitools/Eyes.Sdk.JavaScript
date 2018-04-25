@@ -1,24 +1,12 @@
-/*
- ---
-
- name: Logger
-
- description: Write log massages using the provided Log Handler
-
- provides: [Logger]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     var NullLogHandler = require('./NullLogHandler');
 
     /**
+     * Write log massages using the provided Log Handler
      *
-     * C'tor = initializes the module settings
-     *
+     * @constructor
      **/
     function Logger() {
         this._logHandler = new NullLogHandler();
@@ -27,7 +15,7 @@
     /**
      * Set the log handler
      *
-     * @param {Object} logHandler
+     * @param {ConsoleLogHandler|FileLogHandler|NullLogHandler} logHandler
      */
     Logger.prototype.setLogHandler = function (logHandler) {
         this._logHandler = logHandler || new NullLogHandler();
@@ -36,7 +24,7 @@
     /**
      * Get the log handler
      *
-     * @return {Object} logHandler
+     * @return {ConsoleLogHandler|FileLogHandler|NullLogHandler} logHandler
      */
     Logger.prototype.getLogHandler = function () {
         return this._logHandler;

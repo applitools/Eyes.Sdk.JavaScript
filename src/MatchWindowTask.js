@@ -1,26 +1,14 @@
-/*
- ---
-
- name: MatchWindowTask
-
- description: Handles matching of output with the expected output (including retry and 'ignore mismatch'
- when needed).
-
- provides: [MatchWindowTask]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     /**
+     * Handles matching of output with the expected output (including retry and 'ignore mismatch' when needed).
      *
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
      * @param {ServerConnector} serverConnector Our gateway to the agent
-     * @param {Object} runningSession The running session in which we should match the window
-     * @param {Number} retryTimeout The default total time to retry matching (ms).
-     * @param {Object} appOutputProvider A callback for getting the application output when performing match
+     * @param {RunningSession} runningSession The running session in which we should match the window
+     * @param {number} retryTimeout The default total time to retry matching (ms).
+     * @param {{appOutput: {screenShot64: string, title: string}, screenShot: {imageBuffer: Buffer, width: number, height: number}}} appOutputProvider A callback for getting the application output when performing match
      * @param {Function} waitTimeout - a call back that provides timeout
      * @param {Logger} logger
      * @constructor

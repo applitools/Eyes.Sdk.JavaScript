@@ -1,18 +1,9 @@
-/*
- ---
-
- name: Triggers
-
- description: Generates trigger objects for the different trigger types.
-
- provides: [Triggers]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
+    /**
+     * Generates trigger objects for the different trigger types.
+     */
     var Triggers = {};
 
     Triggers.TriggerType = Object.freeze({
