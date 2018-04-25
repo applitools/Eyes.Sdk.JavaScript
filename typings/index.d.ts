@@ -8,6 +8,8 @@
 
 import { PromiseFactory, PropertyHandler, Location, Region, RectangleSize } from 'eyes.utils';
 
+export { ArgumentGuard, GeneralUtils, GeometryUtils, ImageDeltaCompressor, ImageUtils, PromiseFactory,
+    PropertyHandler, SimplePropertyHandler, ReadOnlyPropertyHandler, StreamUtils } from 'eyes.utils';
 
 interface Trigger {
     triggerType: Triggers.TriggerType,
