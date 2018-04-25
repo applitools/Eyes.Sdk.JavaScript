@@ -1,3 +1,5 @@
+'use strict';
+
 exports.ConsoleLogHandler = require('./src/ConsoleLogHandler');
 exports.ContextBasedScaleProvider = require('./src/ContextBasedScaleProvider');
 exports.ContextBasedScaleProviderFactory = require('./src/ContextBasedScaleProviderFactory');
@@ -10,6 +12,7 @@ exports.FixedCutProvider = require('./src/FixedCutProvider');
 exports.FixedScaleProvider = require('./src/FixedScaleProvider');
 exports.FixedScaleProviderFactory = require('./src/FixedScaleProviderFactory');
 exports.Logger = require('./src/Logger');
+exports.LogHandler = require('./src/LogHandler');
 var MatchSettings = require('./src/MatchSettings');
 exports.MatchLevel = MatchSettings.MatchLevel;
 exports.ExactMatchSettings = MatchSettings.ExactMatchSettings;

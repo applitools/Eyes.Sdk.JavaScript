@@ -129,18 +129,20 @@ export declare class Logger {
     /**
      * Set the log handler
      */
-    setLogHandler(logHandler: ConsoleLogHandler|FileLogHandler|NullLogHandler): void;
+    setLogHandler(logHandler: LogHandler): void;
     /**
      * Get the log handler
      */
-    getLogHandler(): ConsoleLogHandler|FileLogHandler|NullLogHandler;
+    getLogHandler(): LogHandler;
     verbose(...args: string[]): void;
     log(...args: string[]): void;
 }
 
 
-export declare class ConsoleLogHandler {
-    constructor(isVerbose: boolean);
+    /**
+ * Handles log messages produces by the Eyes API.
+     */
+export declare abstract class LogHandler {
     /**
      * Whether to handle or ignore verbose log messages.
      */
@@ -151,46 +153,44 @@ export declare class ConsoleLogHandler {
     getIsVerbose(): boolean;
     open(): boolean;
     close(): boolean;
-    /**
-     * Write a message
-     * @param verbose Is the message verbose
-     * @param message
-     */
-    onMessage(verbose: boolean, message: string): void;
+    onMessage(verbose: boolean, logString: string): void;
 }
 
 
-export declare class NullLogHandler {
-    constructor(isVerbose: boolean);
     /**
-     * Whether to handle or ignore verbose log messages.
+ * Ignores all log messages.
      */
-    setIsVerbose(isVerbose: boolean): void;
-    /**
-     * Whether to handle or ignore verbose log messages.
-     */
-    getIsVerbose(): boolean;
-    open(): boolean;
-    close(): boolean;
-    /**
-     * Write a message
-     * @param verbose Is the message verbose
-     * @param message
-     */
-    onMessage(verbose: boolean, message: string): void;
+export declare class NullLogHandler extends LogHandler {
 }
 
 
-export declare class FileLogHandler {
+/**
+ * Write log massages to the browser/node console
+ */
+export declare class ConsoleLogHandler extends LogHandler {
+    /**
+     * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
+     */
     constructor(isVerbose: boolean);
     /**
-     * Whether to handle or ignore verbose log messages.
+     * Handle a message to be logged.
+     * @param {boolean} verbose - is the message verbose
+     * @param {string} logString The string to log.
      */
-    setIsVerbose(isVerbose: boolean): void;
+    onMessage(verbose: boolean, logString: string): void;
+}
+
+
+/**
+ * Write log massages to the browser/node console
+     */
+export declare class FileLogHandler extends LogHandler {
     /**
-     * Whether to handle or ignore verbose log messages.
+     * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
+     * @param {String} [filename] The file in which to save the logs.
+     * @param {boolean} [append=true] Whether to append the logs to existing file, or to overwrite the existing file.
      */
-    getIsVerbose(): boolean;
+    constructor(isVerbose: boolean, filename?: string, append?: boolean);
     /**
      * @param fileName The name of the log file.
      */
@@ -207,14 +207,20 @@ export declare class FileLogHandler {
      * @return The path of the log file folder.
      */
     getFileDirectory(): string;
+    /**
+     * Create a winston file logger
+     */
     open(): boolean;
+    /**
+     * Close the winston file logger
+     */
     close(): boolean;
     /**
-     * Write a message
-     * @param verbose Is the message verbose
-     * @param message
+     * Handle a message to be logged.
+     * @param {boolean} verbose Whether this message is flagged as verbose or not.
+     * @param {String} logString The string to log.
      */
-    onMessage(verbose: boolean, message: string): void;
+    onMessage(verbose: boolean, logString: string): void;
 }
 
 
@@ -780,7 +786,7 @@ export declare abstract class EyesBase {
     /**
      * Set the log handler
      */
-    setLogHandler(logHandler: ConsoleLogHandler|FileLogHandler|NullLogHandler): void;
+    setLogHandler(logHandler: LogHandler): void;
     /**
      * Sets the current server URL used by the rest client.
      * @param serverUrl The URI of the rest server.

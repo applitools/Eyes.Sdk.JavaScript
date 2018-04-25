@@ -1,51 +1,20 @@
 (function () {
     'use strict';
 
+    var LogHandler = require('./LogHandler');
+
     /**
-     * A log handler that does nothing
+     * Ignores all log messages.
      *
      * @constructor
+     * @extends LogHandler
      **/
     function NullLogHandler() {
-        this._isVerbose = false;
+        LogHandler.call(this);
     }
 
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * Whether to handle or ignore verbose log messages.
-     *
-     * @param {boolean} isVerbose
-     */
-    NullLogHandler.prototype.setIsVerbose = function (isVerbose) {
-        this._isVerbose = !!isVerbose;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * Whether to handle or ignore verbose log messages.
-     *
-     * @return {boolean} isVerbose
-     */
-    NullLogHandler.prototype.getIsVerbose = function () {
-        return this._isVerbose;
-    };
-
-    NullLogHandler.prototype.open = function () {
-        return true;
-    };
-
-    NullLogHandler.prototype.close = function () {
-        return true;
-    };
-
-    /**
-     * Write a message
-     * @param {boolean} verbose - is the message verbose
-     * @param {string} message
-     */
-    NullLogHandler.prototype.onMessage = function (verbose, message) {
-        return verbose + message;
-    };
+    NullLogHandler.prototype = Object.create(LogHandler.prototype);
+    NullLogHandler.prototype.constructor = LogHandler;
 
     module.exports = NullLogHandler;
 }());

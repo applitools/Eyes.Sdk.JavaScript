@@ -1,80 +1,36 @@
 (function () {
     'use strict';
 
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
+    var LogHandler = require('./LogHandler');
+
     /**
      * Write log massages to the browser/node console
      *
-     * @param {boolean} [isVerbose]
+     * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
+     * @extends LogHandler
      * @constructor
      **/
     function ConsoleLogHandler(isVerbose) {
-        this._isVerbose = !!isVerbose;
+        LogHandler.call(this);
+
+        this.setIsVerbose(isVerbose);
     }
 
+    ConsoleLogHandler.prototype = Object.create(LogHandler.prototype);
+    ConsoleLogHandler.prototype.constructor = LogHandler;
+
     //noinspection JSUnusedGlobalSymbols
     /**
-     * Whether to handle or ignore verbose log messages.
+     * Handle a message to be logged.
      *
-     * @param {boolean} isVerbose
-     */
-    ConsoleLogHandler.prototype.setIsVerbose = function (isVerbose) {
-        this._isVerbose = !!isVerbose;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * Whether to handle or ignore verbose log messages.
-     *
-     * @return {boolean} isVerbose
-     */
-    ConsoleLogHandler.prototype.getIsVerbose = function () {
-        return this._isVerbose;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ConsoleLogHandler.prototype.open = function () {
-        return true;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ConsoleLogHandler.prototype.close = function () {
-        return true;
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    /**
-     * Write a message
      * @param {boolean} verbose - is the message verbose
-     * @param {string} message
+     * @param {string} logString
      */
-    ConsoleLogHandler.prototype.onMessage = function (verbose, message) {
+    ConsoleLogHandler.prototype.onMessage = function (verbose, logString) {
         if (!verbose || this._isVerbose) {
-            console.log(ConsoleLogHandler.getTimeString() + " - Eyes: " + message);
+            console.log(GeneralUtils.toISO8601DateTime() + ' Eyes: ' + logString);
         }
-    };
-
-    //noinspection JSUnusedGlobalSymbols
-    ConsoleLogHandler.getTimeString = function () {
-        var pad10 = function (x) {
-            return (x < 10) ? '0' + x : x;
-        };
-
-        var now = new Date(),
-            h = now.getUTCHours(),
-            m = pad10(now.getUTCMinutes()),
-            s = pad10(now.getUTCSeconds()),
-            amPm = h >= 12 ? 'pm' : 'am',
-            D = pad10(now.getUTCDate()),
-            M = pad10(now.getUTCMonth() + 1),
-            Y = now.getUTCFullYear();
-
-        if (h > 12) {
-            h -= 12;
-        }
-
-        h = pad10(h);
-
-        return D + '/' + M + '/' + Y + ' ' + h + ':' + m + ':' + s + ' ' + amPm;
     };
 
     module.exports = ConsoleLogHandler;

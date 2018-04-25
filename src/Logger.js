@@ -15,7 +15,7 @@
     /**
      * Set the log handler
      *
-     * @param {ConsoleLogHandler|FileLogHandler|NullLogHandler} logHandler
+     * @param {LogHandler} logHandler
      */
     Logger.prototype.setLogHandler = function (logHandler) {
         this._logHandler = logHandler || new NullLogHandler();
@@ -24,7 +24,7 @@
     /**
      * Get the log handler
      *
-     * @return {ConsoleLogHandler|FileLogHandler|NullLogHandler} logHandler
+     * @return {LogHandler} logHandler
      */
     Logger.prototype.getLogHandler = function () {
         return this._logHandler;

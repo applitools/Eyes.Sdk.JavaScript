@@ -200,7 +200,7 @@
     /**
      * Set the log handler
      *
-     * @param {ConsoleLogHandler|FileLogHandler|NullLogHandler} logHandler
+     * @param {LogHandler} logHandler
      */
     EyesBase.prototype.setLogHandler = function (logHandler) {
         this._logger.setLogHandler(logHandler);
