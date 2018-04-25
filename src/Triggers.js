@@ -6,14 +6,15 @@
      */
     var Triggers = {};
 
-    Triggers.TriggerType = Object.freeze({
+    Triggers.TriggerType = {
         Unknown: 'Unknown',
         Mouse: 'Mouse',
         Text: 'Text',
         Keyboard: 'Keyboard'
-    });
+    };
+    Object.freeze(Triggers.TriggerType);
 
-    Triggers.MouseAction = Object.freeze({
+    Triggers.MouseAction = {
         None: 'None',
         Click: 'Click',
         RightClick: 'RightClick',
@@ -21,7 +22,8 @@
         Move: 'Move',
         Down: 'Down',
         Up: 'Up'
-    });
+    };
+    Object.freeze(Triggers.MouseAction);
 
     Triggers.createMouseTrigger = function (mouseAction, control, location) {
         var mouseTrigger = {
@@ -52,5 +54,5 @@
         return textTrigger;
     };
 
-    module.exports = Triggers;
+    exports.Triggers = Triggers;
 }());

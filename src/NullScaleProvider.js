@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var FixedScaleProvider = require('./FixedScaleProvider');
+    var FixedScaleProvider = require('./FixedScaleProvider').FixedScaleProvider;
 
     /**
      * A scale provider which does nothing.
@@ -16,5 +16,5 @@
     NullScaleProvider.prototype = Object.create(FixedScaleProvider.prototype);
     NullScaleProvider.prototype.constructor = NullScaleProvider;
 
-    module.exports = NullScaleProvider;
+    exports.FixedScaleProvider = NullScaleProvider;
 }());

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var LogHandler = require('./LogHandler');
+    var LogHandler = require('./LogHandler').LogHandler;
 
     /**
      * Ignores all log messages.
@@ -16,5 +16,5 @@
     NullLogHandler.prototype = Object.create(LogHandler.prototype);
     NullLogHandler.prototype.constructor = LogHandler;
 
-    module.exports = NullLogHandler;
+    exports.NullLogHandler = NullLogHandler;
 }());

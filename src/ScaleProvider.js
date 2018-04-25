@@ -11,5 +11,5 @@
      */
     ScaleProvider.prototype.getScaleRatio = function () {};
 
-    module.exports = ScaleProvider;
+    exports.ScaleProvider = ScaleProvider;
 }());

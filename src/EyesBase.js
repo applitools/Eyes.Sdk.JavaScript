@@ -28,23 +28,21 @@
 
     var EyesUtils = require('eyes.utils'),
         MatchSettings = require('./MatchSettings'),
-        ServerConnector = require('./ServerConnector'),
-        MatchWindowTask = require('./MatchWindowTask'),
+        ServerConnector = require('./ServerConnector').ServerConnector,
+        MatchWindowTask = require('./MatchWindowTask').MatchWindowTask,
         SessionEventHandler = require('./SessionEventHandler'),
-        FixedScaleProvider = require('./FixedScaleProvider'),
-        NullScaleProvider = require('./NullScaleProvider'),
-        NullCutProvider = require('./NullCutProvider'),
-        Triggers = require('./Triggers'),
-        Logger = require('./Logger');
+        FixedScaleProvider = require('./FixedScaleProvider').FixedScaleProvider,
+        NullScaleProvider = require('./NullScaleProvider').FixedScaleProvider,
+        NullCutProvider = require('./NullCutProvider').NullCutProvider,
+        Triggers = require('./Triggers').Triggers,
+        Logger = require('./Logger').Logger;
 
     var ImageUtils = EyesUtils.ImageUtils,
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
         SimplePropertyHandler = EyesUtils.SimplePropertyHandler,
-        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler,
-        MatchLevel = MatchSettings.MatchLevel,
-        ImageMatchSettings = MatchSettings.ImageMatchSettings;
+        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler;
 
     var FailureReport = {
         // Failures are reported immediately when they are detected.
@@ -52,12 +50,14 @@
         // Failures are reported when tests are completed (i.e., when Eyes.close() is called).
         OnClose: 'OnClose'
     };
+    Object.freeze(FailureReport);
 
     var TestResultsStatus = {
         Passed: 'Passed',
         Unresolved: 'Unresolved',
         Failed: 'Failed'
     };
+    Object.freeze(TestResultsStatus);
 
     /**
      * Utility function for creating the test results object
@@ -161,7 +161,7 @@
             this._promiseFactory = promiseFactory;
             this._logger = new Logger();
             this._serverUrl = serverUrl;
-            this._defaultMatchSettings = new ImageMatchSettings(MatchLevel.Strict);
+            this._defaultMatchSettings = new MatchSettings.ImageMatchSettings(MatchSettings.MatchLevel.Strict);
             this._compareWithParentBranch = false;
             this._ignoreBaseline = false;
             this._failureReport = EyesBase.FailureReport.OnClose;
@@ -1523,8 +1523,8 @@
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyesapi.applitools.com';
-    EyesBase.FailureReport = Object.freeze(FailureReport);
-    EyesBase.TestResultsStatus = Object.freeze(TestResultsStatus);
+    EyesBase.FailureReport = FailureReport;
+    EyesBase.TestResultsStatus = TestResultsStatus;
 
-    module.exports = EyesBase;
+    exports.EyesBase = EyesBase;
 }());

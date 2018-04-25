@@ -5,7 +5,7 @@
   var fs = require('fs');
 
   var GeneralUtils = require('eyes.utils').GeneralUtils;
-  var LogHandler = require('./LogHandler');
+  var LogHandler = require('./LogHandler').LogHandler;
 
   /**
    * Write log massages to the browser/node console
@@ -105,5 +105,5 @@
     }
   };
 
-  module.exports = FileLogHandler;
+  exports.FileLogHandler = FileLogHandler;
 }());

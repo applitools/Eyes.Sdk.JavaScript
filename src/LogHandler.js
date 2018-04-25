@@ -55,5 +55,5 @@
      */
     LogHandler.prototype.onMessage = function (verbose, logString) {};
 
-    module.exports = LogHandler;
+    exports.LogHandler = LogHandler;
 }());

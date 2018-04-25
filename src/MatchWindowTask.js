@@ -178,5 +178,5 @@
         }.bind(this));
     };
 
-    module.exports = MatchWindowTask;
+    exports.MatchWindowTask = MatchWindowTask;
 }());

@@ -35,5 +35,5 @@
      */
     PositionProvider.prototype.restoreState = function (state) {};
 
-    module.exports = PositionProvider;
+    exports.PositionProvider = PositionProvider;
 }());

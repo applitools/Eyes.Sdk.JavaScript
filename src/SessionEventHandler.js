@@ -116,7 +116,7 @@
         return Object.create(_baseSessionEventHandler);
     };
 
-    module.exports.ValidationInfo = ValidationInfo;
-    module.exports.ValidationResult = ValidationResult;
-    module.exports.createSessionEventHandler = createSessionEventHandler;
+    exports.ValidationInfo = ValidationInfo;
+    exports.ValidationResult = ValidationResult;
+    exports.createSessionEventHandler = createSessionEventHandler;
 }());

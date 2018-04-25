@@ -36,5 +36,5 @@
         return this._coordinatesType;
     };
 
-    module.exports = RegionProvider;
+    exports.RegionProvider = RegionProvider;
 }());

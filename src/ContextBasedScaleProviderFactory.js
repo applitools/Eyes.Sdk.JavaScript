@@ -1,8 +1,8 @@
 (function() {
     'use strict';
 
-    var ContextBasedScaleProvider = require('./ContextBasedScaleProvider'),
-        ScaleProviderFactory = require('./ScaleProviderFactory');
+    var ContextBasedScaleProvider = require('./ContextBasedScaleProvider').ContextBasedScaleProvider;
+    var ScaleProviderFactory = require('./ScaleProviderFactory').ScaleProviderFactory;
 
     /**
      * Factory implementation for creating {@link ContextBasedScaleProvider} instances.
@@ -37,5 +37,5 @@
         return scaleProvider;
     };
 
-    module.exports = ContextBasedScaleProviderFactory;
+    exports.ContextBasedScaleProviderFactory = ContextBasedScaleProviderFactory;
 }());

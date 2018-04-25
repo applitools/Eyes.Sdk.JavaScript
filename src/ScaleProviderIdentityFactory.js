@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var ScaleProviderFactory = require('./ScaleProviderFactory');
+    var ScaleProviderFactory = require('./ScaleProviderFactory').ScaleProviderFactory;
 
     /**
      * Factory implementation which simply returns the scale provider it is given as an argument.
@@ -29,5 +29,5 @@
         return this._scaleProvider;
     };
 
-    module.exports = ScaleProviderIdentityFactory;
+    exports.ScaleProviderIdentityFactory = ScaleProviderIdentityFactory;
 }());

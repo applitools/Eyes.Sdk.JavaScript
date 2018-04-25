@@ -31,5 +31,5 @@
      */
     ScaleProviderFactory.prototype.getScaleProviderImpl = function (imageToScaleWidth) {};
 
-    module.exports = ScaleProviderFactory;
+    exports.ScaleProviderFactory = ScaleProviderFactory;
 }());

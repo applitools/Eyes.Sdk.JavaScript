@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var NullLogHandler = require('./NullLogHandler');
+    var NullLogHandler = require('./NullLogHandler').NullLogHandler;
 
     /**
      * Write log massages using the provided Log Handler
@@ -48,5 +48,5 @@
         this._logHandler.onMessage(false, _stringify(Array.prototype.slice.call(arguments, 0)));
     };
 
-    module.exports = Logger;
+    exports.Logger = Logger;
 }());

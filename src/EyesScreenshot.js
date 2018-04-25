@@ -92,5 +92,5 @@
         return GeometryUtils.createRegionFromLocationAndSize(updatedLocation, GeometryUtils.createSizeFromRegion(region));
     };
 
-    module.exports = EyesScreenshot;
+    exports.EyesScreenshot = EyesScreenshot;
 }());

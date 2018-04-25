@@ -1,8 +1,8 @@
 (function() {
     'use strict';
 
-    var FixedScaleProvider = require('./FixedScaleProvider'),
-        ScaleProviderFactory = require('./ScaleProviderFactory');
+    var FixedScaleProvider = require('./FixedScaleProvider').FixedScaleProvider,
+        ScaleProviderFactory = require('./ScaleProviderFactory').ScaleProviderFactory;
 
     /**
      * @constructor
@@ -29,5 +29,5 @@
         return new FixedScaleProvider(this._scaleRatio);
     };
 
-    module.exports = FixedScaleProviderFactory;
+    exports.FixedScaleProviderFactory = FixedScaleProviderFactory;
 }());

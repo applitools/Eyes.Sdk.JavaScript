@@ -22,5 +22,5 @@
      */
     CutProvider.prototype.scale = function (scaleRatio) {};
 
-    module.exports = CutProvider;
+    exports.CutProvider = CutProvider;
 }());

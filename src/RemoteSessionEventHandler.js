@@ -9,7 +9,7 @@
     var DEFAULT_CONNECTION_TIMEOUT_MS = 30 * 1000,
         SERVER_SUFFIX = '/applitools/sessions';
 
-    module.exports.createSessionEventHandler = function (serverUrl, accessKey) {
+    exports.createSessionEventHandler = function (serverUrl, accessKey) {
 
         var sessionHandler = SessionEventHandler.createSessionEventHandler();
 

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var FixedCutProvider = require('./FixedCutProvider');
+    var FixedCutProvider = require('./FixedCutProvider').FixedCutProvider;
 
     /**
      * @constructor
@@ -14,5 +14,5 @@
     NullCutProvider.prototype = Object.create(FixedCutProvider.prototype);
     NullCutProvider.prototype.constructor = NullCutProvider;
 
-    module.exports = NullCutProvider;
+    exports.NullCutProvider = NullCutProvider;
 }());

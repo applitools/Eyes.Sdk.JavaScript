@@ -1,10 +1,8 @@
 (function () {
     'use strict';
 
-    var request = require('request'),
-        EyesUtils = require('eyes.utils');
-
-    var GeneralUtils = EyesUtils.GeneralUtils;
+    var request = require('request');
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
 
     // constants
     var TIMEOUT = 5 * 60 * 1000,
@@ -403,5 +401,5 @@
         return result;
     }
 
-    module.exports = ServerConnector;
+    exports.ServerConnector = ServerConnector;
 }());

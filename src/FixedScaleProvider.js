@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    var ScaleProvider = require('./ScaleProvider'),
+    var ScaleProvider = require('./ScaleProvider').ScaleProvider,
         ArgumentGuard = require('eyes.utils').ArgumentGuard;
 
     /**
@@ -25,5 +25,5 @@
         return this._scaleRatio;
     };
 
-    module.exports = FixedScaleProvider;
+    exports.FixedScaleProvider = FixedScaleProvider;
 }());

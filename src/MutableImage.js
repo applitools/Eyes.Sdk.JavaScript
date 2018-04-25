@@ -280,5 +280,5 @@
         return new MutableImage(new Buffer(image64, 'base64'), promiseFactory);
     };
 
-    module.exports = MutableImage;
+    exports.MutableImage = MutableImage;
 }());

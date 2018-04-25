@@ -172,5 +172,5 @@
         return tapString;
     };
 
-    module.exports = TestResultsFormatter;
+    exports.TestResultsFormatter = TestResultsFormatter;
 }());

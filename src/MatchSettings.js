@@ -190,11 +190,13 @@
         this._ignoreCaret = ignoreCaret;
     };
 
+    Object.freeze(MatchLevel);
+
     /**
      * Encapsulates match settings for the a session.
      */
     var MatchSettings = {};
-    MatchSettings.MatchLevel = Object.freeze(MatchLevel);
+    MatchSettings.MatchLevel = MatchLevel;
     MatchSettings.ImageMatchSettings = ImageMatchSettings;
     MatchSettings.ExactMatchSettings = ExactMatchSettings;
     module.exports = MatchSettings;
