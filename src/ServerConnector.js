@@ -175,7 +175,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.startSession - unexpected status', results.response);
+            throw new Error('ServerConnector.startSession - unexpected status' + results.response);
         });
     };
 
@@ -206,7 +206,7 @@
                 return results.body;
             }
 
-            throw new Error('ServerConnector.stopSession - unexpected status', results.response);
+            throw new Error('ServerConnector.stopSession - unexpected status ' + results.response);
         });
     };
 
@@ -236,7 +236,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.matchWindow - unexpected status ', results.response);
+            throw new Error('ServerConnector.matchWindow - unexpected status ' + results.response);
         });
     };
 
@@ -268,7 +268,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.replaceWindow - unexpected status ', results.response);
+            throw new Error('ServerConnector.replaceWindow - unexpected status  ' + results.response);
         });
     };
 
@@ -289,7 +289,7 @@
 
         options.headers = options.headers ? GeneralUtils.objectAssign(options.headers, headers) : headers;
         return _sendRequest(that, name, uri, method, options).then(function (results) {
-            return _longRequestCheckStatus(that, name, results);
+            return _longRequestCheckStatus(that, name, uri, method, options, results, true);
         });
     }
 
@@ -297,23 +297,33 @@
      * @private
      * @param {ServerConnector} that
      * @param {string} name
+     * @param {string} uri
+     * @param {string} method
+     * @param {object} options
      * @param {{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}} results
+     * @param {boolean} retryIfGone
      * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
-    function _longRequestCheckStatus(that, name, results) {
+    function _longRequestCheckStatus(that, name, uri, method, options, results, retryIfGone) {
         switch (results.status) {
             case HTTP_STATUS_CODES.OK:
                 return that._promiseFactory.resolve(results);
             case HTTP_STATUS_CODES.ACCEPTED:
-                var uri = results.response.headers['location'];
-                return _longRequestLoop(that, name, uri, LONG_REQUEST_DELAY).then(function (results) {
-                    return _longRequestCheckStatus(that, name, results);
+                var loopUri = results.response.headers['location'];
+                return _longRequestLoop(that, name, loopUri, LONG_REQUEST_DELAY).then(function (results) {
+                    return _longRequestCheckStatus(that, name, uri, method, options, results, retryIfGone);
                 });
             case HTTP_STATUS_CODES.CREATED:
                 var deleteUri = results.response.headers['location'];
-                var options = {headers: {'Eyes-Date': GeneralUtils.getRfc1123Date()}};
-                return _sendRequest(that, name, deleteUri, 'delete', options);
+                var loopOptions = {headers: {'Eyes-Date': GeneralUtils.getRfc1123Date()}};
+                return _sendRequest(that, name, deleteUri, 'delete', loopOptions);
             case HTTP_STATUS_CODES.GONE:
+                if (retryIfGone) {
+                    return _sendRequest(that, name, uri, method, options).then(function (results) {
+                        return _longRequestCheckStatus(that, name, uri, method, options, results, false);
+                    });
+                }
+
                 return that._promiseFactory.reject(new Error('The server task has gone.'));
             default:
                 return that._promiseFactory.reject(new Error('Unknown error processing long request'));
