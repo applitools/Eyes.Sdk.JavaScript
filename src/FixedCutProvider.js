@@ -1,7 +1,7 @@
 (function () {
-    "use strict";
+    'use strict';
 
-    var CutProvider = require('./CutProvider'),
+    var CutProvider = require('./CutProvider').CutProvider,
         GeometryUtils = require('eyes.utils').GeometryUtils;
 
     /**
@@ -88,6 +88,5 @@
         return new FixedCutProvider(scaledHeader, scaledFooter, scaledLeft, scaledRight);
     };
 
-    module.exports = FixedCutProvider;
-
+    exports.FixedCutProvider = FixedCutProvider;
 }());

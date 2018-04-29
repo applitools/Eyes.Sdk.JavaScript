@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     var EyesUtils = require('eyes.utils');
     var ArgumentGuard = EyesUtils.ArgumentGuard,
@@ -8,14 +8,14 @@
 
     /**
      * @constructor
-     * @param {object} image
+     * @param {MutableImage} image
      **/
     function EyesScreenshot(image) {
         this._image = image;
     }
 
     /**
-     * @return {Object} the screenshot image.
+     * @return {MutableImage} the screenshot image.
      */
     EyesScreenshot.prototype.getImage = function () {
         return this._image;
@@ -91,6 +91,6 @@
 
         return GeometryUtils.createRegionFromLocationAndSize(updatedLocation, GeometryUtils.createSizeFromRegion(region));
     };
-    
-    module.exports = EyesScreenshot;
+
+    exports.EyesScreenshot = EyesScreenshot;
 }());

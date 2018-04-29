@@ -1,23 +1,8 @@
-/*
- ---
-
- name: ServerConnector
-
- description: Provides an API for communication with the Applitools server.
-
- provides: [ServerConnector]
- requires: [GeneralUtils]
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
-    var request = require('request'),
-        EyesUtils = require('eyes.utils');
-
-    var GeneralUtils = EyesUtils.GeneralUtils;
+    var request = require('request');
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
 
     // constants
     var TIMEOUT = 5 * 60 * 1000,
@@ -39,11 +24,12 @@
     };
 
     /**
+     * Provides an API for communication with the Applitools server.
      *
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     * @param {String} serverUrl
-     * @param {Object} logger
-     * @varructor
+     * @param {string} serverUrl
+     * @param {Logger} logger
+     * @constructor
      **/
     function ServerConnector(promiseFactory, serverUrl, logger) {
         this._promiseFactory = promiseFactory;
@@ -80,7 +66,7 @@
     /**
      * Sets the current server URL used by the rest client.
      *
-     * @param serverUrl {String} The URI of the rest server.
+     * @param serverUrl {string} The URI of the rest server.
      */
     ServerConnector.prototype.setServerUrl = function (serverUrl) {
         this._serverUrl = serverUrl;
@@ -89,7 +75,7 @@
 
     /**
      *
-     * @return {String} The URI of the eyes server.
+     * @return {string} The URI of the eyes server.
      */
     ServerConnector.prototype.getServerUrl = function () {
         return this._serverUrl;
@@ -98,8 +84,8 @@
     /**
      * Sets the API key of your applitools Eyes account.
      *
-     * @param runKey {String} The run key to be used.
-     * @param newAuthScheme {boolean} Whether or not the server uses the new authentication scheme.
+     * @param runKey {string} The run key to be used.
+     * @param [newAuthScheme] {boolean} Whether or not the server uses the new authentication scheme.
      */
     ServerConnector.prototype.setApiKey = function (runKey, newAuthScheme) {
         this._runKey = runKey || process.env.APPLITOOLS_API_KEY;
@@ -112,7 +98,7 @@
 
     /**
      *
-     * @return {String} The current run key.
+     * @return {string} The current run key.
      */
     ServerConnector.prototype.getApiKey = function () {
         return this._runKey;
@@ -121,9 +107,9 @@
     /**
      * Sets the proxy settings to be used by the request module.
      *
-     * @param {String} url The proxy url to be used. If {@code null} then no proxy is set.
-     * @param {String} [username]
-     * @param {String} [password]
+     * @param {string} url The proxy url to be used. If {@code null} then no proxy is set.
+     * @param {string} [username]
+     * @param {string} [password]
      */
     ServerConnector.prototype.setProxy = function (url, username, password) {
         var proxyString;
@@ -140,7 +126,7 @@
 
     /**
      *
-     * @return {String} The current proxy settings used by the rest client, or {@code null} if no proxy is set.
+     * @return {string} The current proxy settings used by the rest client, or {@code null} if no proxy is set.
      */
     ServerConnector.prototype.getProxy = function () {
         return this._httpOptions.proxy;
@@ -164,15 +150,11 @@
     };
 
     /**
+     * Starts a new running session in the server. Based on the given parameters, this running session will either be
+     * linked to an existing session, or to a completely new session.
      *
-     * Starts a new running session in the server. Based on the given parameters,
-     * this running session will either be linked to an existing session, or to
-     * a completely new session.
-     *
-     * @method startSession
-     * @param {Object} sessionStartInfo - The start parameters for the session.
-     * @return {Object} Promise with a resolve result that represents the current running session.
-     *
+     * @param {SessionStartInfo} sessionStartInfo - The start parameters for the session.
+     * @return {Promise<RunningSession>} Promise with a resolve result that represents the current running session.
      **/
     ServerConnector.prototype.startSession = function (sessionStartInfo) {
         this._logger.verbose('ServerConnector.startSession called with:', sessionStartInfo);
@@ -195,7 +177,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.startSession - unexpected status', results.response);
+            throw new Error('ServerConnector.startSession - unexpected status' + results.response);
         });
     };
 
@@ -203,12 +185,10 @@
      *
      * Ends a running session in the server. Session results are received from the server.
      *
-     * @method endSession
-     * @param {Object} runningSession - The session to end.
-     * @param {Object} isAborted.
-     * @param {Object} save - Save the session.
-     * @return {Object} Promise with a resolve result that represents the test results.
-     *
+     * @param {RunningSession} runningSession - The session to end.
+     * @param {boolean} isAborted.
+     * @param {boolean} save Save the session.
+     * @return {Promise<TestResults>} Promise with a resolve result that represents the test results.
      **/
     ServerConnector.prototype.endSession = function (runningSession, isAborted, save) {
         this._logger.verbose('ServerConnector.endSession called with isAborted:', isAborted, ', save:', save, 'for session:', runningSession);
@@ -228,10 +208,17 @@
                 return results.body;
             }
 
-            throw new Error('ServerConnector.stopSession - unexpected status', results.response);
+            throw new Error('ServerConnector.stopSession - unexpected status ' + results.response);
         });
     };
 
+    /**
+     * Matches the current window to the expected window.
+     * @param {RunningSession} runningSession The current agent's running session.
+     * @param {object} matchWindowData The window data.
+     * @param {Buffer} screenshot The PNG bytes of the updated image.
+     * @return {Promise<{asExpected: boolean}>} A promise which resolves when matching is done, or rejects on error.
+     */
     ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
         this._logger.verbose('ServerConnector.matchWindow called with ', matchWindowData, ' for session: ', runningSession);
 
@@ -251,18 +238,18 @@
                 };
             }
 
-            throw new Error('ServerConnector.matchWindow - unexpected status ', results.response);
+            throw new Error('ServerConnector.matchWindow - unexpected status ' + results.response);
         });
     };
 
     //noinspection JSValidateJSDoc
     /**
      * Replaces an actual image in the current running session.
-     * @param {object} runningSession The currently running session.
+     * @param {RunningSession} runningSession The currently running session.
      * @param {number} stepIndex The zero based index of the step in which to replace the actual image.
      * @param {object} replaceWindowData The updated window data (similar to matchWindowData only without ignoreMismatch).
      * @param {Buffer} screenshot The PNG bytes of the updated image.
-     * @return {Promise} A promise which resolves when replacing is done, or rejects on error.
+     * @return {Promise<{asExpected: boolean}>} A promise which resolves when replacing is done, or rejects on error.
      */
     ServerConnector.prototype.replaceWindow = function (runningSession, stepIndex, replaceWindowData, screenshot) {
         this._logger.verbose('ServerConnector.replaceWindow called with ', replaceWindowData, ' for session: ', runningSession);
@@ -283,18 +270,18 @@
                 };
             }
 
-            throw new Error('ServerConnector.replaceWindow - unexpected status ', results.response);
+            throw new Error('ServerConnector.replaceWindow - unexpected status  ' + results.response);
         });
     };
 
     /**
      * @private
      * @param {ServerConnector} that
-     * @param {String} name
-     * @param {String} uri
-     * @param {String} method
-     * @param {Object} options
-     * @return {Promise<{status: int, body: Object, response: {statusCode: int, statusMessage: String, headers: Object}}>}
+     * @param {string} name
+     * @param {string} uri
+     * @param {string} method
+     * @param {object} options
+     * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
     function _sendLongRequest(that, name, uri, method, options) {
         var headers = {
@@ -304,31 +291,41 @@
 
         options.headers = options.headers ? GeneralUtils.objectAssign(options.headers, headers) : headers;
         return _sendRequest(that, name, uri, method, options).then(function (results) {
-            return _longRequestCheckStatus(that, name, results);
+            return _longRequestCheckStatus(that, name, uri, method, options, results, true);
         });
     }
 
     /**
      * @private
      * @param {ServerConnector} that
-     * @param {String} name
-     * @param {{status: int, body: Object, response: {statusCode: int, statusMessage: String, headers: Object}}} results
-     * @return {Promise<{status: int, body: Object, response: {statusCode: int, statusMessage: String, headers: Object}}>}
+     * @param {string} name
+     * @param {string} uri
+     * @param {string} method
+     * @param {object} options
+     * @param {{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}} results
+     * @param {boolean} retryIfGone
+     * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
-    function _longRequestCheckStatus(that, name, results) {
+    function _longRequestCheckStatus(that, name, uri, method, options, results, retryIfGone) {
         switch (results.status) {
             case HTTP_STATUS_CODES.OK:
                 return that._promiseFactory.resolve(results);
             case HTTP_STATUS_CODES.ACCEPTED:
-                var uri = results.response.headers['location'];
-                return _longRequestLoop(that, name, uri, LONG_REQUEST_DELAY).then(function (results) {
-                    return _longRequestCheckStatus(that, name, results);
+                var loopUri = results.response.headers['location'];
+                return _longRequestLoop(that, name, loopUri, LONG_REQUEST_DELAY).then(function (results) {
+                    return _longRequestCheckStatus(that, name, uri, method, options, results, retryIfGone);
                 });
             case HTTP_STATUS_CODES.CREATED:
                 var deleteUri = results.response.headers['location'];
-                var options = {headers: {'Eyes-Date': GeneralUtils.getRfc1123Date()}};
-                return _sendRequest(that, name, deleteUri, 'delete', options);
+                var loopOptions = {headers: {'Eyes-Date': GeneralUtils.getRfc1123Date()}};
+                return _sendRequest(that, name, deleteUri, 'delete', loopOptions);
             case HTTP_STATUS_CODES.GONE:
+                if (retryIfGone) {
+                    return _sendRequest(that, name, uri, method, options).then(function (results) {
+                        return _longRequestCheckStatus(that, name, uri, method, options, results, false);
+                    });
+                }
+
                 return that._promiseFactory.reject(new Error('The server task has gone.'));
             default:
                 return that._promiseFactory.reject(new Error('Unknown error processing long request'));
@@ -338,10 +335,10 @@
     /**
      * @private
      * @param {ServerConnector} that
-     * @param {String} name
-     * @param {String} uri
-     * @param {int} delay
-     * @return {Promise<{status: int, body: Object, response: {statusCode: int, statusMessage: String, headers: Object}}>}
+     * @param {string} name
+     * @param {string} uri
+     * @param {number} delay
+     * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
     function _longRequestLoop(that, name, uri, delay) {
         delay = Math.min(MAX_LONG_REQUEST_DELAY, Math.floor(delay * LONG_REQUEST_DELAY_MULTIPLICATIVE_INCREASE_FACTOR));
@@ -359,11 +356,11 @@
     /**
      * @private
      * @param {ServerConnector} that
-     * @param {String} name
-     * @param {String} uri
-     * @param {String} method
-     * @param {Object} options
-     * @return {Promise<{status: int, body: Object, response: {statusCode: int, statusMessage: String, headers: Object}}>}
+     * @param {string} name
+     * @param {string} uri
+     * @param {string} method
+     * @param {object} options
+     * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
     function _sendRequest(that, name, uri, method, options) {
         options = options || {};
@@ -416,5 +413,5 @@
         return result;
     }
 
-    module.exports = ServerConnector;
+    exports.ServerConnector = ServerConnector;
 }());
