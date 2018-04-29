@@ -1,19 +1,16 @@
-/*
- ---
-Description: A utility class for aggregating and formatting test results.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     //noinspection JSLint
     var OK = "ok";
     //noinspection JSLint
     var NOT_OK = "not ok";
 
-    //noinspection JSLint
+    /**
+     * A utility class for aggregating and formatting test results.
+     *
+     * @constructor
+     */
     function TestResultsFormatter() {
         this._resultsList = [];
     }
@@ -24,7 +21,7 @@ Description: A utility class for aggregating and formatting test results.
      *
      * @param {TestResults} results A test results object as returned by a call to  'eyes.close'
      *                      or 'eyes.abortIfNotClosed'.
-     * @returns {TestResultsFormatter} The updated 'TestResultsFormatter' instance.
+     * @return {TestResultsFormatter} The updated 'TestResultsFormatter' instance.
      */
     TestResultsFormatter.prototype.addResults = function (results) {
         // Ignore null/undefined.
@@ -43,7 +40,7 @@ Description: A utility class for aggregating and formatting test results.
      * @param {boolean} [markNewAsPassed] If true, new tests will be treated as "passed". Default is false.
      * @return {string} A string which is the TAP representation of the results list.
      */
-    TestResultsFormatter.prototype.asHierarchicTAׁPString = function (includeSubTests, markNewAsPassed) {
+    TestResultsFormatter.prototype.asHierarchicTAPString = function (includeSubTests, markNewAsPassed) {
         includeSubTests = includeSubTests !== undefined ? includeSubTests: true;
         markNewAsPassed = markNewAsPassed || false;
         if (this._resultsList.length === 0) {
@@ -111,7 +108,7 @@ Description: A utility class for aggregating and formatting test results.
      * @param {boolean} [markNewAsPassed] If true, new tests will be treated as "passed". Default is false.
      * @return {string} A string which is the TAP representation of the results list.
      */
-    TestResultsFormatter.prototype.asFlattenedTAׁPString = function (markNewAsPassed) {
+    TestResultsFormatter.prototype.asFlattenedTAPString = function (markNewAsPassed) {
         markNewAsPassed = markNewAsPassed || false;
         if (this._resultsList.length === 0) {
             return '';
@@ -175,5 +172,5 @@ Description: A utility class for aggregating and formatting test results.
         return tapString;
     };
 
-    module.exports = TestResultsFormatter;
+    exports.TestResultsFormatter = TestResultsFormatter;
 }());

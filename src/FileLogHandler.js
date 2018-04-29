@@ -1,79 +1,37 @@
-/*
- ---
-
- name: FileLogHandler
-
- description: Write log massages to the browser/node console
-
- provides: [FileLogHandler]
- requires: [winston]
-
- ---
- */
-
 (function () {
-  "use strict";
+  'use strict';
 
-  var winston = require('winston'),
-    timeStringFn = require('./ConsoleLogHandler').getTimeString;
+  var path = require('path');
+  var fs = require('fs');
+
+  var GeneralUtils = require('eyes.utils').GeneralUtils;
+  var LogHandler = require('./LogHandler').LogHandler;
 
   /**
+   * Write log massages to the browser/node console
    *
-   * C'tor = initializes the module settings
-   *
-   * @param {Boolean} isVerbose
-   *
+   * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
+   * @param {String} [filename] The file in which to save the logs.
+   * @param {boolean} [append=true] Whether to append the logs to existing file, or to overwrite the existing file.
+   * @constructor
+   * @extends LogHandler
    **/
-  function FileLogHandler(isVerbose) {
-    this._isVerbose = !!isVerbose;
-    //this._appendToFile = true;
-    this._fileName = "eyes.log";
-    this._fileDirectory = "./";
+  function FileLogHandler(isVerbose, filename, append) {
+    LogHandler.call(this);
+
+    this._filename = filename || 'eyes.log';
+    this._append = append !== undefined ? append : true;
+    this.setIsVerbose(isVerbose);
   }
 
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   * Whether to handle or ignore verbose log messages.
-   *
-   * @param {Boolean} isVerbose
-   */
-  FileLogHandler.prototype.setIsVerbose = function (isVerbose) {
-    this._isVerbose = !!isVerbose;
-  };
-
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   * Whether to handle or ignore verbose log messages.
-   *
-   * @return {Boolean} isVerbose
-   */
-  FileLogHandler.prototype.getIsVerbose = function () {
-    return this._isVerbose;
-  };
-
-  /**
-   * Whether to append messages to the log file or to reset it on open.
-   *
-   * @param {Boolean} shouldAppend
-   */
-//    FileLogHandler.prototype.setAppendToFile = function (shouldAppend) {
-//        this._appendToFile = !!shouldAppend;
-//    };
-
-  /**
-   * Whether to append messages to the log file or to reset it on open.
-   *
-   * @return {Boolean}
-   */
-//    FileLogHandler.prototype.getAppendToFile = function () {
-//        return this._appendToFile;
-//    };
+  FileLogHandler.prototype = Object.create(LogHandler.prototype);
+  FileLogHandler.prototype.constructor = LogHandler;
 
   //noinspection JSUnusedGlobalSymbols
   /**
    * The name of the log file.
    *
-   * @param {String} fileName
+   * @param {string} fileName
    */
   FileLogHandler.prototype.setFileName = function (fileName) {
     this._fileName = fileName;
@@ -83,7 +41,7 @@
   /**
    * The name of the log file.
    *
-   * @return {String} the file name
+   * @return {string} the file name
    */
   FileLogHandler.prototype.getFileName = function () {
     return this._fileName;
@@ -93,7 +51,7 @@
   /**
    * The path of the log file folder.
    *
-   * @param {String} fileDirectory
+   * @param {string} fileDirectory
    */
   FileLogHandler.prototype.setFileDirectory = function (fileDirectory) {
     this._fileDirectory = fileDirectory;
@@ -103,48 +61,49 @@
   /**
    * The path of the log file folder.
    *
-   * @return {String} the file Directory
+   * @return {string} the file Directory
    */
   FileLogHandler.prototype.getFileDirectory = function () {
     return this._fileDirectory;
   };
 
+  /**
+   * Create a winston file logger
+   */
   FileLogHandler.prototype.open = function () {
     this.close();
-    this._logger = new (winston.Logger)({
-      exitOnError: false,
-      transports: [
-        new (winston.transports.File)({
-          filename: this._fileName,
-          dirname: this._fileDirectory,
-          timestamp: timeStringFn,
-          json: false
-        })
-      ]
-    });
 
-    return this._logger;
+    var file = path.normalize(this._filename);
+    var opts = {
+      flags: this._append ? 'a' : 'w',
+      encoding: 'utf8'
+    };
+
+    this._writer = fs.createWriteStream(file, opts);
   };
 
+  /**
+   * Close the winston file logger
+   */
   FileLogHandler.prototype.close = function () {
-    if (this._logger) {
-      this._logger.close();
-      this._logger = undefined;
+    if (this._writer) {
+      this._writer.end('\n');
+      this._writer = undefined;
     }
   };
 
   //noinspection JSUnusedGlobalSymbols
   /**
-   * Write a message
-   * @param {Boolean} verbose - is the message verbose
-   * @param {String} message
+   * Handle a message to be logged.
+   *
+   * @param {boolean} verbose Whether this message is flagged as verbose or not.
+   * @param {String} logString The string to log.
    */
-  FileLogHandler.prototype.onMessage = function (verbose, message) {
-    var logger = this._logger || this.open();
-    if (!verbose || this._isVerbose) {
-      logger.info("Eyes: " + message);
+  FileLogHandler.prototype.onMessage = function (verbose, logString) {
+    if (this._writer && (!verbose || this._isVerbose)) {
+      this._writer.write(GeneralUtils.toISO8601DateTime() + ' Eyes: ' + logString + '\n');
     }
   };
 
-  module.exports = FileLogHandler;
+  exports.FileLogHandler = FileLogHandler;
 }());

@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     //noinspection UnnecessaryLocalVariableJS
     /**
@@ -31,5 +31,6 @@
         CONTEXT_RELATIVE: 3
     };
 
-    module.exports = CoordinatesType;
+    Object.freeze(CoordinatesType);
+    exports.CoordinatesType = CoordinatesType;
 }());

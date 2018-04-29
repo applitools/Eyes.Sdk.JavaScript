@@ -1,34 +1,53 @@
 {
-    "name": "eyes.sdk",
-    "version": "0.0.68",
-    "description": "Applitools Eyes SDK For JavaScript",
-    "author": "Applitools Team <team@applitools.com> (http://www.applitools.com/)",
-    "keywords": [
-        "Test Automation",
-        "Visual Regression",
-        "tests",
-        "SDK",
-        "Applitools",
-        "Eyes",
-        "automation",
-        "testing"
-    ],
-    "homepage": "http://www.applitools.com/",
-    "repository": {
-        "type": "git",
-        "url": "git://github.com/applitools/Eyes.Sdk.JavaScript.git"
-    },
-    "license": "SEE LICENSE IN LICENSE",
-    "main": "index",
-    "dependencies": {
-        "request": "^2.81.0",
-        "winston": "*",
-        "eyes.utils": "0.0.26"
-    },
-    "browser": {
-        "./src/FileLogHandler": false
-    },
-    "engines": {
-        "node": ">= 6.9.0"
-    }
+  "name": "eyes.sdk",
+  "version": "0.0.68",
+  "description": "Applitools Eyes SDK For JavaScript",
+  "keywords": [
+    "eyes.sdk",
+    "applitools",
+    "eyes",
+    "test automation",
+    "visual regression",
+    "automation",
+    "testing",
+    "tests"
+  ],
+  "homepage": "https://applitools.com",
+  "author": {
+    "name": "Applitools Team",
+    "email": "team@applitools.com",
+    "url": "https://www.applitools.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/applitools/Eyes.Sdk.JavaScript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/applitools/Eyes.Sdk.JavaScript/issues"
+  },
+  "directories": {
+    "lib": "./src",
+    "test": "./test"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "src/",
+    "typings/"
+  ],
+  "main": "./index.js",
+  "types": "./typings/index.d.ts",
+  "dependencies": {
+    "@types/node": "^9.6.6",
+    "eyes.utils": "0.0.26",
+    "request": "^2.81.0"
+  },
+  "browser": {
+    "./src/FileLogHandler": false
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">= 4.2.0"
+  }
 }

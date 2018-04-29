@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @constructor
@@ -11,6 +11,5 @@
      */
     ScaleProvider.prototype.getScaleRatio = function () {};
 
-    module.exports = ScaleProvider;
-
+    exports.ScaleProvider = ScaleProvider;
 }());
