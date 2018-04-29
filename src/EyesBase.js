@@ -1,45 +1,63 @@
-/*
- ---
-
- name: EyesBase
-
- description: Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
-
- ---
+/**
+ * @global
+ * @typedef {{triggerType: Triggers.TriggerType, location: Location, mouseAction: Triggers.MouseAction, control: Region}} Trigger
+ */
+/**
+ * @global
+ * @typedef {{sessionId: string, legacySessionId?: string, sessionUrl: string, isNewSession: boolean}} RunningSession
+ */
+/**
+ * @global
+ * @typedef {{id: string, name: string, startedAt: string}} BatchInfo
+ */
+/**
+ * @global
+ * @typedef {{inferred: string, os: string, hostingApp: string, displaySize: RectangleSize}} AppEnvironment
+ */
+/**
+ * @global
+ * @typedef {{agentId: string, appIdOrName: string, scenarioIdOrName: string, batchInfo: BatchInfo, baselineEnvName: string, compareWithParentBranch: boolean, ignoreBaseline: boolean, environmentName: string, environment: AppEnvironment, defaultMatchSettings: {matchLevel: MatchSettings.MatchLevel, ignoreCaret: boolean, exact: { minDiffIntensity: number, minDiffWidth: number, minDiffHeight: number, matchThreshold: number}}, branchName: string, parentBranchName: string, baselineBranchName: string, autSessionId: string, properties: object}} SessionStartInfo
+ */
+/**
+ * @global
+ * @typedef {{name: string, secretToken: string, status: EyesBase.TestResultsStatus, appName: string, batchName: string, batchId: string, branchName: string, hostOS: string, hostApp: string, hostDisplaySize: RectangleSize, startedAt: Date, duration: number, isNew: boolean, isDifferent: boolean, isAborted: boolean, appUrls: {batch: string, session: string}, apiUrls: {batch: string, session: string}, stepsInfo: {name: string, isDifferent: boolean, hasBaselineImage: boolean, hasCurrentImage: boolean, appUrls: {step: string}, apiUrls: {baselineImage: string, currentImage: string, diffImage: string}}[], steps: number, matches: number, mismatches: number, missing: number, exactMatches: number, strictMatches: number, contentMatches: number, layoutMatches: number, noneMatches: number, url: string}} TestResults
  */
 
 (function () {
-    "use strict";
+    'use strict';
 
     var EyesUtils = require('eyes.utils'),
         MatchSettings = require('./MatchSettings'),
-        ServerConnector = require('./ServerConnector'),
-        MatchWindowTask = require('./MatchWindowTask'),
+        ServerConnector = require('./ServerConnector').ServerConnector,
+        MatchWindowTask = require('./MatchWindowTask').MatchWindowTask,
         SessionEventHandler = require('./SessionEventHandler'),
-        RemoteSessionEventHandler = require('./RemoteSessionEventHandler'),
-        FixedScaleProvider = require('./FixedScaleProvider'),
-        FixedCutProvider = require('./FixedCutProvider'),
-        NullScaleProvider = require('./NullScaleProvider'),
-        NullCutProvider = require('./NullCutProvider'),
-        Triggers = require('./Triggers'),
-        Logger = require('./Logger');
+        FixedScaleProvider = require('./FixedScaleProvider').FixedScaleProvider,
+        NullScaleProvider = require('./NullScaleProvider').FixedScaleProvider,
+        NullCutProvider = require('./NullCutProvider').NullCutProvider,
+        Triggers = require('./Triggers').Triggers,
+        Logger = require('./Logger').Logger;
 
     var ImageUtils = EyesUtils.ImageUtils,
         GeneralUtils = EyesUtils.GeneralUtils,
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
         SimplePropertyHandler = EyesUtils.SimplePropertyHandler,
-        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler,
-        MatchLevel = MatchSettings.MatchLevel,
-        ImageMatchSettings = MatchSettings.ImageMatchSettings,
-        ExactMatchSettings = MatchSettings.ExactMatchSettings;
+        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler;
 
-    var _FailureReport = {
+    var FailureReport = {
         // Failures are reported immediately when they are detected.
         Immediate: 'Immediate',
         // Failures are reported when tests are completed (i.e., when Eyes.close() is called).
         OnClose: 'OnClose'
     };
+    Object.freeze(FailureReport);
+
+    var TestResultsStatus = {
+        Passed: 'Passed',
+        Unresolved: 'Unresolved',
+        Failed: 'Failed'
+    };
+    Object.freeze(TestResultsStatus);
 
     /**
      * Utility function for creating the test results object
@@ -47,18 +65,19 @@
      * @param {Logger} logger The logger to use.
      * @param {string} testName The test's name.
      * @param {string} appName The application name
-     * @param {Object} runningSession The running session data received from the server.
-     * @param {Object} serverResults The tests results data received from the server.
+     * @param {RunningSession} runningSession The running session data received from the server.
+     * @param {TestResults} serverResults The tests results data received from the server.
      * @param {boolean} isSaved Whether or not the test was automatically saved.
      * @param {boolean} isAborted Whether or not the test was aborted.
-     * @returns {Object} A test results object.
+     * @return {TestResults} A test results object.
      * @private
      */
     var _buildTestResults = function (logger, testName, appName, runningSession, serverResults, isSaved, isAborted) {
         // It's possible that the test wasn't ever started.
         if (!runningSession) {
             logger.log("No running session. Creating empty test results.");
-            return { name: testName,
+            return {
+                name: testName,
                 appName: appName,
                 steps: 0,
                 matches: 0,
@@ -77,7 +96,7 @@
 
         // If we're here, the test was actually started, and we have results from the server.
         var results = GeneralUtils.clone(serverResults);
-        results.isPassed = (!results.isAborted && !results.isNew && results.mismatches === 0 && results.missing === 0);
+        results.isPassed = (!results.isAborted && results.isNew && results.mismatches === 0 && results.missing === 0);
         results.isSaved = isSaved;
 
         // for backwards compatibility with outdated servers
@@ -98,9 +117,9 @@
      * @param {PromiseFactory} promiseFactory The promise factory to use.
      * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
      * @param {string} eventName The event to notify
-     * @param {...Object} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
+     * @param {...*} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
      *                            notification function. May also be undefined.
-     * @returns {Promise} A promise which resolves when the event was delivered/failed to all handlers.
+     * @return {Promise<void>} A promise which resolves when the event was delivered/failed to all handlers.
      *
      * @private
      */
@@ -130,9 +149,11 @@
     };
 
     /**
+     * Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
+     *
      * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     * @param {String} serverUrl
-     * @param {Boolean} isDisabled
+     * @param {string} serverUrl
+     * @param {boolean} isDisabled
      * @constructor
      **/
     function EyesBase(promiseFactory, serverUrl, isDisabled) {
@@ -140,7 +161,7 @@
             this._promiseFactory = promiseFactory;
             this._logger = new Logger();
             this._serverUrl = serverUrl;
-            this._defaultMatchSettings = new ImageMatchSettings(MatchLevel.Strict);
+            this._defaultMatchSettings = new MatchSettings.ImageMatchSettings(MatchSettings.MatchLevel.Strict);
             this._compareWithParentBranch = false;
             this._ignoreBaseline = false;
             this._failureReport = EyesBase.FailureReport.OnClose;
@@ -172,14 +193,14 @@
     }
 
     EyesBase.prototype.addSessionEventHandler = function (eventHandler) {
-    	eventHandler.promiseFactory = this._promiseFactory;
+        eventHandler.promiseFactory = this._promiseFactory;
         this._sessionEventHandlers.push(eventHandler);
     };
 
     /**
      * Set the log handler
      *
-     * @param {Object} logHandler
+     * @param {LogHandler} logHandler
      */
     EyesBase.prototype.setLogHandler = function (logHandler) {
         this._logger.setLogHandler(logHandler);
@@ -189,7 +210,7 @@
     /**
      * Sets the current server URL used by the rest client.
      *
-     * @param serverUrl  {String} The URI of the rest server.
+     * @param serverUrl  {string} The URI of the rest server.
      */
     EyesBase.prototype.setServerUrl = function (serverUrl) {
         this._serverUrl = serverUrl;
@@ -198,7 +219,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The URI of the eyes server.
+     * @return {string} The URI of the eyes server.
      */
     EyesBase.prototype.getServerUrl = function () {
         return this._serverConnector.getServerUrl();
@@ -207,7 +228,7 @@
     /**
      * Sets the API key of your applitools Eyes account.
      *
-     * @param apiKey {String} The api key to be used.
+     * @param apiKey {string} The api key to be used.
      * @param [newAuthScheme] {boolean} Whether or not the server uses the new authentication scheme.
      */
     EyesBase.prototype.setApiKey = function (apiKey, newAuthScheme) {
@@ -215,7 +236,7 @@
     };
 
     /**
-     * @return {String} The currently set api key.
+     * @return {string} The currently set api key.
      */
     EyesBase.prototype.getApiKey = function () {
         return this._serverConnector.getApiKey();
@@ -241,14 +262,14 @@
     /**
      * Sets the user given agent id of the SDK.
      *
-     * @param agentId {String} The agent ID to set.
+     * @param agentId {string} The agent ID to set.
      */
     EyesBase.prototype.setAgentId = function (agentId) {
         this._agentId = agentId;
     };
 
     /**
-     * @return {String} The user given agent id of the SDK.
+     * @return {string} The user given agent id of the SDK.
      */
     EyesBase.prototype.getAgentId = function () {
         return this._agentId;
@@ -256,7 +277,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The user given agent id of the SDK.
+     * @return {string} The user given agent id of the SDK.
      */
     EyesBase.prototype._getFullAgentId = function () {
         //noinspection JSUnresolvedVariable
@@ -276,7 +297,7 @@
     /**
      * Sets the host OS name - overrides the one in the agent string.
      *
-     * @param os {String} The host OS.
+     * @param os {string} The host OS.
      */
     EyesBase.prototype.setHostOS = function (os) {
         this._os = os;
@@ -284,7 +305,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The host OS as set by the user.
+     * @return {string} The host OS as set by the user.
      */
     EyesBase.prototype.getHostOS = function () {
         return this._os;
@@ -297,7 +318,7 @@
      *
      * Sets the host OS name - overrides the one in the agent string.
      *
-     * @param os {String} The host OS.
+     * @param os {string} The host OS.
      */
     EyesBase.prototype.setOs = function (os) {
         this._os = os;
@@ -308,7 +329,7 @@
      * @deprecated
      * This function is deprecated, please use {@link getHostOS} instead.
      *
-     * @return {String} The host OS as set by the user.
+     * @return {string} The host OS as set by the user.
      */
     EyesBase.prototype.getOs = function () {
         return this._os;
@@ -318,7 +339,7 @@
     /**
      * Sets the hosting application - overrides the one in the agent string.
      *
-     * @param hostingApp {String} The hosting application.
+     * @param hostingApp {string} The hosting application.
      */
     EyesBase.prototype.setHostingApp = function (hostingApp) {
         this._hostingApp = hostingApp;
@@ -326,7 +347,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The hosting application as set by the user.
+     * @return {string} The hosting application as set by the user.
      */
     EyesBase.prototype.getHostingApp = function () {
         return this._hostingApp;
@@ -336,8 +357,8 @@
     /**
      * If specified, determines the baseline to compare with and disables automatic baseline inference.
      *
-     * @deprecated Only available for backward compatibility. See {@link #setBaselineEnvName(String)}.
-     * @param baselineName {String} The hosting application.
+     * @deprecated Only available for backward compatibility. See {@link #setBaselineEnvName(string)}.
+     * @param baselineName {string} The hosting application.
      */
     EyesBase.prototype.setBaselineName = function (baselineName) {
         this._logger.log("Baseline environment name: " + baselineName);
@@ -352,7 +373,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * @deprecated Only available for backward compatibility. See {@link #getBaselineEnvName()}.
-     * @return {String} The baseline name, if it was specified.
+     * @return {string} The baseline name, if it was specified.
      */
     EyesBase.prototype.getBaselineName = function () {
         return this._baselineEnvName;
@@ -362,7 +383,7 @@
     /**
      * If not {@code null}, determines the name of the environment of the baseline.
      *
-     * @param baselineEnvName {String} The name of the baseline's environment.
+     * @param baselineEnvName {string} The name of the baseline's environment.
      */
     EyesBase.prototype.setBaselineEnvName = function (baselineEnvName) {
         this._logger.log("Baseline environment name: " + baselineEnvName);
@@ -378,7 +399,7 @@
     /**
      * If not {@code null}, determines the name of the environment of the baseline.
      *
-     * @return {String} The name of the baseline's environment, or {@code null} if no such name was set.
+     * @return {string} The name of the baseline's environment, or {@code null} if no such name was set.
      */
     EyesBase.prototype.getBaselineEnvName = function () {
         return this._baselineEnvName;
@@ -388,7 +409,7 @@
     /**
      * If not {@code null} specifies a name for the environment in which the application under test is running.
      *
-     * @param envName {String} The name of the environment of the baseline.
+     * @param envName {string} The name of the environment of the baseline.
      */
     EyesBase.prototype.setEnvName = function (envName) {
         this._logger.log("Environment name: " + envName);
@@ -404,7 +425,7 @@
     /**
      * If not {@code null} specifies a name for the environment in which the application under test is running.
      *
-     * @return {String} The name of the environment of the baseline, or {@code null} if no such name was set.
+     * @return {string} The name of the environment of the baseline, or {@code null} if no such name was set.
      */
     EyesBase.prototype.getEnvName = function () {
         return this._environmentName;
@@ -414,7 +435,7 @@
     /**
      * Sets the test batch
      *
-     * @param name {String} - the batch name
+     * @param name {string} - the batch name
      *
      * @remarks:
      *   For advanced use cases - it is possible to pass ID and start date in that order - as 2nd and 3rd args
@@ -430,7 +451,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {Object} gets the test batch.
+     * @return {{id: string, name: string, startedAt: string}} gets the test batch.
      */
     EyesBase.prototype.getBatch = function () {
         return this._batch;
@@ -515,15 +536,15 @@
      */
     EyesBase.prototype.setFailureReport = function (mode) {
         switch (mode) {
-        case EyesBase.FailureReport.OnClose:
-            this._failureReport = EyesBase.FailureReport.OnClose;
-            break;
-        case EyesBase.FailureReport.Immediate:
-            this._failureReport = EyesBase.FailureReport.Immediate;
-            break;
-        default:
-            this._failureReport = EyesBase.FailureReport.OnClose;
-            break;
+            case EyesBase.FailureReport.OnClose:
+                this._failureReport = EyesBase.FailureReport.OnClose;
+                break;
+            case EyesBase.FailureReport.Immediate:
+                this._failureReport = EyesBase.FailureReport.Immediate;
+                break;
+            default:
+                this._failureReport = EyesBase.FailureReport.OnClose;
+                break;
         }
     };
 
@@ -692,7 +713,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @returns {boolean}
+     * @return {boolean}
      */
     EyesBase.prototype.getSaveDebugScreenshots = function () {
         return this._saveDebugScreenshots;
@@ -702,7 +723,7 @@
     /**
      * Sets the branch name.
      *
-     * @param branchName {String} The branch name.
+     * @param branchName {string} The branch name.
      */
     EyesBase.prototype.setBranchName = function (branchName) {
         this._branchName = branchName;
@@ -710,7 +731,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The branch name.
+     * @return {string} The branch name.
      */
     EyesBase.prototype.getBranchName = function () {
         return this._branchName;
@@ -720,7 +741,7 @@
     /**
      * Sets the parent branch name.
      *
-     * @param parentBranchName {String} The parent branch name.
+     * @param parentBranchName {string} The parent branch name.
      */
     EyesBase.prototype.setParentBranchName = function (parentBranchName) {
         this._parentBranchName = parentBranchName;
@@ -728,7 +749,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The parent branch name.
+     * @return {string} The parent branch name.
      */
     EyesBase.prototype.getParentBranchName = function () {
         return this._parentBranchName;
@@ -738,9 +759,9 @@
     /**
      * Sets the proxy settings to be used by the request module.
      *
-     * @return {String} proxySettings The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
-     * @return {String} [username]
-     * @return {String} [password]
+     * @return {string} proxySettings The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
+     * @return {string} [username]
+     * @return {string} [password]
      */
     EyesBase.prototype.setProxy = function (url, username, password) {
         return this._serverConnector.setProxy(url, username, password);
@@ -748,7 +769,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} current proxy settings used by the server connector, or {@code null} if no proxy is set.
+     * @return {string} current proxy settings used by the server connector, or {@code null} if no proxy is set.
      */
     EyesBase.prototype.getProxy = function () {
         return this._serverConnector.getProxy();
@@ -767,7 +788,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?String} The name of the currently running test.
+     * @return {?string} The name of the currently running test.
      */
     EyesBase.prototype.getTestName = function () {
         return this._testName;
@@ -775,7 +796,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?String} The name of the currently tested application.
+     * @return {?string} The name of the currently tested application.
      */
     EyesBase.prototype.getAppName = function () {
         return this._appName;
@@ -783,7 +804,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {Boolean} Whether eyes is disabled.
+     * @return {boolean} Whether eyes is disabled.
      */
     EyesBase.prototype.getIsDisabled = function () {
         return this._isDisabled;
@@ -791,7 +812,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param isDisabled {Boolean} If true, all interactions with this API will be silently ignored.
+     * @param isDisabled {boolean} If true, all interactions with this API will be silently ignored.
      */
     EyesBase.prototype.setIsDisabled = function (isDisabled) {
         this._isDisabled = isDisabled;
@@ -799,11 +820,15 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     *
-     * @return {Object} An object containing data about the currently running session.
+     * @return {RunningSession} An object containing data about the currently running session.
      */
     EyesBase.prototype.getRunningSession = function () {
         return this._runningSession;
+    };
+
+    // noinspection JSUnusedGlobalSymbols
+    EyesBase.prototype.openBase = function (appName, testName, viewportSize) {
+        return this.open(appName, testName, viewportSize);
     };
 
     EyesBase.prototype.open = function (appName, testName, viewportSize) {
@@ -821,7 +846,7 @@
                 this._logger.log(errMsg);
                 this._logger.getLogHandler().close();
                 reject(new Error(errMsg));
-				return;
+                return;
             }
 
             if (this._isOpen) {
@@ -853,7 +878,7 @@
      * @param results The TestResults object.
      * @param testName The test name.
      * @param appName The application name
-     * @returns {Error|null} An error object representing the tets.
+     * @return {Error|null} An error object representing the tets.
      */
     EyesBase.buildTestError = function (results, testName, appName) {
         var header,
@@ -890,58 +915,58 @@
      *
      * @param {boolean} isAborted Whether or not the test was aborted.
      * @param {boolean} throwEx Whether 'reject' should be called if the results returned from the server indicate
- 	 * 							a test failure.
-     * @returns {Promise} A promise which resolves (or rejected, dependeing on 'throwEx' and the test result) after
-	 * 						ending the session.
+     *   a test failure.
+     * @return {Promise<void>} A promise which resolves (or rejected, dependeing on 'throwEx' and the test result)
+     *   after ending the session.
      * @private
      */
     EyesBase.prototype._endSession = function (isAborted, throwEx) {
-		return this._promiseFactory.makePromise(function (resolve, reject) {
+        return this._promiseFactory.makePromise(function (resolve, reject) {
 
-			this._logger.verbose((isAborted ? 'Aborting' : 'Closing') + ' server session...');
+            this._logger.verbose((isAborted ? 'Aborting' : 'Closing') + ' server session...');
 
-			this._isOpen = false;
-			this._matchWindowTask = undefined;
+            this._isOpen = false;
+            this._matchWindowTask = undefined;
 
-			var autSessionId = this._autSessionId;
-			this._autSessionId = undefined;
+            var autSessionId = this._autSessionId;
+            this._autSessionId = undefined;
 
-			var runningSession = this._runningSession;
-			this._runningSession = undefined;
+            var runningSession = this._runningSession;
+            this._runningSession = undefined;
 
-			// If a session wasn't started, use empty results.
-			if (!runningSession) {
-				this._logger.log("Closed (server session was not started).");
-				var testResults = _buildTestResults(this._logger, this._testName, this._appName, undefined, undefined,
-					false, isAborted);
-				// TODO - you can remove check after moving getAUTSessionId to open instead of startSession (currently problematic because of wrapping SDK).
-				if (autSessionId) {
-					return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testEnded',
-						autSessionId, null).then(function () {
-						resolve(testResults);
-						this._logger.getLogHandler().close();
-					}.bind(this));
-				} else {
-					resolve(testResults);
-					this._logger.getLogHandler().close();
-					return;
-				}
-			}
+            // If a session wasn't started, use empty results.
+            if (!runningSession) {
+                this._logger.log("Closed (server session was not started).");
+                var testResults = _buildTestResults(this._logger, this._testName, this._appName, undefined, undefined,
+                    false, isAborted);
+                // TODO - you can remove check after moving getAUTSessionId to open instead of startSession (currently problematic because of wrapping SDK).
+                if (autSessionId) {
+                    return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testEnded',
+                        autSessionId, null).then(function () {
+                        resolve(testResults);
+                        this._logger.getLogHandler().close();
+                    }.bind(this));
+                } else {
+                    resolve(testResults);
+                    this._logger.getLogHandler().close();
+                    return;
+                }
+            }
 
-			var save = !isAborted && ((runningSession.isNewSession && this._saveNewTests) || (!runningSession.isNewSession && this._saveFailedTests));
+            var save = !isAborted && ((runningSession.isNewSession && this._saveNewTests) || (!runningSession.isNewSession && this._saveFailedTests));
 
-			// Session was started, call the server to end the session.
-			var serverResults;
-			return this._serverConnector.endSession(runningSession, isAborted, save).then(function (serverResults_) {
-				serverResults = serverResults_;
-				var testResults = _buildTestResults(this._logger, this._testName, this._appName, runningSession, serverResults, save, isAborted);
+            // Session was started, call the server to end the session.
+            var serverResults;
+            return this._serverConnector.endSession(runningSession, isAborted, save).then(function (serverResults_) {
+                serverResults = serverResults_;
+                var testResults = _buildTestResults(this._logger, this._testName, this._appName, runningSession, serverResults, save, isAborted);
 
-				// printing the results
-				var flattenedResults = {};
-				for (var p in testResults) {
-					flattenedResults[p] = testResults[p];
-				}
-				this._logger.log('Results:', flattenedResults);
+                // printing the results
+                var flattenedResults = {};
+                for (var p in testResults) {
+                    flattenedResults[p] = testResults[p];
+                }
+                this._logger.log('Results:', flattenedResults);
 
                 if (testResults.status === 'Unresolved') {
                     if (testResults.isNew) {
@@ -970,84 +995,84 @@
                     this._logger.log('--- Test passed. See details at ' + runningSession.sessionUrl);
                     return resolve(testResults);
                 }
-			}.bind(this), function (err) {
-				serverResults = null;
-				this._logger.log(err);
-				reject(err);
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testEnded',
-					autSessionId, serverResults);
-			}.bind(this)).then(function () {
-				this._logger.getLogHandler().close();
-			}.bind(this));
-		}.bind(this));
-	};
+            }.bind(this), function (err) {
+                serverResults = null;
+                this._logger.log(err);
+                reject(err);
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testEnded',
+                    autSessionId, serverResults);
+            }.bind(this)).then(function () {
+                this._logger.getLogHandler().close();
+            }.bind(this));
+        }.bind(this));
+    };
 
     /**
      * Ends the currently running test.
      *
      * @param {boolean} throwEx If true, then the returned promise will 'reject' for failed/aborted tests.
-     * @returns {Promise} A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
+     * @return {Promise<TestResults>} A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
      */
     EyesBase.prototype.close = function (throwEx) {
         if (throwEx === undefined) {
             throwEx = true;
         }
 
-		this._logger.verbose('EyesBase.close()');
+        this._logger.verbose('EyesBase.close()');
         this._lastScreenshot = null;
 
-		if (this._isDisabled) {
-			this._logger.log("EyesBase.close ignored - disabled");
-			// Create an empty tests results.
-			var testResults = _buildTestResults(this._logger, null, null, undefined, null, false, false);
-			this._logger.getLogHandler().close();
-			return this._promiseFactory.makePromise(function (resolve) { resolve(testResults); });
-		}
+        if (this._isDisabled) {
+            this._logger.log("EyesBase.close ignored - disabled");
+            // Create an empty tests results.
+            var testResults = _buildTestResults(this._logger, null, null, undefined, null, false, false);
+            this._logger.getLogHandler().close();
+            return this._promiseFactory.makePromise(function (resolve) { resolve(testResults); });
+        }
 
-		if (!this._isOpen) {
-			var errMsg = "close called with Eyes not open";
-			this._logger.log(errMsg);
-			this._logger.getLogHandler().close();
-			return this._promiseFactory.makePromise(function (resolve, reject) { reject(errMsg); })
-		}
+        if (!this._isOpen) {
+            var errMsg = "close called with Eyes not open";
+            this._logger.log(errMsg);
+            this._logger.getLogHandler().close();
+            return this._promiseFactory.makePromise(function (resolve, reject) { reject(errMsg); })
+        }
 
-		return this._endSession(false, throwEx);
+        return this._endSession(false, throwEx);
     };
 
-	/**
-	 * Aborts the currently running test.
-	 *
-	 * @returns {Promise} A promise which resolves to the test results.
-	 */
-	EyesBase.prototype.abortIfNotClosed = function () {
+    /**
+     * Aborts the currently running test.
+     *
+     * @return {Promise<TestResults>} A promise which resolves to the test results.
+     */
+    EyesBase.prototype.abortIfNotClosed = function () {
 
-		this._logger.verbose('EyesBase.abortIfNotClosed()');
+        this._logger.verbose('EyesBase.abortIfNotClosed()');
         this._lastScreenshot = null;
 
-		if (this._isDisabled) {
-			this._logger.log("Eyes abortIfNotClosed ignored. (disabled)");
-			// Create an empty tests results.
-			var testResults = _buildTestResults(this._logger, null, null, undefined, null, false, true);
-			this._logger.getLogHandler().close();
-			return this._promiseFactory.makePromise(function (resolve) { resolve(testResults); });
-		}
+        if (this._isDisabled) {
+            this._logger.log("Eyes abortIfNotClosed ignored. (disabled)");
+            // Create an empty tests results.
+            var testResults = _buildTestResults(this._logger, null, null, undefined, null, false, true);
+            this._logger.getLogHandler().close();
+            return this._promiseFactory.makePromise(function (resolve) { resolve(testResults); });
+        }
 
-		// If open was not called / "close" was already called, there's nothing to do.
-		if (!this._isOpen) {
-			this._logger.log("Session not open, nothing to do.");
-			this._logger.getLogHandler().close();
-			return this._promiseFactory.makePromise(function (resolve) { resolve(); });
-		}
+        // If open was not called / "close" was already called, there's nothing to do.
+        if (!this._isOpen) {
+            this._logger.log("Session not open, nothing to do.");
+            this._logger.getLogHandler().close();
+            return this._promiseFactory.makePromise(function (resolve) { resolve(); });
+        }
 
-		return this._endSession(true, false).catch(function () { });
+        return this._endSession(true, false).catch(function () { });
     };
 
     /**
      * The viewport size of the AUT.
      *
      * @abstract
-     * @returns {Promise.<{width: number, height: number}>}
+     * @return {Promise<{width: number, height: number}>}
      */
     EyesBase.prototype.getViewportSize = function() {
         throw new Error('getViewportSize method is not implemented!');
@@ -1056,7 +1081,7 @@
     /**
      * @abstract
      * @param {{width: number, height: number}} size The required viewport size.
-     * @returns {Promise.<void>}
+     * @return {Promise<void>}
      */
     EyesBase.prototype.setViewportSize = function(size) {
         throw new Error('setViewportSize method is not implemented!');
@@ -1066,7 +1091,7 @@
      * An updated screenshot.
      *
      * @abstract
-     * @returns {Promise.<MutableImage>}
+     * @return {Promise<MutableImage>}
      */
     EyesBase.prototype.getScreenShot = function() {
         throw new Error('getScreenShot method is not implemented!');
@@ -1076,7 +1101,7 @@
      * The current title of of the AUT.
      *
      * @abstract
-     * @returns {Promise.<string>}
+     * @return {Promise<string>}
      */
     EyesBase.prototype.getTitle = function() {
         throw new Error('getTitle method is not implemented!');
@@ -1086,7 +1111,7 @@
      * @private
      * @param {RegionProvider} regionProvider
      * @param {{imageBuffer: Buffer, width: number, height: number}} lastScreenshot
-     * @returns {Promise.<{appOutput: {screenShot64: string, title: string},
+     * @return {Promise<{appOutput: {screenShot64: string, title: string},
      *                     screenShot: {imageBuffer: Buffer, width: number, height: number}}>}
      */
     function _getAppData(regionProvider, lastScreenshot) {
@@ -1165,6 +1190,10 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
+    EyesBase.prototype.checkWindowBase = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings) {
+        return this.checkWindow(tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings);
+    };
+
     EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings) {
         tag = tag || '';
         ignoreMismatch = ignoreMismatch || false;
@@ -1196,10 +1225,10 @@
                 var validationInfo = new SessionEventHandler.ValidationInfo();
                 validationInfo.validationId = ++this._validationId;
                 validationInfo.tag = tag;
-				// default result
-				var validationResult = new SessionEventHandler.ValidationResult();
+                // default result
+                var validationResult = new SessionEventHandler.ValidationResult();
 
-				// copy matchLevel and exact from defaultMatchSettings
+                // copy matchLevel and exact from defaultMatchSettings
                 if (!imageMatchSettings.matchLevel) {
                     imageMatchSettings.matchLevel = this._defaultMatchSettings.getMatchLevel();
                 }
@@ -1215,52 +1244,52 @@
                         matchThreshold: exactObj.getMatchThreshold()
                     };
                 }
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
-					'validationWillStart', this._autSessionId, validationInfo)
-				.then(function () {
-					this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
-					return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
-						this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, imageMatchSettings)
-				}.bind(this))
-				.then(function (result) {
-					this._logger.verbose("EyesBase.checkWindow - match window returned result.");
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
+                    'validationWillStart', this._autSessionId, validationInfo)
+                    .then(function () {
+                        this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
+                        return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
+                            this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, imageMatchSettings)
+                    }.bind(this))
+                    .then(function (result) {
+                        this._logger.verbose("EyesBase.checkWindow - match window returned result.");
 
-					validationResult.asExpected = result.asExpected;
+                        validationResult.asExpected = result.asExpected;
 
-					if (!result.asExpected) {
-                        if (!ignoreMismatch) {
+                        if (!result.asExpected) {
+                            if (!ignoreMismatch) {
+                                this._userInputs = [];
+                                this._lastScreenshot = result.screenshot;
+                            }
+
+                            this._logger.verbose("EyesBase.checkWindow - match window result was not success");
+                            this._shouldMatchWindowRunOnceOnTimeout = true;
+
+                            if (!this._runningSession.isNewSession) {
+                                this._logger.log("Mismatch!", tag);
+                            }
+
+                            if (this._failureReport === EyesBase.FailureReport.Immediate) {
+                                var error = EyesBase.buildTestError(result, this._sessionStartInfo.scenarioIdOrName, this._sessionStartInfo.appIdOrName);
+                                this._logger.log(error.message);
+                                return reject(error);
+                            }
+                        } else { // Match successful
                             this._userInputs = [];
                             this._lastScreenshot = result.screenshot;
                         }
 
-						this._logger.verbose("EyesBase.checkWindow - match window result was not success");
-						this._shouldMatchWindowRunOnceOnTimeout = true;
-
-						if (!this._runningSession.isNewSession) {
-							this._logger.log("Mismatch!", tag);
-						}
-
-						if (this._failureReport === EyesBase.FailureReport.Immediate) {
-							var error = EyesBase.buildTestError(result, this._sessionStartInfo.scenarioIdOrName, this._sessionStartInfo.appIdOrName);
-							this._logger.log(error.message);
-							return reject(error);
-						}
-					} else { // Match successful
-                        this._userInputs = [];
-                        this._lastScreenshot = result.screenshot;
-                    }
-
-                    delete result.screenshot;
-					resolve(result);
-				}.bind(this), function (err) {
-					this._logger.log(err);
-					validationResult.asExpected = false;
-					reject(err);
-				}.bind(this))
-				.then(function () {
-					return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
-						'validationEnded', this._autSessionId, validationInfo.validationId, validationResult);
-				}.bind(this));
+                        delete result.screenshot;
+                        resolve(result);
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                        validationResult.asExpected = false;
+                        reject(err);
+                    }.bind(this))
+                    .then(function () {
+                        return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
+                            'validationEnded', this._autSessionId, validationInfo.validationId, validationResult);
+                    }.bind(this));
             }.bind(this), function (err) {
                 this._logger.log(err);
                 reject(err);
@@ -1273,10 +1302,10 @@
      * Replaces an actual image in the current running session.
      * @param {number} stepIndex The zero based index of the step in which to replace the actual image.
      * @param {Buffer} screenshot The PNG bytes of the updated screenshot.
-     * @param {string|undefined} tag The updated tag for the step.
-     * @param {string|undefined} title The updated title for the step.
-     * @param {Array|undefined} userInputs The updated userInputs for the step.
-     * @return {Promise} A promise which resolves when replacing is done, or rejects on error.
+     * @param {string} [tag] The updated tag for the step.
+     * @param {string} [title] The updated title for the step.
+     * @param {Trigger[]} [userInputs] The updated userInputs for the step.
+     * @return {Promise<void>} A promise which resolves when replacing is done, or rejects on error.
      */
     EyesBase.prototype.replaceWindow = function (stepIndex, screenshot, tag, title, userInputs) {
         tag = tag || '';
@@ -1321,117 +1350,117 @@
     EyesBase.prototype.startSession = function () {
         return this._promiseFactory.makePromise(function (resolve, reject) {
 
-			this._logger.verbose("startSession()");
+            this._logger.verbose("startSession()");
 
             if (this._runningSession) {
                 resolve();
                 return;
             }
 
-			var inferredEnv = null;
+            var inferredEnv = null;
 
-			return this.getAUTSessionId().then(function(autSessionId) {
-				this._autSessionId = autSessionId;
-			}.bind(this)).then(function() {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testStarted',
-					this._autSessionId);
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeWillStart',
-					this._autSessionId, this._viewportSize)
-			}.bind(this)).then(function () {
-				return this._viewportSize ? this.setViewportSize(this._viewportSize) : this.getViewportSize();
-			}.bind(this)).then(function (vpSizeResult) {
-				this._viewportSize = this._viewportSize || vpSizeResult;
+            return this.getAUTSessionId().then(function(autSessionId) {
+                this._autSessionId = autSessionId;
+            }.bind(this)).then(function() {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testStarted',
+                    this._autSessionId);
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeWillStart',
+                    this._autSessionId, this._viewportSize)
+            }.bind(this)).then(function () {
+                return this._viewportSize ? this.setViewportSize(this._viewportSize) : this.getViewportSize();
+            }.bind(this)).then(function (vpSizeResult) {
+                this._viewportSize = this._viewportSize || vpSizeResult;
                 if (!this._viewportSize) {
                     throw new Error("ViewportSize can't be null.");
                 }
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-					this._autSessionId);
-			}.bind(this), function (err) {
-				this._logger.log(err);
-				reject(err);
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-					this._autSessionId).then(function () {
-						// Throw to skip execution of all consecutive "then" blocks.
-						throw new Error('Failed to set/get viewport size.');
-					}.bind(this));
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted',
-					this._autSessionId);
-			}.bind(this)).then(function () {
-				// getInferredEnvironment is implemented in the wrapping SDK.
-				return this.getInferredEnvironment()
-					.then(function (inferredEnv_) {
-						inferredEnv = inferredEnv_;
-					}.bind(this), function (err) {
-						this._logger.log(err);
-					}.bind(this));
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded',
-					this._autSessionId);
-			}.bind(this)).then(function () {
-				var testBatch = this._batch;
-				if (!testBatch) {
-					testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
-				}
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
+                    this._autSessionId);
+            }.bind(this), function (err) {
+                this._logger.log(err);
+                reject(err);
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
+                    this._autSessionId).then(function () {
+                    // Throw to skip execution of all consecutive "then" blocks.
+                    throw new Error('Failed to set/get viewport size.');
+                }.bind(this));
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted',
+                    this._autSessionId);
+            }.bind(this)).then(function () {
+                // getInferredEnvironment is implemented in the wrapping SDK.
+                return this.getInferredEnvironment()
+                    .then(function (inferredEnv_) {
+                        inferredEnv = inferredEnv_;
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                    }.bind(this));
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded',
+                    this._autSessionId);
+            }.bind(this)).then(function () {
+                var testBatch = this._batch;
+                if (!testBatch) {
+                    testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
+                }
 
-				testBatch.toString = function () {
-					return this.name + " [" + this.id + "]" + " - " + this.startedAt;
-				};
+                testBatch.toString = function () {
+                    return this.name + " [" + this.id + "]" + " - " + this.startedAt;
+                };
 
-				//noinspection JSUnresolvedFunction
-				var appEnv = {
-					os: this._os || null,
-					hostingApp: this._hostingApp|| null,
-					displaySize: this._viewportSize,
-					inferred: inferredEnv
-				};
+                //noinspection JSUnresolvedFunction
+                var appEnv = {
+                    os: this._os || null,
+                    hostingApp: this._hostingApp|| null,
+                    displaySize: this._viewportSize,
+                    inferred: inferredEnv
+                };
 
-				var exactObj = this._defaultMatchSettings.getExact();
-				var exact = null;
-				if (exactObj) {
-					exact = {
-						minDiffIntensity: exactObj.getMinDiffIntensity(),
-						minDiffWidth: exactObj.getMinDiffWidth(),
-						minDiffHeight: exactObj.getMinDiffHeight(),
-						matchThreshold: exactObj.getMatchThreshold()
-					};
-				}
-				var defaultMatchSettings = {
-					matchLevel: this._defaultMatchSettings.getMatchLevel(),
+                var exactObj = this._defaultMatchSettings.getExact();
+                var exact = null;
+                if (exactObj) {
+                    exact = {
+                        minDiffIntensity: exactObj.getMinDiffIntensity(),
+                        minDiffWidth: exactObj.getMinDiffWidth(),
+                        minDiffHeight: exactObj.getMinDiffHeight(),
+                        matchThreshold: exactObj.getMatchThreshold()
+                    };
+                }
+                var defaultMatchSettings = {
+                    matchLevel: this._defaultMatchSettings.getMatchLevel(),
                     ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
-					exact: exact
-				};
-				this._sessionStartInfo = {
-					agentId: this._getFullAgentId(),
-					appIdOrName: this._appName,
-					scenarioIdOrName: this._testName,
-					batchInfo: testBatch,
+                    exact: exact
+                };
+                this._sessionStartInfo = {
+                    agentId: this._getFullAgentId(),
+                    appIdOrName: this._appName,
+                    scenarioIdOrName: this._testName,
+                    batchInfo: testBatch,
                     baselineEnvName: this._baselineEnvName,
                     compareWithParentBranch: this._compareWithParentBranch,
                     ignoreBaseline: this._ignoreBaseline,
                     environmentName: this._environmentName,
-					environment: appEnv,
-					defaultMatchSettings: defaultMatchSettings,
-					branchName: this._branchName || null,
-					parentBranchName: this._parentBranchName || null,
-					autSessionId: this._autSessionId,
+                    environment: appEnv,
+                    defaultMatchSettings: defaultMatchSettings,
+                    branchName: this._branchName || null,
+                    parentBranchName: this._parentBranchName || null,
+                    autSessionId: this._autSessionId,
                     properties: this._properties
-				};
+                };
 
-				return this._serverConnector.startSession(this._sessionStartInfo)
-					.then(function (result) {
-						this._runningSession = result;
-						this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
-						resolve();
-					}.bind(this), function (err) {
-						this._logger.log(err);
-						reject(err);
-					}.bind(this));
+                return this._serverConnector.startSession(this._sessionStartInfo)
+                    .then(function (result) {
+                        this._runningSession = result;
+                        this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
+                        resolve();
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                        reject(err);
+                    }.bind(this));
             }.bind(this))
-			.catch(function (err) {
-				reject(err);
-			}.bind(this));
+                .catch(function (err) {
+                    reject(err);
+                }.bind(this));
         }.bind(this));
     };
 
@@ -1494,7 +1523,8 @@
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyesapi.applitools.com';
-    EyesBase.FailureReport = Object.freeze(_FailureReport);
+    EyesBase.FailureReport = FailureReport;
+    EyesBase.TestResultsStatus = TestResultsStatus;
 
-    module.exports = EyesBase;
+    exports.EyesBase = EyesBase;
 }());

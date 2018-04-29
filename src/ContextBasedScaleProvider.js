@@ -1,9 +1,8 @@
 (function() {
     'use strict';
 
-    var EyesUtils = require('eyes.utils'),
-        ScaleProvider = require('./ScaleProvider');
-    var ArgumentGuard = EyesUtils.ArgumentGuard;
+    var ArgumentGuard = require('eyes.utils').ArgumentGuard;
+    var ScaleProvider = require('./ScaleProvider').ScaleProvider;
 
     // Allowed deviations for viewport size and default content entire size.
     var ALLOWED_VS_DEVIATION = 1,
@@ -34,7 +33,7 @@
      * @return {number} The ratio by which an image will be scaled.
      */
     ContextBasedScaleProvider.prototype.getScaleRatio = function () {
-        ArgumentGuard.isValidState(this._scaleRatio != UNKNOWN_SCALE_RATIO, "scaleRatio not defined yet");
+        ArgumentGuard.isValidState(this._scaleRatio !== UNKNOWN_SCALE_RATIO, "scaleRatio not defined yet");
         return this._scaleRatio;
     };
 
@@ -58,5 +57,5 @@
         }
     };
 
-    module.exports = ContextBasedScaleProvider;
+    exports.ContextBasedScaleProvider = ContextBasedScaleProvider;
 }());
