@@ -1,17 +1,9 @@
-/*
- ---
-
- name: PromiseFactory
-
- description: After initialization, provides factory methods for creating deferreds/promises.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
     /**
+     * After initialization, provides factory methods for creating deferreds/promises.
+     *
      * @constructor
      * @param {function} promiseFactoryFunc A function which receives as a parameter
      *                   the same function you would pass to a Promise constructor.
@@ -39,7 +31,7 @@
     /**
      *
      * @param {function} asyncAction
-     * @returns {*}
+     * @return {*}
      */
     PromiseFactory.prototype.makePromise = function (asyncAction) {
         if (this._promiseFactoryFunc) {
@@ -53,7 +45,7 @@
     /**
      * @template T
      * @param {T} [resolveValue]
-     * @return {Promise.<T>}
+     * @return {Promise<T>}
      */
     PromiseFactory.prototype.resolve = function (resolveValue) {
         return this.makePromise(function (resolve) {
@@ -65,7 +57,7 @@
     /**
      * @template T
      * @param {T} [rejectValue]
-     * @return {Promise.<T>}
+     * @return {Promise<T>}
      */
     PromiseFactory.prototype.reject = function (rejectValue) {
         return this.makePromise(function (resolve, reject) {
@@ -76,10 +68,10 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      @param {Promise[]} promises
-     @return {Promise.<[*]>}
+     @return {Promise<[*]>}
      */
     PromiseFactory.prototype.all = function (promises) {
-        const accumulator = [];
+        var accumulator = [];
         var ready = this.resolve(null);
 
         promises.forEach(function (promise, ndx) {
@@ -99,14 +91,14 @@
     /**
      * @param {Function<boolean>} condition
      * @param {Function<Promise>} action
-     * @return {Promise}
+     * @return {Promise<void>}
      */
     PromiseFactory.prototype.promiseWhile = function (condition, action) {
         if (!condition()) {
             return this.resolve();
         }
 
-        const that = this;
+        var that = this;
         return action().then(function () {
             return that.promiseWhile(condition, action)
         });
@@ -115,7 +107,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * @deprecated
-     * @returns {*}
+     * @return {*}
      */
     PromiseFactory.prototype.makeDeferred = function () {
         if (this._deferredFactoryFunc) {
@@ -125,5 +117,5 @@
         throw new Error('Promise factory was not initialized with proper callback');
     };
 
-    module.exports = PromiseFactory;
+    exports.PromiseFactory = PromiseFactory;
 }());

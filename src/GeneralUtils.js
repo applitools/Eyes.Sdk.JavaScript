@@ -1,19 +1,14 @@
-/*
- ---
-
- name: GeneralUtils
-
- description: collection of utility methods.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
-    var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    var dateformat = require('dateformat');
 
+    var DATE_FORMAT_ISO8601_FOR_OUTPUT = "yyyy-mm-dd'T'HH:MM:ss'Z'";
+    var DATE_FORMAT_RFC1123 = "ddd, dd mmm yyyy HH:MM:ss 'GMT'";
+
+    /**
+     * Collection of utility methods.
+     */
     var GeneralUtils = {};
 
     /**
@@ -32,10 +27,10 @@
     /**
      * Concatenate the url to the suffix - making sure there are no double slashes
      *
-     * @param {String} url - The left side of the URL.
-     * @param {String} suffix - the right side.
+     * @param {string} url - The left side of the URL.
+     * @param {string} suffix - the right side.
      *
-     * @return {String} the URL
+     * @return {string} the URL
      **/
     GeneralUtils.urlConcat = function (url, suffix) {
         var left = url;
@@ -54,8 +49,8 @@
     /**
      * Convert object into json string
      *
-     * @param {Object} o
-     * @returns {String}
+     * @param {*} o
+     * @return {string}
      */
     GeneralUtils.toJson = function (o) {
         return JSON.stringify(o);
@@ -64,7 +59,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Mixin methods from one object into another.
-     * Follow the prototype chain and apply form root to current - but skip the top (Object)
+     * Follow the prototype chain and apply form root to current - but skip the top
      *
      * @param {Object} to The object to which methods will be added
      * @param {Object} from The object from which methods will be copied
@@ -95,8 +90,10 @@
      */
     GeneralUtils.guid = function () {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0;
-            var v = (c === 'x') ? r : (r & 0x3 | 0x8);
+            // noinspection MagicNumberJS, NonShortCircuitBooleanExpressionJS
+            var r = (Math.random() * 16) | 0; // eslint-disable-line no-bitwise
+            // noinspection MagicNumberJS, NonShortCircuitBooleanExpressionJS
+            var v = (c === 'x') ? r : ((r & 0x3) | 0x8); // eslint-disable-line no-bitwise
             return v.toString(16);
         });
     };
@@ -212,11 +209,11 @@
     /**
      * Waits a specified amount of time before resolving the returned promise.
      *
-     * @param {int} ms The amount of time to sleep in milliseconds.
+     * @param {number} ms The amount of time to sleep in milliseconds.
      * @param {PromiseFactory} promiseFactory
      * @return {Promise<void>} A promise which is resolved when sleep is done.
      */
-    GeneralUtils.sleep = function sleep(ms, promiseFactory) {
+    GeneralUtils.sleep = function (ms, promiseFactory) {
         return promiseFactory.makePromise(function (resolve) {
             setTimeout(function () {
                 resolve();
@@ -225,38 +222,36 @@
     };
 
     //noinspection JSUnusedGlobalSymbols
+    /**
+     * @deprecated use GeneralUtils.toRfc1123DateTime() instead
+     */
+    GeneralUtils.getRfc1123Date = function (date) {
+        return GeneralUtils.toRfc1123DateTime(date);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
 	/**
 	 * Convert a Date object to a RFC-1123 date string
 	 *
 	 * @param {Date} [date=new Date()] Date which will be converted
-     * @return {string} String formatted as RFC-1123 (ddd, dd MMM yyyy HH:mm:ss GMT)
+     * @return {string} string formatted as RFC-1123 (E, dd MMM yyyy HH:mm:ss 'GMT')
 	 */
-	GeneralUtils.getRfc1123Date = function (date) {
+	GeneralUtils.toRfc1123DateTime = function (date) {
 	    date = date || new Date();
-
-        if (date.toUTCString) {
-            return date.toUTCString()
-        } else {
-            return days[date.getUTCDay()] + ", "
-                + _numpad(date.getUTCDate(), 2) + " "
-                + months[date.getUTCMonth()] + " "
-                + date.getUTCFullYear() + " "
-                + _numpad(date.getUTCHours(), 2) + ":"
-                + _numpad(date.getUTCMinutes(), 2) + ":"
-                + _numpad(date.getUTCSeconds(), 2) + " "
-                + "GMT";
-        }
+        return dateformat(date, DATE_FORMAT_RFC1123, true);
 	};
 
-    function _numpad(x, digits) {
-        var result = x.toString();
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Convert a Date object to a ISO-8601 date string
+     *
+     * @param {Date} [date] Date which will be converted
+     * @return {String} String formatted as ISO-8601 (yyyy-MM-dd'T'HH:mm:ss'Z')
+     */
+	GeneralUtils.toISO8601DateTime = function (date) {
+	    date = date || new Date();
+        return dateformat(date, DATE_FORMAT_ISO8601_FOR_OUTPUT, true);
+	};
 
-        while (result.length < digits) {
-            result = '0' + result;
-        }
-
-        return result;
-    }
-
-    module.exports = GeneralUtils;
+    exports.GeneralUtils = GeneralUtils;
 }());
