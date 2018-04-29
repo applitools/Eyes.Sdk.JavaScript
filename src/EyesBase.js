@@ -443,8 +443,8 @@
     EyesBase.prototype.setBatch = function (name) {
         //noinspection JSLint
         this._batch = {
-            id: arguments[1] || GeneralUtils.guid(),
-            name: name,
+            id: arguments[1] || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+            name: name || process.env.APPLITOOLS_BATCH_NAME,
             startedAt: arguments[2] || new Date().toUTCString()
         };
     };
@@ -734,7 +734,7 @@
      * @return {string} The branch name.
      */
     EyesBase.prototype.getBranchName = function () {
-        return this._branchName;
+        return this._branchName || process.env.APPLITOOLS_BRANCH;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -752,7 +752,25 @@
      * @return {string} The parent branch name.
      */
     EyesBase.prototype.getParentBranchName = function () {
-        return this._parentBranchName;
+        return this._parentBranchName || process.env.APPLITOOLS_PARENT_BRANCH;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Sets the baseline branch under which new branches are created.
+     *
+     * @param baselineBranchName {String} Branch name or {@code null} to specify the default branch.
+     */
+    EyesBase.prototype.setBaselineBranchName = function (baselineBranchName) {
+        this._baselineBranchName = baselineBranchName;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {String} The name of the baseline branch.
+     */
+    EyesBase.prototype.getBaselineBranchName = function () {
+        return this._baselineBranchName || process.env.APPLITOOLS_BASELINE_BRANCH;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -1374,93 +1392,98 @@
                 if (!this._viewportSize) {
                     throw new Error("ViewportSize can't be null.");
                 }
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-                    this._autSessionId);
-            }.bind(this), function (err) {
+				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
+					this._autSessionId);
+			}.bind(this), function (err) {
+				this._logger.log(err);
+				reject(err);
+				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
+					this._autSessionId).then(function () {
+						// Throw to skip execution of all consecutive "then" blocks.
+						throw new Error('Failed to set/get viewport size.');
+					}.bind(this));
+			}.bind(this)).then(function () {
+				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted',
+					this._autSessionId);
+			}.bind(this)).then(function () {
+				// getInferredEnvironment is implemented in the wrapping SDK.
+				return this.getInferredEnvironment()
+					.then(function (inferredEnv_) {
+						inferredEnv = inferredEnv_;
+					}.bind(this), function (err) {
+						this._logger.log(err);
+					}.bind(this));
+			}.bind(this)).then(function () {
+				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded',
+					this._autSessionId);
+			}.bind(this)).then(function () {
+				var testBatch = this._batch;
+				if (!testBatch) {
+					testBatch = {
+					    id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+                        name: process.env.APPLITOOLS_BATCH_NAME,
+                        startedAt: new Date().toUTCString()
+					};
+				}
+
+				testBatch.toString = function () {
+					return this.name + " [" + this.id + "]" + " - " + this.startedAt;
+				};
+
+				//noinspection JSUnresolvedFunction
+				var appEnv = {
+					os: this._os || null,
+					hostingApp: this._hostingApp|| null,
+					displaySize: this._viewportSize,
+					inferred: inferredEnv
+				};
+
+				var exactObj = this._defaultMatchSettings.getExact();
+				var exact = null;
+				if (exactObj) {
+					exact = {
+						minDiffIntensity: exactObj.getMinDiffIntensity(),
+						minDiffWidth: exactObj.getMinDiffWidth(),
+						minDiffHeight: exactObj.getMinDiffHeight(),
+						matchThreshold: exactObj.getMatchThreshold()
+					};
+				}
+				var defaultMatchSettings = {
+					matchLevel: this._defaultMatchSettings.getMatchLevel(),
+          ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
+          exact: exact
+        };
+        this._sessionStartInfo = {
+            agentId: this._getFullAgentId(),
+            appIdOrName: this._appName,
+            scenarioIdOrName: this._testName,
+            batchInfo: testBatch,
+            baselineEnvName: this._baselineEnvName,
+            compareWithParentBranch: this._compareWithParentBranch,
+            ignoreBaseline: this._ignoreBaseline,
+            environmentName: this._environmentName,
+            environment: appEnv,
+            defaultMatchSettings: defaultMatchSettings,
+            branchName: this.getBranchName(),
+            parentBranchName: this.getParentBranchName(),
+            baselineBranchName: this.getBaselineBranchName(),
+            autSessionId: this._autSessionId,
+            properties: this._properties
+        };
+
+        return this._serverConnector.startSession(this._sessionStartInfo)
+            .then(function (result) {
+                this._runningSession = result;
+                this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
+                resolve();
+              }.bind(this), function (err) {
                 this._logger.log(err);
                 reject(err);
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-                    this._autSessionId).then(function () {
-                    // Throw to skip execution of all consecutive "then" blocks.
-                    throw new Error('Failed to set/get viewport size.');
-                }.bind(this));
-            }.bind(this)).then(function () {
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted',
-                    this._autSessionId);
-            }.bind(this)).then(function () {
-                // getInferredEnvironment is implemented in the wrapping SDK.
-                return this.getInferredEnvironment()
-                    .then(function (inferredEnv_) {
-                        inferredEnv = inferredEnv_;
-                    }.bind(this), function (err) {
-                        this._logger.log(err);
-                    }.bind(this));
-            }.bind(this)).then(function () {
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded',
-                    this._autSessionId);
-            }.bind(this)).then(function () {
-                var testBatch = this._batch;
-                if (!testBatch) {
-                    testBatch = {id: GeneralUtils.guid(), name: null, startedAt: new Date().toUTCString()};
-                }
-
-                testBatch.toString = function () {
-                    return this.name + " [" + this.id + "]" + " - " + this.startedAt;
-                };
-
-                //noinspection JSUnresolvedFunction
-                var appEnv = {
-                    os: this._os || null,
-                    hostingApp: this._hostingApp|| null,
-                    displaySize: this._viewportSize,
-                    inferred: inferredEnv
-                };
-
-                var exactObj = this._defaultMatchSettings.getExact();
-                var exact = null;
-                if (exactObj) {
-                    exact = {
-                        minDiffIntensity: exactObj.getMinDiffIntensity(),
-                        minDiffWidth: exactObj.getMinDiffWidth(),
-                        minDiffHeight: exactObj.getMinDiffHeight(),
-                        matchThreshold: exactObj.getMatchThreshold()
-                    };
-                }
-                var defaultMatchSettings = {
-                    matchLevel: this._defaultMatchSettings.getMatchLevel(),
-                    ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
-                    exact: exact
-                };
-                this._sessionStartInfo = {
-                    agentId: this._getFullAgentId(),
-                    appIdOrName: this._appName,
-                    scenarioIdOrName: this._testName,
-                    batchInfo: testBatch,
-                    baselineEnvName: this._baselineEnvName,
-                    compareWithParentBranch: this._compareWithParentBranch,
-                    ignoreBaseline: this._ignoreBaseline,
-                    environmentName: this._environmentName,
-                    environment: appEnv,
-                    defaultMatchSettings: defaultMatchSettings,
-                    branchName: this._branchName || null,
-                    parentBranchName: this._parentBranchName || null,
-                    autSessionId: this._autSessionId,
-                    properties: this._properties
-                };
-
-                return this._serverConnector.startSession(this._sessionStartInfo)
-                    .then(function (result) {
-                        this._runningSession = result;
-                        this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
-                        resolve();
-                    }.bind(this), function (err) {
-                        this._logger.log(err);
-                        reject(err);
-                    }.bind(this));
-            }.bind(this))
-                .catch(function (err) {
-                    reject(err);
-                }.bind(this));
+            }.bind(this));
+          }.bind(this))
+            .catch(function (err) {
+                reject(err);
+            }.bind(this));
         }.bind(this));
     };
 
