@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
+
     /**
      * Handles log messages produces by the Eyes API.
      *
@@ -9,6 +11,8 @@
      **/
     function LogHandler() {
         this._isVerbose = false;
+        this._isPrintSessionId = false;
+        this._sessionId = undefined;
     }
 
     //noinspection JSUnusedGlobalSymbols
@@ -34,13 +38,38 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * If set to {@code true} then log output include session id, useful in multi-thread environment
+     *
+     * @param {boolean} [isPrintSessionId=false]
+     */
+    LogHandler.prototype.setPrintSessionId = function (isPrintSessionId) {
+        this._isPrintSessionId = isPrintSessionId || false;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean}
+     */
+    LogHandler.prototype.getIsPrintSessionId = function () {
+        return this._isPrintSessionId;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @protected
+     * @param {string} sessionId
+     */
+    LogHandler.prototype.setSessionId = function (sessionId) {
+        this._sessionId = sessionId;
+    };
+
+    /**
      * @return {boolean}
      */
     LogHandler.prototype.open = function () {
         return true;
     };
 
-    //noinspection JSUnusedGlobalSymbols
     /**
      * @return {boolean}
      */
@@ -48,7 +77,19 @@
         return true;
     };
 
-    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @protected
+     * @param {string} logString
+     */
+    LogHandler.prototype.formatMessage = function (logString) {
+        var eyes = 'Eyes:';
+        if (this._isPrintSessionId) {
+            eyes = 'Eyes[' + this._sessionId + ']:';
+        }
+
+        return GeneralUtils.toISO8601DateTime() + ' ' + eyes + ' ' + logString;
+    };
+
     /**
      * @param {boolean} verbose
      * @param {string} logString

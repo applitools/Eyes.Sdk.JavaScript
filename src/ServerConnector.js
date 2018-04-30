@@ -177,7 +177,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.startSession - unexpected status' + results.response);
+            throw new Error('ServerConnector.startSession - unexpected status ' + JSON.stringify(results.response));
         });
     };
 
@@ -208,7 +208,7 @@
                 return results.body;
             }
 
-            throw new Error('ServerConnector.stopSession - unexpected status ' + results.response);
+            throw new Error('ServerConnector.stopSession - unexpected status ' + JSON.stringify(results.response));
         });
     };
 
@@ -238,7 +238,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.matchWindow - unexpected status ' + results.response);
+            throw new Error('ServerConnector.matchWindow - unexpected status ' + JSON.stringify(results.response));
         });
     };
 
@@ -270,7 +270,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.replaceWindow - unexpected status  ' + results.response);
+            throw new Error('ServerConnector.replaceWindow - unexpected status ' + JSON.stringify(results.response));
         });
     };
 
@@ -321,13 +321,16 @@
                 return _sendRequest(that, name, deleteUri, 'delete', loopOptions);
             case HTTP_STATUS_CODES.GONE:
                 if (retryIfGone) {
+                    that._logger.log('ServerConnector.' + name + ' - long request gone, doing one more attempt');
                     return _sendRequest(that, name, uri, method, options).then(function (results) {
                         return _longRequestCheckStatus(that, name, uri, method, options, results, false);
                     });
                 }
 
+                that._logger.log('ServerConnector.' + name + ' - long request gone: ', results);
                 return that._promiseFactory.reject(new Error('The server task has gone.'));
             default:
+                that._logger.log('ServerConnector.' + name + ' - long request failed: ', results);
                 return that._promiseFactory.reject(new Error('Unknown error processing long request'));
         }
     }
@@ -377,7 +380,7 @@
             that._logger.verbose('ServerConnector.' + name + ' will now post call to: ' + req.uri);
             request(req, function (err, response, body) {
                 if (err) {
-                    that._logger.log('ServerConnector.' + name + ' - post failed');
+                    that._logger.log('ServerConnector.' + name + ' - request failed: ', err, response);
                     return reject(new Error(err));
                 }
 

@@ -153,6 +153,12 @@ export declare abstract class LogHandler {
      * Whether to handle or ignore verbose log messages.
      */
     getIsVerbose(): boolean;
+    /**
+     * If set to {@code true} then log output include session id, useful in multi-thread environment
+     * @param {boolean} [isPrintSessionId=false]
+     */
+    setPrintSessionId(isPrintSessionId: boolean): void;
+    getIsPrintSessionId(): boolean;
     open(): boolean;
     close(): boolean;
     onMessage(verbose: boolean, logString: string): void;
