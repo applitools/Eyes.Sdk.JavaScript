@@ -1,7 +1,6 @@
 (function () {
     'use strict';
 
-    var GeneralUtils = require('eyes.utils').GeneralUtils;
     var LogHandler = require('./LogHandler').LogHandler;
 
     /**
@@ -29,7 +28,7 @@
      */
     ConsoleLogHandler.prototype.onMessage = function (verbose, logString) {
         if (!verbose || this._isVerbose) {
-            console.log(GeneralUtils.toISO8601DateTime() + ' Eyes: ' + logString);
+            console.log(this.formatMessage(logString));
         }
     };
 

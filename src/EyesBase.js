@@ -206,6 +206,14 @@
         this._logger.setLogHandler(logHandler);
     };
 
+    // noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {LogHandler} The currently set log handler.
+     */
+    EyesBase.prototype.getLogHandler = function () {
+        return this._logger.getLogHandler();
+    };
+
     //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the current server URL used by the rest client.
@@ -1473,6 +1481,7 @@
 
         return this._serverConnector.startSession(this._sessionStartInfo)
             .then(function (result) {
+                this._logger.getLogHandler().setSessionId(result.sessionId);
                 this._runningSession = result;
                 this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
                 resolve();

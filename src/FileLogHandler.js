@@ -4,7 +4,6 @@
   var path = require('path');
   var fs = require('fs');
 
-  var GeneralUtils = require('eyes.utils').GeneralUtils;
   var LogHandler = require('./LogHandler').LogHandler;
 
   /**
@@ -101,7 +100,7 @@
    */
   FileLogHandler.prototype.onMessage = function (verbose, logString) {
     if (this._writer && (!verbose || this._isVerbose)) {
-      this._writer.write(GeneralUtils.toISO8601DateTime() + ' Eyes: ' + logString + '\n');
+      this._writer.write(this.formatMessage(logString) + '\n');
     }
   };
 
