@@ -11,19 +11,19 @@ import * as stream from 'stream';
 import { Image } from 'png-async';
 
 
-interface Location {
+export interface Location {
     x: number;
     y: number;
 }
 
 
-interface RectangleSize {
+export interface RectangleSize {
     width: number;
     height: number;
 }
 
 
-interface Region {
+export interface Region {
     left: number;
     top: number;
     width: number;
@@ -123,7 +123,7 @@ export declare class GeneralUtils {
     /**
      * Clone object
      **/
-    static clone(obj: any): any;
+    static clone<T>(obj: T): T;
     /**
      * Object.assign() polyfill
      **/
