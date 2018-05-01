@@ -1090,10 +1090,10 @@ export declare abstract class EyesBase {
     static buildTestError(results: TestResults, testName: string, appName: string): Error|null;
     /**
      * Ends the currently running test.
-     * @param throwEx If true, then the returned promise will 'reject' for failed/aborted tests.
+     * @param [throwEx=true] If true, then the returned promise will 'reject' for failed/aborted tests.
      * @return A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
      */
-    close(throwEx: boolean): Promise<TestResults>;
+    close(throwEx?: boolean): Promise<TestResults>;
     /**
      * Aborts the currently running test.
      * @return A promise which resolves to the test results.
@@ -1115,7 +1115,7 @@ export declare abstract class EyesBase {
      * The current title of of the AUT.
      */
     abstract getTitle(): Promise<string>;
-    checkWindowBase(tag: string, ignoreMismatch: boolean, retryTimeout: number, regionProvider: RegionProvider, imageMatchSettings: MatchSettings.ImageMatchSettings): Promise<{asExpected: boolean}>;
+    checkWindowBase(tag: string|undefined, ignoreMismatch: boolean|undefined, retryTimeout: number|undefined, regionProvider: RegionProvider, imageMatchSettings: MatchSettings.ImageMatchSettings|undefined): Promise<{asExpected: boolean}>;
     /**
      * Replaces an actual image in the current running session.
      * @param stepIndex The zero based index of the step in which to replace the actual image.

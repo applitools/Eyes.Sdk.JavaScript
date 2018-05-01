@@ -1037,7 +1037,7 @@
     /**
      * Ends the currently running test.
      *
-     * @param {boolean} throwEx If true, then the returned promise will 'reject' for failed/aborted tests.
+     * @param {boolean} [throwEx=true] If true, then the returned promise will 'reject' for failed/aborted tests.
      * @return {Promise<TestResults>} A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
      */
     EyesBase.prototype.close = function (throwEx) {
