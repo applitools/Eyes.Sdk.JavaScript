@@ -8,10 +8,10 @@
 
 import { PromiseFactory, PropertyHandler, Location, Region, RectangleSize } from 'eyes.utils';
 
-export { ArgumentGuard, GeneralUtils, GeometryUtils, ImageDeltaCompressor, ImageUtils, PromiseFactory,
-    PropertyHandler, SimplePropertyHandler, ReadOnlyPropertyHandler, StreamUtils } from 'eyes.utils';
+export { ArgumentGuard, GeneralUtils, GeometryUtils, ImageDeltaCompressor, ImageUtils, PromiseFactory, StreamUtils,
+    PropertyHandler, SimplePropertyHandler, ReadOnlyPropertyHandler, Location, Region, RectangleSize } from 'eyes.utils';
 
-interface Trigger {
+export interface Trigger {
     triggerType: Triggers.TriggerType,
     location: Location,
     mouseAction: Triggers.MouseAction,
@@ -19,7 +19,7 @@ interface Trigger {
 }
 
 
-interface RunningSession {
+export interface RunningSession {
     sessionId: string,
     legacySessionId?: string,
     sessionUrl: string,
@@ -27,14 +27,14 @@ interface RunningSession {
 }
 
 
-interface BatchInfo {
+export interface BatchInfo {
     id: string,
     name: string,
     startedAt: string
 }
 
 
-interface AppEnvironment {
+export interface AppEnvironment {
     inferred: string,
     os: string,
     hostingApp: string,
@@ -42,7 +42,7 @@ interface AppEnvironment {
 }
 
 
-interface SessionStartInfo {
+export interface SessionStartInfo {
     agentId: string,
     appIdOrName: string,
     scenarioIdOrName: string,
@@ -70,7 +70,7 @@ interface SessionStartInfo {
 }
 
 
-interface TestResults {
+export interface TestResults {
     name: string,
     secretToken: string,
     status: EyesBase.TestResultsStatus,
