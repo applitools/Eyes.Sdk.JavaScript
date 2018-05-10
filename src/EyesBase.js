@@ -192,6 +192,14 @@
         }
     }
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean} Whether eyes are open or not.
+     */
+    EyesBase.prototype.getIsOpen = function () {
+        return this._isOpen;
+    };
+
     EyesBase.prototype.addSessionEventHandler = function (eventHandler) {
         eventHandler.promiseFactory = this._promiseFactory;
         this._sessionEventHandlers.push(eventHandler);
