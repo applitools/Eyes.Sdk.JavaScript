@@ -16,7 +16,7 @@
   "author": {
     "name": "Applitools Team",
     "email": "team@applitools.com",
-    "url": "https://www.applitools.com"
+    "url": "https://applitools.com"
   },
   "repository": {
     "type": "git",
@@ -41,7 +41,7 @@
   "dependencies": {
     "@types/node": "*",
     "eyes.utils": "0.0.28",
-    "request": "^2.81.0"
+    "request": "^2.87.0"
   },
   "browser": {
     "./src/FileLogHandler": false
