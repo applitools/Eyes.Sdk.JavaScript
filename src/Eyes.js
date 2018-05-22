@@ -1,17 +1,6 @@
-/*
- ---
-
- name: Eyes
-
- description: The main type - to be used by the users of the library to access all functionality.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
-    //noinspection JSUnresolvedFunction
     var RSVP = require('rsvp'),
         EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
@@ -22,12 +11,14 @@
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
-     * @constructor
+     * The main type - to be used by the users of the library to access all functionality.
      * Initializes an Eyes instance.
+     *
+     * @constructor
      * @param {string} [serverUrl]
      * @param {boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
      * @param {PromiseFactory} [promiseFactory] If not specified will be created using RSVP lib
-     * @augments EyesBase
+     * @extends EyesBase
      **/
     function Eyes(serverUrl, isDisabled, promiseFactory) {
         if (promiseFactory) {
@@ -82,8 +73,8 @@
      * Perform visual validation for the current image.
      * @param {Buffer|ImageProvider} image - The image png bytes or ImageProvider.
      * @param {string} tag - An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch - True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout - optional timeout for performing the match (ms).
+     * @param {boolean} [ignoreMismatch] - True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] - optional timeout for performing the match (ms).
      * @return {Promise<{asExpected: boolean}>}
      */
     Eyes.prototype.checkImage = function (image, tag, ignoreMismatch, retryTimeout) {
@@ -98,8 +89,8 @@
      * @param {{left: number, top: number, width: number, height: number}} region The region of the image which should be verified, or {undefined}/{null} if the entire image should be verified.
      * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
      * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout optional timeout for performing the match (ms).
+     * @param {boolean} [ignoreMismatch] True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
      * @return {Promise<{asExpected: boolean}>}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
@@ -266,6 +257,5 @@
         });
     };
 
-    //noinspection JSUnresolvedVariable
-    module.exports = Eyes;
+    exports.Eyes = Eyes;
 }());

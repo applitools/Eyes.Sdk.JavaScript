@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @constructor
@@ -11,6 +11,5 @@
      */
     ImageProvider.prototype.getScreenshot = function () {};
 
-    module.exports = ImageProvider;
-
+    exports.ImageProvider = ImageProvider;
 }());
