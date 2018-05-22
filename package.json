@@ -1,45 +1,64 @@
 {
   "name": "eyes.images",
   "version": "0.0.50",
-  "description": "Applitools Eyes Javascript SDK for working directly with images.",
-  "author": "Applitools Team <team@applitools.com> (http://www.applitools.com/)",
+  "description": "Applitools Eyes SDK for working directly with images",
   "keywords": [
     "eyes.images",
-    "Test Automation",
-    "Visual Regression",
-    "tests",
-    "SDK",
-    "Applitools",
-    "Eyes",
+    "applitools",
+    "eyes",
+    "test automation",
+    "visual regression",
     "automation",
-    "testing"
+    "testing",
+    "tests"
   ],
-  "homepage": "http://www.applitools.com/",
+  "homepage": "https://applitools.com",
+  "author": {
+    "name": "Applitools Team",
+    "email": "team@applitools.com",
+    "url": "https://applitools.com"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/applitools/eyes.images.javascript.git"
   },
-  "license": "SEE LICENSE IN LICENSE",
-  "main": "index",
+  "bugs": {
+    "url": "https://github.com/applitools/eyes.images.javascript/issues"
+  },
+  "directories": {
+    "example": "./example",
+    "lib": "./src",
+    "test": "./test"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "src/",
+    "example/"
+  ],
+  "main": "./index.js",
+  "dependencies": {
+    "eyes.utils": "0.0.28",
+    "eyes.sdk": "0.0.70",
+    "rsvp": "^3.5.0"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.1.2",
+    "browserify": "^16.2.2",
+    "uglify-js": "^3.3.26",
+    "browserify-zlib": "^0.2.0",
+    "browserify-fs": "^1.0.0"
+  },
   "scripts": {
     "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
     "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
   },
-  "dependencies": {
-    "eyes.utils": "0.0.26",
-    "eyes.sdk": "0.0.68",
-    "rsvp": "^3.5.0"
-  },
-  "devDependencies": {
-    "browserify": "latest",
-    "uglify-js": "latest",
-    "browserify-fs": "^1.0.0",
-    "browserify-zlib": "ipfs/browserify-zlib#9993eff"
-  },
   "browser": {
     "rsvp": false
   },
+  "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": ">= 6.9.0"
+    "node": ">= 4.2.0"
   }
 }
