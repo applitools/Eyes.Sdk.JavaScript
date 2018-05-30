@@ -1,5 +1,5 @@
 (function () {
-    "use strict";
+    'use strict';
 
     /**
      * @constructor
@@ -7,10 +7,9 @@
     function ImageProvider() {}
 
     /**
-     * @return {Promise.<MutableImage>}
+     * @return {Promise<MutableImage>}
      */
     ImageProvider.prototype.getScreenshot = function () {};
 
-    module.exports = ImageProvider;
-
+    exports.ImageProvider = ImageProvider;
 }());

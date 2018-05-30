@@ -1,18 +1,14 @@
-"use strict";
+'use strict';
 
 var fs = require('fs');
 
-var Eyes = require('../index.js').Eyes;
-var ConsoleLogHandler = require('../index.js').ConsoleLogHandler;
-var Triggers = require('../index.js').Triggers;
-var TestResultsFormatter = require('../index.js').TestResultsFormatter;
+var EyesImages = require('../index.js');
 
-var eyes = new Eyes();
-eyes.setLogHandler(new ConsoleLogHandler(true));
-eyes.setApiKey(process.env.APPLITOOLS_API_KEY);
-// eyes.setProxy('http://localhost:9999');
+var eyes = new EyesImages.Eyes();
+eyes.setLogHandler(new EyesImages.ConsoleLogHandler(true));
 eyes.setHostOS('Mac OS X 10.10');
 eyes.setHostingApp("My browser");
+// eyes.setProxy('http://localhost:9999');
 
 // load images from local storage
 var image1 = fs.readFileSync('image1.png');
@@ -24,7 +20,7 @@ var firstTestPromise = eyes.open("eyes.images.javascript", "First test5_3", {wid
     return eyes.checkImage(image2, 'My second image');
 }).then(function () {
     console.log('Running session: ', eyes.getRunningSession());
-    eyes.addMouseTrigger(Triggers.MouseAction.Click, {left: 288, top: 44, width: 92, height: 36}, {x: 10, y: 10});
+    eyes.addMouseTrigger(EyesImages.Triggers.MouseAction.Click, {left: 288, top: 44, width: 92, height: 36}, {x: 10, y: 10});
     return eyes.checkImage(image1, 'My first image');
 }).then(function () {
     return eyes.checkRegion({left: 495, top: 100, width: 355, height: 360}, image1, 'Specific region');
@@ -40,8 +36,7 @@ var firstTestPromise = eyes.open("eyes.images.javascript", "First test5_3", {wid
 // Handle first test results..
 firstTestPromise = firstTestPromise.then(function (results) {
    // do something with results
-   // ...
-    var testResultsFormatter = new TestResultsFormatter();
+    var testResultsFormatter = new EyesImages.TestResultsFormatter();
     testResultsFormatter.addResults(results);
     console.log("first results", results);
 });

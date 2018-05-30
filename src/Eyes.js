@@ -1,17 +1,6 @@
-/*
- ---
-
- name: Eyes
-
- description: The main type - to be used by the users of the library to access all functionality.
-
- ---
- */
-
 (function () {
-    "use strict";
+    'use strict';
 
-    //noinspection JSUnresolvedFunction
     var RSVP = require('rsvp'),
         EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
@@ -22,12 +11,14 @@
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
-     * @constructor
+     * The main type - to be used by the users of the library to access all functionality.
      * Initializes an Eyes instance.
-     * @param {String} [serverUrl]
-     * @param {Boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
+     *
+     * @constructor
+     * @param {string} [serverUrl]
+     * @param {boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
      * @param {PromiseFactory} [promiseFactory] If not specified will be created using RSVP lib
-     * @augments EyesBase
+     * @extends EyesBase
      **/
     function Eyes(serverUrl, isDisabled, promiseFactory) {
         if (promiseFactory) {
@@ -59,11 +50,10 @@
 
     /**
      * Starts a test.
-     * @param {string} appName -     The application being tested.
-     * @param {string} testName -    The test's name.
-     * @param {Object} imageSize -   Determines the resolution used for the baseline. {@code null} will automatically
-     *                              grab the resolution from the image.
-     * @return {Promise}
+     * @param {string} appName The application being tested.
+     * @param {string} testName The test's name.
+     * @param {{width: number, height: number}} imageSize Determines the resolution used for the baseline. {@code null} will automatically grab the resolution from the image.
+     * @return {Promise<void>}
      */
     Eyes.prototype.open = function (appName, testName, imageSize) {
         return EyesBase.prototype.open.call(this, appName, testName, imageSize);
@@ -83,9 +73,9 @@
      * Perform visual validation for the current image.
      * @param {Buffer|ImageProvider} image - The image png bytes or ImageProvider.
      * @param {string} tag - An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch - True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout - optional timeout for performing the match (ms).
-     * @return {Promise}
+     * @param {boolean} [ignoreMismatch] - True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] - optional timeout for performing the match (ms).
+     * @return {Promise<{asExpected: boolean}>}
      */
     Eyes.prototype.checkImage = function (image, tag, ignoreMismatch, retryTimeout) {
         this._logger.verbose('checkRegion(image, "', tag, '", ', ignoreMismatch, ',', retryTimeout, ')');
@@ -96,13 +86,12 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Perform visual validation for the current image.
-     * @param {Object} region - The region of the image which should be verified, or {undefined}/{null} if
-     *                          the entire image should be verified.
-     * @param {Buffer|ImageProvider} image - The image png bytes or ImageProvider.
-     * @param {string} tag - An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} ignoreMismatch - True if the server should ignore a negative result for the visual validation.
-     * @param {number} retryTimeout - optional timeout for performing the match (ms).
-     * @return {Promise}
+     * @param {{left: number, top: number, width: number, height: number}} region The region of the image which should be verified, or {undefined}/{null} if the entire image should be verified.
+     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
+     * @param {string} tag An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch] True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
+     * @return {Promise<{asExpected: boolean}>}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
         this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout, ')');
@@ -115,10 +104,10 @@
      * Replaces the actual image in a running session.
      * @param {number} stepIndex - The zero based index of the step in which to replace the image.
      * @param {Buffer} image - The updated image png bytes.
-     * @param {string|undefined} tag - A tag to be associated with the validation checkpoint.
-     * @param {string|undefined} title - A title to be associated with the validation checkpoint.
-     * @param {Array|undefined} userInputs - An array of user inputs to which lead to the validation checkpoint.
-     * @return {Promise}
+     * @param {string} [tag] - A tag to be associated with the validation checkpoint.
+     * @param {string} [title] - A title to be associated with the validation checkpoint.
+     * @param {Trigger[]} [userInputs] - An array of user inputs to which lead to the validation checkpoint.
+     * @return {Promise<void>}
      */
     Eyes.prototype.replaceImage = function (stepIndex, image, tag, title, userInputs) {
         this._logger.verbose('replaceImage(', stepIndex, 'image, "', tag, '", "', title, '", userInputs)');
@@ -129,7 +118,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Takes a screenshot.
-     * @return {Promise.<MutableImage>} An updated screenshot.
+     * @return {Promise<MutableImage>} An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
         var that = this;
@@ -148,7 +137,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the title.
-     * @return {Promise} The current title of of the AUT.
+     * @return {Promise<string>} The current title of of the AUT.
      */
     Eyes.prototype.getTitle = function () {
         return this._promiseFactory.makePromise(function (resolve) {
@@ -159,7 +148,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set the inferred environment string.
-     * @param {string} inferredEnvironment - The inferred environment string.
+     * @param {?string} inferredEnvironment - The inferred environment string.
      */
     Eyes.prototype.setInferredEnvironment = function (inferredEnvironment) {
         this._inferredEnvironment = inferredEnvironment;
@@ -168,7 +157,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the inferred environment string.
-     * @return {Promise} A promise which resolves to the inferred environment string.
+     * @return {Promise<string>} A promise which resolves to the inferred environment string.
      */
     Eyes.prototype.getInferredEnvironment = function () {
         return this._promiseFactory.makePromise(function (resolve) {
@@ -185,7 +174,7 @@
      * value to use the default retry timeout.
      * @param {RegionProvider} regionProvider - The region of the image which should be verified,
      * or {undefined}/{null} if the entire image should be verified.
-     * @return {Promise}
+     * @return {Promise<{asExpected: boolean}>}
      * @private
      */
     Eyes.prototype._checkImage = function (image, tag, ignoreMismatch, retryTimeout, regionProvider) {
@@ -208,9 +197,9 @@
     Eyes.prototype._waitTimeout = function (ms) {
         var that = this;
         return this._promiseFactory.makePromise(function (resolve) {
-            that._logger.log('Waiting', ms, 'ms...');
+            that._logger.verbose('Waiting', ms, 'ms...');
             setTimeout(function () {
-                that._logger.log('Waiting finished.');
+                that._logger.verbose('Waiting finished.');
                 resolve();
             }, ms);
         });
@@ -219,7 +208,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the viewport size.
-     * @return {Promise}
+     * @return {Promise<{width: number, height: number}>}
      */
     Eyes.prototype.getViewportSize = function () {
         var that = this;
@@ -246,8 +235,8 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set the viewport size.
-     * @param {Int} size - The amount to set the viewport size.
-     * @return {Promise}
+     * @param {{width: number, height: number}} size - The amount to set the viewport size.
+     * @return {Promise<void>}
      */
     Eyes.prototype.setViewportSize = function (size) {
         return this._promiseFactory.makePromise(function (resolve) {
@@ -260,7 +249,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the AUT session id.
-     * @return {Promise}
+     * @return {Promise<undefined>}
      */
     Eyes.prototype.getAUTSessionId = function () {
         return this._promiseFactory.makePromise(function (resolve) {
@@ -268,6 +257,5 @@
         });
     };
 
-    //noinspection JSUnresolvedVariable
-    module.exports = Eyes;
+    exports.Eyes = Eyes;
 }());
