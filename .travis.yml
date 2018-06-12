@@ -1,13 +1,12 @@
 language: node_js
 dist: trusty
-cache:
-  directories:
-    - node_modules
 node_js:
-    - "4"
-    - "6"
-    - "8"
+  - 'node'
+  - '8'
+  - '6'
+  - '4'
 install:
-    - npm install
+  - npm install
 script:
-    - npm run test
+  - node index.js
+  - npm run test

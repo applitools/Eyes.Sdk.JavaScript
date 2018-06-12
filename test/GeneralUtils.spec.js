@@ -1,6 +1,6 @@
 var assert = require("assert");
 
-var GeneralUtils = require("../src/GeneralUtils");
+var GeneralUtils = require("../index").GeneralUtils;
 
 describe('GeneralUtils', function(){
     describe('#urlConcat()', function(){
