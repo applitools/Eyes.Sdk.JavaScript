@@ -1099,7 +1099,11 @@
             return this._promiseFactory.makePromise(function (resolve) { resolve(); });
         }
 
-        return this._endSession(true, false).catch(function () { });
+        return this._endSession(true, false).then(function (testResults) {
+            return testResults;
+        }, function (err) {
+            this._logger.log("An error occurred during preform abortIfNotClosed: ", err);
+        }.bind(this));
     };
 
     /**
@@ -1383,7 +1387,6 @@
 
     EyesBase.prototype.startSession = function () {
         return this._promiseFactory.makePromise(function (resolve, reject) {
-
             this._logger.verbose("startSession()");
 
             if (this._runningSession) {
@@ -1392,15 +1395,12 @@
             }
 
             var inferredEnv = null;
-
-            return this.getAUTSessionId().then(function(autSessionId) {
+            return this.getAUTSessionId().then(function (autSessionId) {
                 this._autSessionId = autSessionId;
-            }.bind(this)).then(function() {
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testStarted',
-                    this._autSessionId);
             }.bind(this)).then(function () {
-                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeWillStart',
-                    this._autSessionId, this._viewportSize)
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'testStarted', this._autSessionId);
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeWillStart', this._autSessionId, this._viewportSize)
             }.bind(this)).then(function () {
                 return this._viewportSize ? this.setViewportSize(this._viewportSize) : this.getViewportSize();
             }.bind(this)).then(function (vpSizeResult) {
@@ -1408,99 +1408,94 @@
                 if (!this._viewportSize) {
                     throw new Error("ViewportSize can't be null.");
                 }
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-					this._autSessionId);
-			}.bind(this), function (err) {
-				this._logger.log(err);
-				reject(err);
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded',
-					this._autSessionId).then(function () {
-						// Throw to skip execution of all consecutive "then" blocks.
-						throw new Error('Failed to set/get viewport size.');
-					}.bind(this));
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted',
-					this._autSessionId);
-			}.bind(this)).then(function () {
-				// getInferredEnvironment is implemented in the wrapping SDK.
-				return this.getInferredEnvironment()
-					.then(function (inferredEnv_) {
-						inferredEnv = inferredEnv_;
-					}.bind(this), function (err) {
-						this._logger.log(err);
-					}.bind(this));
-			}.bind(this)).then(function () {
-				return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded',
-					this._autSessionId);
-			}.bind(this)).then(function () {
-				var testBatch = this._batch;
-				if (!testBatch) {
-					testBatch = {
-					    id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
-                        name: process.env.APPLITOOLS_BATCH_NAME,
-                        startedAt: new Date().toUTCString()
-					};
-				}
-
-				testBatch.toString = function () {
-					return this.name + " [" + this.id + "]" + " - " + this.startedAt;
-				};
-
-				//noinspection JSUnresolvedFunction
-				var appEnv = {
-					os: this._os || null,
-					hostingApp: this._hostingApp|| null,
-					displaySize: this._viewportSize,
-					inferred: inferredEnv
-				};
-
-				var exactObj = this._defaultMatchSettings.getExact();
-				var exact = null;
-				if (exactObj) {
-					exact = {
-						minDiffIntensity: exactObj.getMinDiffIntensity(),
-						minDiffWidth: exactObj.getMinDiffWidth(),
-						minDiffHeight: exactObj.getMinDiffHeight(),
-						matchThreshold: exactObj.getMatchThreshold()
-					};
-				}
-				var defaultMatchSettings = {
-					matchLevel: this._defaultMatchSettings.getMatchLevel(),
-          ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
-          exact: exact
-        };
-        this._sessionStartInfo = {
-            agentId: this._getFullAgentId(),
-            appIdOrName: this._appName,
-            scenarioIdOrName: this._testName,
-            batchInfo: testBatch,
-            baselineEnvName: this._baselineEnvName,
-            compareWithParentBranch: this._compareWithParentBranch,
-            ignoreBaseline: this._ignoreBaseline,
-            environmentName: this._environmentName,
-            environment: appEnv,
-            defaultMatchSettings: defaultMatchSettings,
-            branchName: this.getBranchName(),
-            parentBranchName: this.getParentBranchName(),
-            baselineBranchName: this.getBaselineBranchName(),
-            autSessionId: this._autSessionId,
-            properties: this._properties
-        };
-
-        return this._serverConnector.startSession(this._sessionStartInfo)
-            .then(function (result) {
-                this._logger.getLogHandler().setSessionId(result.sessionId);
-                this._runningSession = result;
-                this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
-                resolve();
-              }.bind(this), function (err) {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded', this._autSessionId);
+            }.bind(this), function (err) {
                 this._logger.log(err);
                 reject(err);
-            }.bind(this));
-          }.bind(this))
-            .catch(function (err) {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded', this._autSessionId).then(function () {
+                    // Throw to skip execution of all consecutive "then" blocks.
+                    throw new Error('Failed to set/get viewport size.');
+                }.bind(this));
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted', this._autSessionId);
+            }.bind(this)).then(function () {
+                // getInferredEnvironment is implemented in the wrapping SDK.
+                return this.getInferredEnvironment()
+                    .then(function (inferredEnv_) {
+                        inferredEnv = inferredEnv_;
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                    }.bind(this));
+            }.bind(this)).then(function () {
+                return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded', this._autSessionId);
+            }.bind(this)).then(function () {
+                var testBatch = this._batch;
+                if (!testBatch) {
+                    testBatch = {
+                        id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+                        name: process.env.APPLITOOLS_BATCH_NAME,
+                        startedAt: new Date().toUTCString()
+                    };
+                }
+
+                testBatch.toString = function () {
+                    return this.name + " [" + this.id + "]" + " - " + this.startedAt;
+                };
+
+                //noinspection JSUnresolvedFunction
+                var appEnv = {
+                    os: this._os || null,
+                    hostingApp: this._hostingApp || null,
+                    displaySize: this._viewportSize,
+                    inferred: inferredEnv
+                };
+
+                var exactObj = this._defaultMatchSettings.getExact();
+                var exact = null;
+                if (exactObj) {
+                    exact = {
+                        minDiffIntensity: exactObj.getMinDiffIntensity(),
+                        minDiffWidth: exactObj.getMinDiffWidth(),
+                        minDiffHeight: exactObj.getMinDiffHeight(),
+                        matchThreshold: exactObj.getMatchThreshold()
+                    };
+                }
+                var defaultMatchSettings = {
+                    matchLevel: this._defaultMatchSettings.getMatchLevel(),
+                    ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
+                    exact: exact
+                };
+                this._sessionStartInfo = {
+                    agentId: this._getFullAgentId(),
+                    appIdOrName: this._appName,
+                    scenarioIdOrName: this._testName,
+                    batchInfo: testBatch,
+                    baselineEnvName: this._baselineEnvName,
+                    compareWithParentBranch: this._compareWithParentBranch,
+                    ignoreBaseline: this._ignoreBaseline,
+                    environmentName: this._environmentName,
+                    environment: appEnv,
+                    defaultMatchSettings: defaultMatchSettings,
+                    branchName: this.getBranchName(),
+                    parentBranchName: this.getParentBranchName(),
+                    baselineBranchName: this.getBaselineBranchName(),
+                    autSessionId: this._autSessionId,
+                    properties: this._properties
+                };
+
+                return this._serverConnector.startSession(this._sessionStartInfo)
+                    .then(function (result) {
+                        this._logger.getLogHandler().setSessionId(result.sessionId);
+                        this._runningSession = result;
+                        this._shouldMatchWindowRunOnceOnTimeout = result.isNewSession;
+                        resolve();
+                    }.bind(this), function (err) {
+                        this._logger.log(err);
+                        reject(err);
+                    }.bind(this));
+            }.bind(this), function (err) {
                 reject(err);
-            }.bind(this));
+            });
         }.bind(this));
     };
 
