@@ -35,7 +35,8 @@
     "LICENSE",
     "index.js",
     "src/",
-    "example/"
+    "example/",
+    "dist/eyes-browser.min.js"
   ],
   "main": "./index.js",
   "dependencies": {
