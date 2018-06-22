@@ -34,7 +34,7 @@
     function _stringify(args) {
         return args.map(function (arg) {
             if (typeof arg === 'object') {
-                if (typeof arg.secretToken !== 'undefined') {
+                if (arg && typeof arg.secretToken !== 'undefined') {
                     arg = GeneralUtils.clone(arg);
                     arg.secretToken = 'REMOVED_FROM_LOGS';
                 }
