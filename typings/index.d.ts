@@ -115,7 +115,7 @@ export declare class GeneralUtils {
      * @param to The object to which methods will be added
      * @param from The object from which methods will be copied
      */
-    static mixin(to: void, from: void): void;
+    static mixin(to: any, from: any): void;
     /**
      * Generate GUID
      **/
