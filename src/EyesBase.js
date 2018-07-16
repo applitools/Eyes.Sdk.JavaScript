@@ -449,20 +449,27 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * Sets the test batch
+     * Sets the batch in which context future tests will run or {@code null} if tests are to run standalone.
      *
-     * @param name {string} - the batch name
-     *
-     * @remarks:
-     *   For advanced use cases - it is possible to pass ID and start date in that order - as 2nd and 3rd args
+     * @param batchOrName {{id: string, name: string, startedAt: string}|string} - the batch object or batch name
+     * @param [batchId] {string} - ID of the batch, should be generated using GeneralUtils.guid()
+     * @param [batchDate] {string} - start date of the batch, can be created as new Date().toUTCString()
      */
-    EyesBase.prototype.setBatch = function (name) {
-        //noinspection JSLint
-        this._batch = {
-            id: arguments[1] || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
-            name: name || process.env.APPLITOOLS_BATCH_NAME,
-            startedAt: arguments[2] || new Date().toUTCString()
-        };
+    EyesBase.prototype.setBatch = function (batchOrName, batchId, batchDate) {
+        if (this._isDisabled) {
+            this._logger.verbose('Ignored');
+            return;
+        }
+
+        if (typeof batchOrName === "string") {
+            this._batch = {
+                id: batchId || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+                name: name || process.env.APPLITOOLS_BATCH_NAME,
+                startedAt: batchDate || new Date().toUTCString()
+            };
+        } else {
+            this._batch = batchOrName;
+        }
     };
 
     //noinspection JSUnusedGlobalSymbols
