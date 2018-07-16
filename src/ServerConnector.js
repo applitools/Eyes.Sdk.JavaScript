@@ -384,8 +384,7 @@
                     return reject(new Error(err));
                 }
 
-                that._logger.verbose('ServerConnector.' + name + ' - result ', body, ', status code ' + response.statusCode);
-                return resolve({
+                var results = {
                     status: response.statusCode,
                     body: body ? JSON.parse(body) : null,
                     response: {
@@ -393,7 +392,10 @@
                         statusMessage: response.statusMessage,
                         headers: response.headers
                     }
-                });
+                };
+
+                that._logger.verbose('ServerConnector.' + name + ' - result ', results.body, ', status code ' + results.status);
+                return resolve(results);
             });
         });
     }

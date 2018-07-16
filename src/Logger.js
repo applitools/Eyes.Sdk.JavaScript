@@ -1,6 +1,7 @@
 (function () {
     'use strict';
 
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
     var NullLogHandler = require('./NullLogHandler').NullLogHandler;
 
     /**
@@ -33,6 +34,10 @@
     function _stringify(args) {
         return args.map(function (arg) {
             if (typeof arg === 'object') {
+                if (arg && typeof arg.secretToken !== 'undefined') {
+                    arg = GeneralUtils.clone(arg);
+                    arg.secretToken = 'REMOVED_FROM_LOGS';
+                }
                 return JSON.stringify(arg);
             }
 
