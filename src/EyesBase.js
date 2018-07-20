@@ -464,7 +464,7 @@
         if (typeof batchOrName === "string") {
             this._batch = {
                 id: batchId || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
-                name: name || process.env.APPLITOOLS_BATCH_NAME,
+                name: batchOrName || process.env.APPLITOOLS_BATCH_NAME,
                 startedAt: batchDate || new Date().toUTCString()
             };
         } else {
