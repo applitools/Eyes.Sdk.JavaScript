@@ -461,14 +461,14 @@
             return;
         }
 
-        if (typeof batchOrName === "string") {
+        if (typeof batchOrName === "object") {
+            this._batch = batchOrName;
+        } else {
             this._batch = {
                 id: batchId || process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
                 name: batchOrName || process.env.APPLITOOLS_BATCH_NAME,
                 startedAt: batchDate || new Date().toUTCString()
             };
-        } else {
-            this._batch = batchOrName;
         }
     };
 
@@ -477,6 +477,15 @@
      * @return {{id: string, name: string, startedAt: string}} gets the test batch.
      */
     EyesBase.prototype.getBatch = function () {
+        if (!this._batch) {
+            this._logger.verbose('No batch set');
+            this._batch = {
+                id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
+                name: process.env.APPLITOOLS_BATCH_NAME,
+                startedAt: new Date().toUTCString()
+            };
+        }
+
         return this._batch;
     };
 
@@ -1436,18 +1445,7 @@
             }.bind(this)).then(function () {
                 return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initEnded', this._autSessionId);
             }.bind(this)).then(function () {
-                var testBatch = this._batch;
-                if (!testBatch) {
-                    testBatch = {
-                        id: process.env.APPLITOOLS_BATCH_ID || GeneralUtils.guid(),
-                        name: process.env.APPLITOOLS_BATCH_NAME,
-                        startedAt: new Date().toUTCString()
-                    };
-                }
-
-                testBatch.toString = function () {
-                    return this.name + " [" + this.id + "]" + " - " + this.startedAt;
-                };
+                var testBatch = this.getBatch();
 
                 //noinspection JSUnresolvedFunction
                 var appEnv = {
