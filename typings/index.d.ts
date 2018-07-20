@@ -897,6 +897,10 @@ export declare abstract class EyesBase {
      */
     setBatch(name: string, batchId?: string, startedAt?: string): void;
     /**
+     * Sets the test batch
+     */
+    setBatch(batch: BatchInfo): void;
+    /**
      * @return gets the test batch.
      */
     getBatch(): BatchInfo;

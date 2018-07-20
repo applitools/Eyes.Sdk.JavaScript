@@ -43,6 +43,12 @@
     "eyes.utils": "0.0.29",
     "request": "^2.87.0"
   },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  },
+  "scripts": {
+    "test": "mocha ./test/**/*.spec.js"
+  },
   "browser": {
     "./src/FileLogHandler": false
   },
