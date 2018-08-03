@@ -379,7 +379,7 @@ export declare class ImageUtils {
     /**
      * Get png size from image buffer. Don't require parsing the image
      **/
-    static getImageSizeFromBuffer(imageBuffer: Buffer, promiseFactory: PromiseFactory): RectangleSize;
+    static getImageSizeFromBuffer(imageBuffer: Buffer): RectangleSize;
     static saveImage(imageBuffer: Buffer, filename: string, promiseFactory: PromiseFactory): Promise<void>;
 }
 
@@ -487,4 +487,42 @@ export declare namespace StreamUtils {
          */
         resetBuffer(): Buffer;
     }
+}
+
+export enum BrowserNames {
+    Edge = 'Edge',
+    IE = 'IE',
+    Firefox = 'Firefox',
+    Chrome = 'Chrome',
+    Safari = 'Safari',
+    Chromium = 'Chromium'
+}
+
+export enum OSNames {
+    Unknown = 'Unknown',
+    Windows = 'Windows',
+    IOS = 'IOS',
+    Macintosh = 'Macintosh',
+    ChromeOS = 'ChromeOS'
+}
+
+export class UserAgent {
+    /**
+     * @param userAgent User agent string to parse
+     * @param unknowns Whether to treat unknown products as {@code UNKNOWN} or throw an exception.
+     * @return A representation of the user agent string.
+     */
+    static parseUserAgentString(userAgent: string, unknowns: boolean) : UserAgent;
+
+    getBrowser(): string;
+
+    getBrowserMajorVersion(): string;
+
+    getBrowserMinorVersion(): string;
+
+    getOS(): string;
+
+    getOSMajorVersion(): string;
+
+    getOSMinorVersion(): string;
 }

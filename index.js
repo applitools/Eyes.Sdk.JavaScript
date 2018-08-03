@@ -10,3 +10,6 @@ exports.PropertyHandler = require('./src/PropertyHandler').PropertyHandler;
 exports.ReadOnlyPropertyHandler = require('./src/ReadOnlyPropertyHandler').ReadOnlyPropertyHandler;
 exports.SimplePropertyHandler = require('./src/SimplePropertyHandler').SimplePropertyHandler;
 exports.StreamUtils = require('./src/StreamUtils');
+exports.UserAgent = require('./src/UserAgent').UserAgent;
+exports.OSNames = require('./src/OSNames').OSNames;
+exports.BrowserNames = require('./src/BrowserNames').BrowserNames;

@@ -456,20 +456,19 @@
      * Get png size from image buffer. Don't require parsing the image
      *
      * @param {Buffer} imageBuffer
-     * @param {PromiseFactory} promiseFactory
      * @return {{width: number, height: number}}
      */
-    ImageUtils.getImageSizeFromBuffer = function (imageBuffer, promiseFactory) {
-        return promiseFactory.makePromise(function (resolve, reject) {
-            if (imageBuffer[12] === 0x49 && imageBuffer[13] === 0x48 && imageBuffer[14] === 0x44 && imageBuffer[15] === 0x52) {
-                var width = (imageBuffer[16] * 256 * 256 * 256) + (imageBuffer[17] * 256 * 256) + (imageBuffer[18] * 256) + imageBuffer[19];
-                var height = (imageBuffer[20] * 256 * 256 * 256) + (imageBuffer[21] * 256 * 256) + (imageBuffer[22] * 256) + imageBuffer[23];
-                resolve({width: width, height: height});
-                return;
-            }
+    ImageUtils.getImageSizeFromBuffer = function (imageBuffer) {
+        // noinspection MagicNumberJS
+        if (imageBuffer[12] === 0x49 && imageBuffer[13] === 0x48 && imageBuffer[14] === 0x44 && imageBuffer[15] === 0x52) {
+            // noinspection MagicNumberJS
+            const width = (imageBuffer[16] * 256 * 256 * 256) + (imageBuffer[17] * 256 * 256) + (imageBuffer[18] * 256) + imageBuffer[19];
+            // noinspection MagicNumberJS
+            const height = (imageBuffer[20] * 256 * 256 * 256) + (imageBuffer[21] * 256 * 256) + (imageBuffer[22] * 256) + imageBuffer[23];
+            return { width, height };
+        }
 
-            reject("Buffer contains unsupported image type.");
-        });
+        throw new TypeError('Buffer contains unsupported image type.');
     };
 
     /**
