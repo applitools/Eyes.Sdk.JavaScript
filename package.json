@@ -51,14 +51,10 @@
     "mocha": "^5.1.1"
   },
   "scripts": {
-    "test": "mocha ./test/**/*.spec.js"
-  },
-  "browser": {
-    "fs": "browserify-fs",
-    "zlib": "browserify-zlib"
+    "test": "mocha \"./test/**/*.spec.js\""
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": ">= 4.2.0"
+    "node": ">= 6.9.0"
   }
 }
