@@ -712,6 +712,14 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
+     * @return {boolean}
+     */
+    EyesBase.prototype.getIsCutProviderExplicitlySet = function () {
+        return this._cutProviderHandler && !(this._cutProviderHandler.get() instanceof NullCutProvider);
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
      * @return {number} The ratio used to scale the images being validated.
      */
     EyesBase.prototype.getScaleRatio = function () {
@@ -1560,6 +1568,20 @@
         this._userInputs.push(trigger);
 
         this._logger.verbose("AddMouseTrigger: Added", trigger);
+    };
+
+    /**
+     * @return {PromiseFactory}
+     */
+    EyesBase.prototype.getPromiseFactory = function() {
+        return this._promiseFactory;
+    };
+
+    /**
+     * @param {*...} args
+     */
+    EyesBase.prototype.log = function(...args) {
+        this._logger.log(...args);
     };
 
     EyesBase.DEFAULT_EYES_SERVER = 'https://eyesapi.applitools.com';

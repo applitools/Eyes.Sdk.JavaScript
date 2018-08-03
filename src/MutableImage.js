@@ -55,17 +55,13 @@
      * @param {MutableImage} that The context of the current instance of MutableImage
      */
     function _retrieveImageSize(that) {
-        return that._promiseFactory.makePromise(function (resolve) {
-            if (that._isParsed || that._width && that._height) {
-                return resolve();
-            }
+        if (that._isParsed || (that._width && that._height)) {
+            return;
+        }
 
-            return ImageUtils.getImageSizeFromBuffer(that._imageBuffer, that._promiseFactory).then(function(imageSize) {
-                that._width = imageSize.width;
-                that._height = imageSize.height;
-                resolve();
-            });
-        });
+        const imageSize = ImageUtils.getImageSizeFromBuffer(that._imageBuffer);
+        that._width = imageSize.width;
+        that._height = imageSize.height;
     }
 
     /**
@@ -128,12 +124,31 @@
      */
     MutableImage.prototype.getSize = function () {
         var that = this;
-        return _retrieveImageSize(that).then(function () {
+        return that._promiseFactory.resolve().then(function () {
+            _retrieveImageSize(that);
             return {
                 width: that._width,
                 height: that._height
             };
         });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {number}
+     */
+    MutableImage.prototype.getWidth = function () {
+        _retrieveImageSize(this);
+        return this._width;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {number}
+     */
+    MutableImage.prototype.getHeight = function () {
+        _retrieveImageSize(this);
+        return this._height;
     };
 
     //noinspection JSUnusedGlobalSymbols
@@ -145,8 +160,7 @@
     MutableImage.prototype.asObject = function () {
         var that = this;
         return _packImage(that).then(function () {
-            return _retrieveImageSize(that);
-        }).then(function () {
+            _retrieveImageSize(that);
             return {
                 imageBuffer: that._imageBuffer,
                 width: that._width,

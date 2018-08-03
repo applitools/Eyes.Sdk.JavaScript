@@ -4,8 +4,6 @@ node_js:
   - 'node'
   - '8'
   - '6'
-before_install:
-  - rm package-lock.json
 install:
   - npm install
 script:

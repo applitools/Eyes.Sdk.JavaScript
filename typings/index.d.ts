@@ -351,6 +351,11 @@ export declare class FixedScaleProviderFactory extends ScaleProviderFactory {
 }
 
 
+export declare interface ImageProvider {
+    getImage(): Promise<MutableImage>;
+}
+
+
 export declare abstract class CutProvider {
     /**
      * @param image The image to cut.
@@ -670,6 +675,8 @@ export declare class MutableImage {
      * Size of the image. Parses the image if necessary
      */
     getSize(): Promise<RectangleSize>;
+    getWidth(): number;
+    getHeight(): number;
     /**
      * Return the image as buffer and image width and height.
      */
@@ -1006,6 +1013,7 @@ export declare abstract class EyesBase {
      * @param cutProvider the provider doing the cut.
      */
     setImageCut(cutProvider?: CutProvider): void;
+    getIsCutProviderExplicitlySet(): boolean;
     /**
      * @return The ratio used to scale the images being validated.
      */
@@ -1133,6 +1141,8 @@ export declare abstract class EyesBase {
     startSession(): Promise<void>;
     addKeyboardTrigger(control: Region, text: string): void;
     addMouseTrigger(mouseAction: Triggers.MouseAction, control: Region, cursor: Location): void;
+    getPromiseFactory(): PromiseFactory;
+    log(...args: any[]): void;
 }
 
 
