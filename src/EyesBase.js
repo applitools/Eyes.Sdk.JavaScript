@@ -1145,7 +1145,7 @@
      * An updated screenshot.
      *
      * @abstract
-     * @return {Promise<MutableImage>}
+     * @return {Promise<EyesScreenshot>}
      */
     EyesBase.prototype.getScreenShot = function() {
         throw new Error('getScreenShot method is not implemented!');
@@ -1170,16 +1170,20 @@
      */
     function _getAppData(regionProvider, lastScreenshot) {
         /** @type {!EyesBase} */ var that = this;
+        var screenshot;
         return this._promiseFactory.makePromise(function (resolve) {
             that._logger.verbose('EyesBase.checkWindow - getAppOutput callback is running - getting screenshot');
             var data = {appOutput: {}, screenShot: null};
-            return that.getScreenShot().then(function (screenshot) {
+            return that.getScreenShot().then(function (eyesScreenshot) {
                 that._logger.verbose('EyesBase.checkWindow - getAppOutput received the screenshot');
                 if (regionProvider && !GeometryUtils.isRegionEmpty(regionProvider.getRegion())) {
-                    return screenshot.cropImage(regionProvider.getRegion());
+                    return eyesScreenshot.getSubScreenshot(regionProvider.getRegion(), regionProvider.getCoordinatesType(), false);
                 }
-                return screenshot;
-            }).then(function (screenshot) {
+                return eyesScreenshot;
+            }).then(function (eyesScreenshot) {
+                data.eyesScreenshot = eyesScreenshot;
+                screenshot = eyesScreenshot.getImage();
+            }).then(function () {
                 return screenshot.asObject().then(function (imageObj) {
                     that._logger.verbose('EyesBase.checkWindow - getAppOutput image is ready');
                     data.screenShot = imageObj;

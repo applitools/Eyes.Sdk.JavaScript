@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    var CoordinatesType = require('./CoordinatesType').CoordinatesType;
+
     /**
      * Handles matching of output with the expected output (including retry and 'ignore mismatch' when needed).
      *
@@ -93,10 +95,22 @@
     }
 
     function _retryMatch(start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, imageMatchSettings, screenshot, resolve) {
+        var appOutput;
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask._retryMatch will retry');
             this._logger.verbose('MatchWindowTask._retryMatch calls for app output');
-            return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput) {
+            return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput_) {
+                appOutput = appOutput_;
+                for (var i = 0; i < imageMatchSettings.ignore.length; i++) {
+                    var ignoreElement = imageMatchSettings.ignore[i];
+
+                    var location = {x: ignoreElement.left, y: ignoreElement.top};
+                    var converted = appOutput.eyesScreenshot.convertLocationFromLocation(location, CoordinatesType.CONTEXT_RELATIVE, CoordinatesType.SCREENSHOT_AS_IS);
+
+                    ignoreElement.left = converted.x;
+                    ignoreElement.top = converted.y;
+                }
+            }).then(function() {
                 this._logger.verbose('MatchWindowTask._retryMatch retrieved app output');
                 screenshot = appOutput.screenShot;
                 var data = {
