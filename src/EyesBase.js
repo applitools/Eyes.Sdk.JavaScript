@@ -42,7 +42,8 @@
         GeometryUtils = EyesUtils.GeometryUtils,
         ImageDeltaCompressor = EyesUtils.ImageDeltaCompressor,
         SimplePropertyHandler = EyesUtils.SimplePropertyHandler,
-        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler;
+        ReadOnlyPropertyHandler = EyesUtils.ReadOnlyPropertyHandler,
+        PromiseFactory = EyesUtils.PromiseFactory;
 
     var FailureReport = {
         // Failures are reported immediately when they are detected.
@@ -151,45 +152,47 @@
     /**
      * Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
      *
-     * @param {PromiseFactory} promiseFactory An object which will be used for creating deferreds/promises.
-     * @param {string} serverUrl
-     * @param {boolean} isDisabled
+     * @param {PromiseFactory} [promiseFactory] An object which will be used for creating deferreds/promises.
+     * @param {string} [serverUrl]
+     * @param {boolean} [isDisabled]
      * @constructor
      **/
-    function EyesBase(promiseFactory, serverUrl, isDisabled) {
-        if (serverUrl) {
-            this._promiseFactory = promiseFactory;
-            this._logger = new Logger();
-            this._serverUrl = serverUrl;
-            this._defaultMatchSettings = new MatchSettings.ImageMatchSettings(MatchSettings.MatchLevel.Strict);
-            this._compareWithParentBranch = false;
-            this._ignoreBaseline = false;
-            this._failureReport = EyesBase.FailureReport.OnClose;
-            this._userInputs = [];
-            this._saveNewTests = true;
-            this._saveFailedTests = false;
-            this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
-            this._positionProvider = null;
-            this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider());
-            this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());
-            this._isDisabled = isDisabled;
-            this._defaultMatchTimeout = 2000;
-            this._agentId = undefined;
-            this._os = undefined;
-            this._hostingApp = undefined;
-            this._baselineEnvName = undefined;
-            this._environmentName = undefined;
-            this._testName = null;
-            this._appName = null;
-            this.validationId = -1;
-            this._sessionEventHandlers = [];
-            this._autSessionId = undefined;
-            /** @type {{imageBuffer: Buffer, width: number, height: number}} */
-            this._lastScreenshot = undefined;
-            this._saveDebugScreenshots = false;
-            this._debugScreenshotsPath = null;
-            this._properties = [];
-        }
+    function EyesBase(
+        promiseFactory = new PromiseFactory(asyncAction => new Promise(asyncAction), undefined),
+        serverUrl = EyesBase.DEFAULT_EYES_SERVER,
+        isDisabled = false
+    ) {
+        this._promiseFactory = promiseFactory;
+        this._logger = new Logger();
+        this._serverUrl = serverUrl;
+        this._defaultMatchSettings = new MatchSettings.ImageMatchSettings(MatchSettings.MatchLevel.Strict);
+        this._compareWithParentBranch = false;
+        this._ignoreBaseline = false;
+        this._failureReport = EyesBase.FailureReport.OnClose;
+        this._userInputs = [];
+        this._saveNewTests = true;
+        this._saveFailedTests = false;
+        this._serverConnector = new ServerConnector(promiseFactory, this._serverUrl, this._logger);
+        this._positionProvider = null;
+        this._scaleProviderHandler = new SimplePropertyHandler(new NullScaleProvider());
+        this._cutProviderHandler = new SimplePropertyHandler(new NullCutProvider());
+        this._isDisabled = isDisabled;
+        this._defaultMatchTimeout = 2000;
+        this._agentId = undefined;
+        this._os = undefined;
+        this._hostingApp = undefined;
+        this._baselineEnvName = undefined;
+        this._environmentName = undefined;
+        this._testName = null;
+        this._appName = null;
+        this.validationId = -1;
+        this._sessionEventHandlers = [];
+        this._autSessionId = undefined;
+        /** @type {{imageBuffer: Buffer, width: number, height: number}} */
+        this._lastScreenshot = undefined;
+        this._saveDebugScreenshots = false;
+        this._debugScreenshotsPath = null;
+        this._properties = [];
     }
 
     //noinspection JSUnusedGlobalSymbols
