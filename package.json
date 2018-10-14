@@ -41,19 +41,20 @@
   "main": "./index.js",
   "dependencies": {
     "eyes.utils": "0.0.29",
-    "eyes.sdk": "0.0.71",
+    "eyes.sdk": "0.0.73",
     "rsvp": "^3.5.0"
   },
   "devDependencies": {
-    "node-fetch": "^2.1.2",
-    "browserify": "^16.2.2",
-    "uglify-js": "^3.3.26",
+    "node-fetch": "^2.2.0",
+    "uglify-js": "^3.4.9",
+    "browserify": "^16.2.3",
     "browserify-zlib": "^0.2.0",
     "browserify-fs": "^1.0.0"
   },
   "scripts": {
     "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
-    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
+    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js",
+    "build": "npm run browserify && npm run uglify"
   },
   "browser": {
     "rsvp": false
