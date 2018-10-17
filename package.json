@@ -40,20 +40,20 @@
   "types": "./typings/index.d.ts",
   "dependencies": {
     "@types/node": "*",
-    "eyes.utils": "0.0.29",
+    "eyes.utils": "astappiev/eyes.utils#development",
     "request": "^2.87.0"
   },
   "devDependencies": {
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "test": "mocha ./test/**/*.spec.js"
+    "test": "mocha \"./test/**/*.spec.js\""
   },
   "browser": {
     "./src/FileLogHandler": false
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": ">= 4.2.0"
+    "node": ">= 6.9.0"
   }
 }

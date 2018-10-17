@@ -11,6 +11,7 @@ exports.FileLogHandler = require('./src/FileLogHandler').FileLogHandler;
 exports.FixedCutProvider = require('./src/FixedCutProvider').FixedCutProvider;
 exports.FixedScaleProvider = require('./src/FixedScaleProvider').FixedScaleProvider;
 exports.FixedScaleProviderFactory = require('./src/FixedScaleProviderFactory').FixedScaleProviderFactory;
+exports.ImageProvider = require('./src/ImageProvider').ImageProvider;
 exports.Logger = require('./src/Logger').Logger;
 exports.LogHandler = require('./src/LogHandler').LogHandler;
 exports.MatchSettings = require('./src/MatchSettings');

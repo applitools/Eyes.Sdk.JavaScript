@@ -1,14 +1,14 @@
 language: node_js
 dist: trusty
+cache:
+  directories:
+  - node_modules
 node_js:
   - 'node'
   - '8'
   - '6'
-  - '4'
-before_install:
-  - dpkg --compare-versions `npm -v` ge 3.0 || npm i -g npm@3
-  - rm package-lock.json
 install:
   - npm install
 script:
   - node index.js
+  - npm run test
