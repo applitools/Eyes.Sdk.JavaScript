@@ -1122,7 +1122,7 @@ export declare abstract class EyesBase {
     /**
      * An updated screenshot.
      */
-    abstract getScreenShot(): Promise<MutableImage>;
+    abstract getScreenShot(): Promise<EyesScreenshot>;
     /**
      * The current title of of the AUT.
      */
