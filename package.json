@@ -1,6 +1,6 @@
 {
   "name": "eyes.utils",
-  "version": "0.0.29",
+  "version": "0.0.30",
   "description": "General purpose Javascript utilities.",
   "keywords": [
     "eyes.utils",
@@ -45,10 +45,10 @@
     "@types/node": "*",
     "@types/png-async": "*",
     "dateformat": "^3.0.3",
-    "png-async": "^0.9.2"
+    "png-async": "^0.9.3"
   },
   "devDependencies": {
-    "mocha": "^5.1.1"
+    "mocha": "^5.2.0"
   },
   "scripts": {
     "test": "mocha \"./test/**/*.spec.js\""
