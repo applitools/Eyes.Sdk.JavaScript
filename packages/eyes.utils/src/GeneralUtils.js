@@ -253,5 +253,20 @@
         return dateformat(date, DATE_FORMAT_ISO8601_FOR_OUTPUT, true);
 	};
 
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * Cartesian product of arrays
+     *
+     * @param {...(Array|Object)} arrays Variable number of arrays of n elements
+     * @return {Array<Array>} Product of arrays as an array of X arrays of N elements,
+     *   where X is the product of the input arrays' lengths
+     */
+	GeneralUtils.cartesianProduct = function (...arrays) {
+    const getArrayOf = a => (Array.isArray(a) ? a : [a]);
+    const prod2 = (a, b) => getArrayOf(b).map(e1 => a.map(e2 => [e1, ...e2])).reduce((arr, e) => arr.concat(e), []);
+    const prod = (a, ...rest) => (rest.length > 0 ? prod(prod2(a, rest.pop()), ...rest) : a);
+    return prod([[]], ...arrays);
+	};
+
     exports.GeneralUtils = GeneralUtils;
 }());
