@@ -1,6 +1,6 @@
 {
   "name": "eyes.utils",
-  "version": "0.0.30",
+  "version": "3.6.0",
   "description": "General purpose Javascript utilities.",
   "keywords": [
     "eyes.utils",
@@ -22,10 +22,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/applitools/eyes.utils.git"
+    "url": "git://github.com/applitools/eyes.sdk.javascript.git"
   },
   "bugs": {
-    "url": "https://github.com/applitools/eyes.utils/issues"
+    "url": "https://github.com/applitools/eyes.sdk.javascript/issues"
   },
   "directories": {
     "lib": "./src",
@@ -51,7 +51,8 @@
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "test": "mocha \"./test/**/*.spec.js\""
+    "test": "mocha \"test/**/*.spec.js\"",
+    "test:unit": "mocha \"test/**/*.spec.js\""
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

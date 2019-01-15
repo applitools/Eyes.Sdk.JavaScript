@@ -1,6 +1,6 @@
 {
   "name": "eyes.images",
-  "version": "0.0.53",
+  "version": "3.6.0",
   "description": "Applitools Eyes SDK for working directly with images",
   "keywords": [
     "eyes.images",
@@ -20,10 +20,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/applitools/eyes.images.javascript.git"
+    "url": "git://github.com/applitools/eyes.sdk.javascript.git"
   },
   "bugs": {
-    "url": "https://github.com/applitools/eyes.images.javascript/issues"
+    "url": "https://github.com/applitools/eyes.sdk.javascript/issues"
   },
   "directories": {
     "example": "./example",
@@ -40,8 +40,8 @@
   ],
   "main": "./index.js",
   "dependencies": {
-    "eyes.utils": "0.0.29",
-    "eyes.sdk": "0.0.73",
+    "eyes.utils": "^3.6.0",
+    "eyes.sdk": "^3.6.0",
     "rsvp": "^3.5.0"
   },
   "devDependencies": {
