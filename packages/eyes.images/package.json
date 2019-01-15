@@ -41,8 +41,7 @@
   "main": "./index.js",
   "dependencies": {
     "eyes.utils": "^3.6.0",
-    "eyes.sdk": "^3.6.0",
-    "rsvp": "^3.5.0"
+    "eyes.sdk": "^3.6.0"
   },
   "devDependencies": {
     "node-fetch": "^2.2.0",

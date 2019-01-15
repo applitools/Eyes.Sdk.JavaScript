@@ -1,8 +1,7 @@
 (function () {
     'use strict';
 
-    var RSVP = require('rsvp'),
-        EyesSDK = require('eyes.sdk'),
+    var EyesSDK = require('eyes.sdk'),
         EyesUtils = require('eyes.utils'),
         EyesBase = EyesSDK.EyesBase,
         MutableImage = EyesSDK.MutableImage,
@@ -17,23 +16,12 @@
      * @constructor
      * @param {string} [serverUrl]
      * @param {boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
-     * @param {PromiseFactory} [promiseFactory] If not specified will be created using RSVP lib
+     * @param {PromiseFactory} [promiseFactory] If not specified will be created using system Promise
      * @extends EyesBase
      **/
     function Eyes(serverUrl, isDisabled, promiseFactory) {
-        if (promiseFactory) {
-            this._promiseFactory = promiseFactory;
-        } else if (RSVP && RSVP.Promise) {
-            this._promiseFactory = new PromiseFactory(function (asyncAction) {
-                return new RSVP.Promise(asyncAction);
-            }, function () {
-                return RSVP.defer();
-            });
-        } else {
-            throw new Error("PromiseFactory or RSVP module is required.");
-        }
+        EyesBase.call(this, promiseFactory, serverUrl, isDisabled);
 
-        EyesBase.call(this, this._promiseFactory, serverUrl || EyesBase.DEFAULT_EYES_SERVER, isDisabled);
         this._imageProvider = undefined;
         this._screenshot = undefined;
         this._title = undefined;
