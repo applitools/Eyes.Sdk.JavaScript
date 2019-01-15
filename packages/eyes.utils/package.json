@@ -52,7 +52,7 @@
   },
   "scripts": {
     "test": "mocha \"test/**/*.spec.js\"",
-    "test:unit": "mocha \"test/**/*.spec.js\""
+    "test:unit": "mocha \"test/unit/**/*.spec.js\""
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

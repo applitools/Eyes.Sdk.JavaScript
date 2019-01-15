@@ -51,15 +51,14 @@
     "browserify-fs": "^1.0.0"
   },
   "scripts": {
+    "test": "npm run test:e2e",
+    "test:e2e": "node test/simplerun.js",
+    "build": "npm run browserify && npm run uglify",
     "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
-    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js",
-    "build": "npm run browserify && npm run uglify"
-  },
-  "browser": {
-    "rsvp": false
+    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
-    "node": ">= 4.2.0"
+    "node": ">= 6.9.0"
   }
 }

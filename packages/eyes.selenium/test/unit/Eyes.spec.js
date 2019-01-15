@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 var webdriver = require('selenium-webdriver');
-var EyesSDK = require('../index');
+var EyesSDK = require('../../index');
 
 var driver, eyes;
 describe('Eyes', function () {

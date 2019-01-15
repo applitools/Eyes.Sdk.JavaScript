@@ -48,7 +48,7 @@
   },
   "scripts": {
     "test": "mocha \"test/**/*.spec.js\"",
-    "test:unit": "mocha \"test/**/*.spec.js\""
+    "test:unit": "mocha \"test/unit/**/*.spec.js\""
   },
   "browser": {
     "./src/FileLogHandler": false

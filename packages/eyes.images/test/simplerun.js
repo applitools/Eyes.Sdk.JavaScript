@@ -11,8 +11,8 @@ eyes.setHostingApp("My browser");
 // eyes.setProxy('http://localhost:9999');
 
 // load images from local storage
-var image1 = fs.readFileSync('image1.png');
-var image2 = fs.readFileSync('image2.png');
+var image1 = fs.readFileSync(__dirname + '/fixtures/image1.png');
+var image2 = fs.readFileSync(__dirname + '/fixtures/image2.png');
 
 var firstTestPromise = eyes.open("eyes.images.javascript", "First test5_3", {width: 800, height: 600}).then(function () {
     // Notice since eyes.checkImage returns a promise, you need to call it with "return" in order for the wrapping

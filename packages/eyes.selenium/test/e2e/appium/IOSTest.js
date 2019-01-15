@@ -1,8 +1,8 @@
 'use strict';
 
 const { Builder, Capabilities, By } = require('selenium-webdriver');
+const { GeneralUtils } = require('eyes.utils');
 const { ConsoleLogHandler } = require('eyes.sdk');
-const { TestUtils } = require('./TestUtils');
 const { Eyes, Target, StitchMode } = require('../index');
 
 describe('IOSTest', function () {
@@ -11,7 +11,7 @@ describe('IOSTest', function () {
   const batchInfo = 'Java3 Tests';
 
   const dataProvider = [];
-  dataProvider.push(...TestUtils.cartesianProduct(
+  dataProvider.push(...GeneralUtils.cartesianProduct(
     'iPhone X Simulator',
     ['portrait', 'landscape'],
     '11.0',
