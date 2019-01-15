@@ -7,6 +7,7 @@
         MutableImage = EyesSDK.MutableImage,
         RegionProvider = EyesSDK.RegionProvider,
         CoordinatesType = EyesSDK.CoordinatesType,
+        EyesSimpleScreenshot = EyesSDK.EyesSimpleScreenshot,
         PromiseFactory = EyesUtils.PromiseFactory;
 
     /**
@@ -83,7 +84,7 @@
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
         this._logger.verbose('checkRegion([', region, '], image, "', tag, '", ', ignoreMismatch, ',', retryTimeout, ')');
-        var regionProvider = new RegionProvider(region, CoordinatesType.CONTEXT_AS_IS);
+        var regionProvider = new RegionProvider(region, CoordinatesType.SCREENSHOT_AS_IS);
         return this._checkImage(image, tag, ignoreMismatch, retryTimeout, regionProvider);
     };
 
@@ -113,12 +114,12 @@
         if (this._imageProvider) {
             return this._imageProvider.getScreenshot().then(function (screenshot) {
                 that._screenshot = screenshot;
-                return screenshot;
+                return new EyesSimpleScreenshot(that._screenshot);
             });
         }
 
         return this._promiseFactory.makePromise(function (resolve) {
-            resolve(that._screenshot);
+            resolve(new EyesSimpleScreenshot(that._screenshot));
         });
     };
 
@@ -212,11 +213,6 @@
             return that.getScreenShot();
         }).then(function (screenshot) {
             return screenshot.getSize()
-        }).then(function (imageSize) {
-            return {
-                width: imageSize.width,
-                height: imageSize.height
-            }
         });
     };
 

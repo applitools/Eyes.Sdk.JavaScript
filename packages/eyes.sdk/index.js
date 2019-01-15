@@ -7,6 +7,7 @@ exports.CoordinatesType = require('./src/CoordinatesType').CoordinatesType;
 exports.CutProvider = require('./src/CutProvider').CutProvider;
 exports.EyesBase = require('./src/EyesBase').EyesBase;
 exports.EyesScreenshot = require('./src/EyesScreenshot').EyesScreenshot;
+exports.EyesSimpleScreenshot = require('./src/EyesSimpleScreenshot').EyesSimpleScreenshot;
 exports.FileLogHandler = require('./src/FileLogHandler').FileLogHandler;
 exports.FixedCutProvider = require('./src/FixedCutProvider').FixedCutProvider;
 exports.FixedScaleProvider = require('./src/FixedScaleProvider').FixedScaleProvider;

@@ -1267,7 +1267,7 @@
         tag = tag || '';
         ignoreMismatch = ignoreMismatch || false;
         retryTimeout = retryTimeout || -1;
-        imageMatchSettings = imageMatchSettings || {matchLevel: null, ignoreCaret: null, exact: null};
+        imageMatchSettings = imageMatchSettings || {matchLevel: null, ignoreCaret: null, exact: null, ignore: [], floating: []};
 
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.checkWindow - running');

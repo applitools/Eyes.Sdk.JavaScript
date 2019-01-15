@@ -81,8 +81,6 @@
         this._image = image;
         this._promiseFactory = promiseFactory;
         this._frameChain = driver.getFrameChain();
-
-        EyesScreenshot.call(this._image);
     }
 
     EyesWebDriverScreenshot.prototype = new EyesScreenshot();
