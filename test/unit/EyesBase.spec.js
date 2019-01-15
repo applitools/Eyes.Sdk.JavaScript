@@ -81,4 +81,31 @@ describe('EyesBase', function () {
             eyes._batch = undefined;
         })
     });
+
+    describe('setProxy()', function () {
+        it('should create a proxy string without auth', function () {
+            eyes.setProxy('127.0.0.1:80');
+
+            var actualProxy = eyes.getProxy();
+            assert.strictEqual(actualProxy, '127.0.0.1:80');
+        });
+
+        it('should create a proxy string', function () {
+            eyes.setProxy('127.0.0.1', 'admin', 'pa##word');
+
+            var actualProxy = eyes.getProxy();
+            assert.strictEqual(actualProxy, 'http://admin:pa##word@127.0.0.1');
+        });
+
+        it('should create a proxy string with protocol', function () {
+            eyes.setProxy('http://127.0.0.1:90', 'admin', 'pa##word');
+
+            var actualProxy = eyes.getProxy();
+            assert.strictEqual(actualProxy, 'http://admin:pa##word@127.0.0.1:90');
+        });
+
+        afterEach(function () {
+            delete eyes._serverConnector._httpOptions.proxy;
+        })
+    });
 });

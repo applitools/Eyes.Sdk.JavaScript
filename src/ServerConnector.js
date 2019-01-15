@@ -115,7 +115,11 @@
         var proxyString;
         if (username) {
             var i = url.indexOf('://');
-            var protocol = i === -1 ? 'http' : url.slice(0, i);
+            var protocol = 'http';
+            if (i !== -1) {
+                protocol = url.slice(0, i);
+                url = url.slice(i + 3);
+            }
             proxyString = protocol + '://' + username + ':' + password + '@' + url;
         } else {
             proxyString = url;
