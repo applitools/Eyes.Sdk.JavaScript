@@ -1,0 +1,14 @@
+{
+  "name": "eyes-sdk-javascript",
+  "private": true,
+  "scripts": {
+    "install": "lerna bootstrap --hoist",
+    "bootstrap": "lerna bootstrap --hoist",
+    "test": "lerna run test",
+    "test:unit": "lerna run test:unit",
+    "test:e2e": "lerna run test:e2e"
+  },
+  "devDependencies": {
+    "lerna": "^3.10.5"
+  }
+}
