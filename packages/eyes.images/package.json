@@ -1,0 +1,66 @@
+{
+  "name": "eyes.images",
+  "version": "0.0.53",
+  "description": "Applitools Eyes SDK for working directly with images",
+  "keywords": [
+    "eyes.images",
+    "applitools",
+    "eyes",
+    "test automation",
+    "visual regression",
+    "automation",
+    "testing",
+    "tests"
+  ],
+  "homepage": "https://applitools.com",
+  "author": {
+    "name": "Applitools Team",
+    "email": "team@applitools.com",
+    "url": "https://applitools.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/applitools/eyes.images.javascript.git"
+  },
+  "bugs": {
+    "url": "https://github.com/applitools/eyes.images.javascript/issues"
+  },
+  "directories": {
+    "example": "./example",
+    "lib": "./src",
+    "test": "./test"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "src/",
+    "example/",
+    "dist/eyes-browser.min.js"
+  ],
+  "main": "./index.js",
+  "dependencies": {
+    "eyes.utils": "0.0.29",
+    "eyes.sdk": "0.0.73",
+    "rsvp": "^3.5.0"
+  },
+  "devDependencies": {
+    "node-fetch": "^2.2.0",
+    "uglify-js": "^3.4.9",
+    "browserify": "^16.2.3",
+    "browserify-zlib": "^0.2.0",
+    "browserify-fs": "^1.0.0"
+  },
+  "scripts": {
+    "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
+    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js",
+    "build": "npm run browserify && npm run uglify"
+  },
+  "browser": {
+    "rsvp": false
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">= 4.2.0"
+  }
+}
