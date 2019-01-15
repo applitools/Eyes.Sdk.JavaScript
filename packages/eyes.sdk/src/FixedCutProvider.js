@@ -36,36 +36,28 @@
 
         if (this._header > 0) {
             promise = promise.then(function () {
-                return image.getSize();
-            }).then(function (imageSize) {
-                var region = GeometryUtils.createRegion(0, that._header, imageSize.width, imageSize.height - that._header);
+                var region = GeometryUtils.createRegion(0, that._header, image.getWidth(), image.getHeight() - that._header);
                 return image.cropImage(region);
             });
         }
 
         if (this._footer > 0) {
             promise = promise.then(function () {
-                return image.getSize();
-            }).then(function (imageSize) {
-                var region = GeometryUtils.createRegion(0, 0, imageSize.width, imageSize.height - that._footer);
+                var region = GeometryUtils.createRegion(0, 0, image.getWidth(), image.getHeight() - that._footer);
                 return image.cropImage(region);
             });
         }
 
         if (this._left > 0) {
             promise = promise.then(function () {
-                return image.getSize();
-            }).then(function (imageSize) {
-                var region = GeometryUtils.createRegion(that._left, 0, imageSize.width - that._left, imageSize.height);
+                var region = GeometryUtils.createRegion(that._left, 0, image.getWidth() - that._left, image.getHeight());
                 return image.cropImage(region);
             });
         }
 
         if (this._right > 0) {
             promise = promise.then(function () {
-                return image.getSize();
-            }).then(function (imageSize) {
-                var region = GeometryUtils.createRegion(0, 0, imageSize.width - that._right, imageSize.height);
+                var region = GeometryUtils.createRegion(0, 0, image.getWidth() - that._right, image.getHeight());
                 return image.cropImage(region);
             });
         }

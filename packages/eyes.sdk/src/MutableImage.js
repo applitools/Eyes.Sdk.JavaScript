@@ -120,17 +120,14 @@
     /**
      * Size of the image. Parses the image if necessary
      *
-     * @return {Promise<{width: number, height: number}>}
+     * @return {{width: number, height: number}}
      */
     MutableImage.prototype.getSize = function () {
-        var that = this;
-        return that._promiseFactory.resolve().then(function () {
-            _retrieveImageSize(that);
-            return {
-                width: that._width,
-                height: that._height
-            };
-        });
+        _retrieveImageSize(this);
+        return {
+            width: this._width,
+            height: this._height
+        };
     };
 
     //noinspection JSUnusedGlobalSymbols

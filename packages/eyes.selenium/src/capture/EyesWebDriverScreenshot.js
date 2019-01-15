@@ -100,9 +100,7 @@
 
         return this._driver.getDefaultContentViewportSize(false).then(function (vs) {
             viewportSize = vs;
-            return that._image.getSize();
-        }).then(function (is) {
-            imageSize = is;
+            imageSize = that._image.getSize();
             return positionProvider.getEntireSize();
         }).then(function (ppEs) {
             // If we're inside a frame, then the frame size is given by the frame

@@ -809,8 +809,7 @@
                     return mutableImage.saveImage(debugScreenshotsPath + filename.replace(/ /g, '_'));
                 }
             }).then(function () {
-                return mutableImage.getSize();
-            }).then(function (imageSize) {
+                var imageSize = mutableImage.getSize();
                 if (isLandscape && automaticRotation && imageSize.height > imageSize.width) {
                     rotationDegrees = automaticRotationDegrees;
                 }
@@ -850,8 +849,7 @@
                     return mutableImage.rotateImage(rotationDegrees);
                 }
             }).then(function () {
-                return mutableImage.getSize();
-            }).then(function (imageSize) {
+                var imageSize = mutableImage.getSize();
                 // If the image is a viewport screenshot, we want to save the current scroll position (we'll need it for check region).
                 if (imageSize.width <= viewportSize.width && imageSize.height <= viewportSize.height) {
                     return EyesSeleniumUtils.getCurrentScrollPosition(browser, promiseFactory).then(function (scrollPosition) {
