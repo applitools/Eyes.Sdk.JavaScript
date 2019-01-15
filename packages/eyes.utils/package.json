@@ -1,0 +1,60 @@
+{
+  "name": "eyes.utils",
+  "version": "0.0.30",
+  "description": "General purpose Javascript utilities.",
+  "keywords": [
+    "eyes.utils",
+    "applitools",
+    "eyes",
+    "test automation",
+    "visual regression",
+    "automation",
+    "testing",
+    "tests",
+    "images",
+    "utilities"
+  ],
+  "homepage": "https://applitools.com",
+  "author": {
+    "name": "Applitools Team",
+    "email": "team@applitools.com",
+    "url": "https://applitools.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/applitools/eyes.utils.git"
+  },
+  "bugs": {
+    "url": "https://github.com/applitools/eyes.utils/issues"
+  },
+  "directories": {
+    "lib": "./src",
+    "test": "./test"
+  },
+  "files": [
+    "README.md",
+    "LICENSE",
+    "index.js",
+    "src/",
+    "test/",
+    "typings/"
+  ],
+  "main": "./index.js",
+  "types": "./typings/index.d.ts",
+  "dependencies": {
+    "@types/node": "*",
+    "@types/png-async": "*",
+    "dateformat": "^3.0.3",
+    "png-async": "^0.9.3"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  },
+  "scripts": {
+    "test": "mocha \"./test/**/*.spec.js\""
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": {
+    "node": ">= 6.9.0"
+  }
+}
