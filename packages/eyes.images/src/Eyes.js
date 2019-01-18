@@ -10,6 +10,8 @@
         EyesSimpleScreenshot = EyesSDK.EyesSimpleScreenshot,
         PromiseFactory = EyesUtils.PromiseFactory;
 
+    var VERSION = require('../package.json').version;
+
     /**
      * The main type - to be used by the users of the library to access all functionality.
      * Initializes an Eyes instance.
@@ -34,7 +36,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     Eyes.prototype._getBaseAgentId = function () {
-        return 'eyes.images/0.0.53';
+        return 'eyes.images.javascript/' + VERSION;
     };
 
     /**
