@@ -1,6 +1,6 @@
 {
   "name": "eyes.images",
-  "version": "3.6.0",
+  "version": "3.6.1",
   "description": "Applitools Eyes SDK for working directly with images",
   "keywords": [
     "eyes.images",
@@ -40,15 +40,15 @@
   ],
   "main": "./index.js",
   "dependencies": {
-    "eyes.utils": "^3.6.0",
-    "eyes.sdk": "^3.6.0"
+    "eyes.sdk": "^3.6.1",
+    "eyes.utils": "^3.6.1"
   },
   "devDependencies": {
-    "node-fetch": "^2.2.0",
-    "uglify-js": "^3.4.9",
     "browserify": "^16.2.3",
+    "browserify-fs": "^1.0.0",
     "browserify-zlib": "^0.2.0",
-    "browserify-fs": "^1.0.0"
+    "node-fetch": "^2.2.0",
+    "uglify-js": "^3.4.9"
   },
   "scripts": {
     "test": "npm run test:e2e",
