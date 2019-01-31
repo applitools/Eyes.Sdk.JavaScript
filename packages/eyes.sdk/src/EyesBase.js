@@ -820,12 +820,12 @@
     /**
      * Sets the proxy settings to be used by the request module.
      *
-     * @return {string} proxySettings The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
-     * @return {string} [username]
-     * @return {string} [password]
+     * @param {string} url The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
+     * @param {string} [username]
+     * @param {string} [password]
      */
     EyesBase.prototype.setProxy = function (url, username, password) {
-        return this._serverConnector.setProxy(url, username, password);
+        this._serverConnector.setProxy(url, username, password);
     };
 
     //noinspection JSUnusedGlobalSymbols
