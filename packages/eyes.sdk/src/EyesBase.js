@@ -936,10 +936,10 @@
      * defined as a method) for creating an error for immediate failure reports (i.e., when the user wants
      * to know immediately when a checkWindow returns false).
      *
-     * @param results The TestResults object.
-     * @param testName The test name.
-     * @param appName The application name
-     * @return {Error|null} An error object representing the tets.
+     * @param {TestResults} results The TestResults object.
+     * @param {string} testName The test name.
+     * @param {string} appName The application name
+     * @return {Error|null} An error object representing the test.
      */
     EyesBase.buildTestError = function (results, testName, appName) {
         var header,
