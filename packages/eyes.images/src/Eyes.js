@@ -19,9 +19,9 @@
      * @constructor
      * @param {string} [serverUrl]
      * @param {boolean} [isDisabled] - set to true to disable Applitools Eyes and use the web driver directly.
-     * @param {PromiseFactory} [promiseFactory] If not specified will be created using system Promise
+     * @param {PromiseFactory} [promiseFactory] - If not specified will be created using system Promise
      * @extends EyesBase
-     **/
+     */
     function Eyes(serverUrl, isDisabled, promiseFactory) {
         EyesBase.call(this, promiseFactory, serverUrl, isDisabled);
 
@@ -41,9 +41,9 @@
 
     /**
      * Starts a test.
-     * @param {string} appName The application being tested.
-     * @param {string} testName The test's name.
-     * @param {{width: number, height: number}} imageSize Determines the resolution used for the baseline. {@code null} will automatically grab the resolution from the image.
+     * @param {string} appName - The application being tested.
+     * @param {string} testName - The test's name.
+     * @param {{width: number, height: number}} imageSize - Determines the resolution used for the baseline. {@code null} will automatically grab the resolution from the image.
      * @return {Promise<void>}
      */
     Eyes.prototype.open = function (appName, testName, imageSize) {
@@ -53,7 +53,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Returns whether is open or not.
-     * @return {boolean} Whether or not session is opened
+     * @return {boolean} - Whether or not session is opened
      */
     Eyes.prototype.isOpen = function () {
         return this._isOpen;
@@ -77,11 +77,11 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Perform visual validation for the current image.
-     * @param {{left: number, top: number, width: number, height: number}} region The region of the image which should be verified, or {undefined}/{null} if the entire image should be verified.
-     * @param {Buffer|ImageProvider} image The image png bytes or ImageProvider.
-     * @param {string} tag An optional tag to be associated with the validation checkpoint.
-     * @param {boolean} [ignoreMismatch] True if the server should ignore a negative result for the visual validation.
-     * @param {number} [retryTimeout] optional timeout for performing the match (ms).
+     * @param {{left: number, top: number, width: number, height: number}} region - The region of the image which should be verified, or {undefined}/{null} if the entire image should be verified.
+     * @param {Buffer|ImageProvider} image - The image png bytes or ImageProvider.
+     * @param {string} tag - An optional tag to be associated with the validation checkpoint.
+     * @param {boolean} [ignoreMismatch] - True if the server should ignore a negative result for the visual validation.
+     * @param {number} [retryTimeout] - optional timeout for performing the match (ms).
      * @return {Promise<{asExpected: boolean}>}
      */
     Eyes.prototype.checkRegion = function (region, image, tag, ignoreMismatch, retryTimeout) {
@@ -109,7 +109,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Takes a screenshot.
-     * @return {Promise<MutableImage>} An updated screenshot.
+     * @return {Promise<MutableImage>} - An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
         var that = this;
@@ -128,7 +128,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the title.
-     * @return {Promise<string>} The current title of of the AUT.
+     * @return {Promise<string>} - The current title of of the AUT.
      */
     Eyes.prototype.getTitle = function () {
         return this._promiseFactory.makePromise(function (resolve) {
@@ -148,7 +148,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Get the inferred environment string.
-     * @return {Promise<string>} A promise which resolves to the inferred environment string.
+     * @return {Promise<string>} - A promise which resolves to the inferred environment string.
      */
     Eyes.prototype.getInferredEnvironment = function () {
         return this._promiseFactory.makePromise(function (resolve) {
