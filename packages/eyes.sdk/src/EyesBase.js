@@ -825,7 +825,7 @@
      * @param {string} [password]
      */
     EyesBase.prototype.setProxy = function (url, username, password) {
-        return this._serverConnector.setProxy(url, username, password);
+        this._serverConnector.setProxy(url, username, password);
     };
 
     //noinspection JSUnusedGlobalSymbols
