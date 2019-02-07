@@ -567,7 +567,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @param {EyesBase.FailureReport} mode - Use one of the values in EyesBase.FailureReport.
+     * @param {FailureReport} mode - Use one of the values in EyesBase.FailureReport.
      */
     EyesBase.prototype.setFailureReport = function (mode) {
         switch (mode) {
@@ -586,7 +586,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @return {EyesBase.FailureReport}- The currently set FailureReport.
+     * @return {FailureReport} - The currently set FailureReport.
      */
     EyesBase.prototype.getFailureReport = function () {
         return this._failureReport;
@@ -937,7 +937,7 @@
      * to know immediately when a checkWindow returns false).
      *
      * @param {TestResults} results - The TestResults object.
-     * @param {strting} testName - The test name.
+     * @param {string} testName - The test name.
      * @param {string} appName - The application name
      * @return {Error|null} - An error object representing the test.
      */
@@ -1585,7 +1585,7 @@
     };
 
     /**
-     * @param {... *} args
+     * @param {...any} args
      */
     EyesBase.prototype.log = function(...args) {
         this._logger.log(...args);
