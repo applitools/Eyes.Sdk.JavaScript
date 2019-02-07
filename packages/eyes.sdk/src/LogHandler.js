@@ -8,7 +8,7 @@
      *
      * @abstract
      * @constructor
-     **/
+     */
     function LogHandler() {
         this._isVerbose = false;
         this._isPrintSessionId = false;
@@ -30,7 +30,7 @@
     /**
      * Whether to handle or ignore verbose log messages.
      *
-     * @return {boolean} isVerbose
+     * @return {boolean} isVerbose 
      */
     LogHandler.prototype.getIsVerbose = function () {
         return this._isVerbose;

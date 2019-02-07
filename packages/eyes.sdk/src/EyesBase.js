@@ -4,7 +4,7 @@
  */
 /**
  * @global
- * @typedef {{sessionId: string, legacySessionId?: string, sessionUrl: string, isNewSession: boolean}} RunningSession
+ * @typedef {{sessionId: string, legacySessionId: ?string, sessionUrl: string, isNewSession: boolean}} RunningSession
  */
 /**
  * @global
@@ -63,14 +63,14 @@
     /**
      * Utility function for creating the test results object
      *
-     * @param {Logger} logger The logger to use.
-     * @param {string} testName The test's name.
-     * @param {string} appName The application name
-     * @param {RunningSession} runningSession The running session data received from the server.
-     * @param {TestResults} serverResults The tests results data received from the server.
-     * @param {boolean} isSaved Whether or not the test was automatically saved.
-     * @param {boolean} isAborted Whether or not the test was aborted.
-     * @return {TestResults} A test results object.
+     * @param {Logger} logger - The logger to use.
+     * @param {string} testName - The test's name.
+     * @param {string} appName - The application name
+     * @param {RunningSession} runningSession - The running session data received from the server.
+     * @param {TestResults} serverResults - The tests results data received from the server.
+     * @param {boolean} isSaved  - Whether or not the test was automatically saved.
+     * @param {boolean} isAborted - Whether or not the test was aborted.
+     * @return {TestResults} - A test results object.
      * @private
      */
     var _buildTestResults = function (logger, testName, appName, runningSession, serverResults, isSaved, isAborted) {
@@ -114,13 +114,13 @@
     /**
      * Notifies all handlers of an event.
      *
-     * @param {Logger} logger A logger to use.
-     * @param {PromiseFactory} promiseFactory The promise factory to use.
-     * @param {SessionEventHandler[]} handlers The list of handlers to be notified.
-     * @param {string} eventName The event to notify
-     * @param {...*} [param1] The first of what may be a list of "hidden" parameters, to be passed to the event
+     * @param {Logger} logger - A logger to use.
+     * @param {PromiseFactory} promiseFactory - The promise factory to use.
+     * @param {SessionEventHandler[]} handlers - The list of handlers to be notified.
+     * @param {string} eventName - The event to notify
+     * @param {...*} [param1] - The first of what may be a list of "hidden" parameters, to be passed to the event
      *                            notification function. May also be undefined.
-     * @return {Promise<void>} A promise which resolves when the event was delivered/failed to all handlers.
+     * @return {Promise<void>} - A promise which resolves when the event was delivered/failed to all handlers.
      *
      * @private
      */
@@ -152,11 +152,11 @@
     /**
      * Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
      *
-     * @param {PromiseFactory} [promiseFactory] An object which will be used for creating deferreds/promises.
+     * @param {PromiseFactory} [promiseFactory] - An object which will be used for creating deferreds/promises.
      * @param {string} [serverUrl]
      * @param {boolean} [isDisabled]
      * @constructor
-     **/
+     */
     function EyesBase(
         promiseFactory = new PromiseFactory(asyncAction => new Promise(asyncAction), undefined),
         serverUrl = EyesBase.DEFAULT_EYES_SERVER,
@@ -197,7 +197,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} Whether eyes are open or not.
+     * @return {boolean} - Whether eyes are open or not.
      */
     EyesBase.prototype.getIsOpen = function () {
         return this._isOpen;
@@ -219,7 +219,7 @@
 
     // noinspection JSUnusedGlobalSymbols
     /**
-     * @return {LogHandler} The currently set log handler.
+     * @return {LogHandler} - The currently set log handler.
      */
     EyesBase.prototype.getLogHandler = function () {
         return this._logger.getLogHandler();
@@ -229,7 +229,7 @@
     /**
      * Sets the current server URL used by the rest client.
      *
-     * @param serverUrl  {string} The URI of the rest server.
+     * @param serverUrl  {string} - The URI of the rest server.
      */
     EyesBase.prototype.setServerUrl = function (serverUrl) {
         this._serverUrl = serverUrl;
@@ -238,7 +238,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The URI of the eyes server.
+     * @return {string} - The URI of the eyes server.
      */
     EyesBase.prototype.getServerUrl = function () {
         return this._serverConnector.getServerUrl();
@@ -247,15 +247,15 @@
     /**
      * Sets the API key of your applitools Eyes account.
      *
-     * @param apiKey {string} The api key to be used.
-     * @param [newAuthScheme] {boolean} Whether or not the server uses the new authentication scheme.
+     * @param apiKey {string} - The api key to be used.
+     * @param [newAuthScheme] {boolean} - Whether or not the server uses the new authentication scheme.
      */
     EyesBase.prototype.setApiKey = function (apiKey, newAuthScheme) {
         this._serverConnector.setApiKey(apiKey, newAuthScheme);
     };
 
     /**
-     * @return {string} The currently set api key.
+     * @return {string} - The currently set api key.
      */
     EyesBase.prototype.getApiKey = function () {
         return this._serverConnector.getApiKey();
@@ -271,7 +271,7 @@
     };
 
     /**
-     * @return {boolean} Whether sessions are removed immediately after they are finished.
+     * @return {boolean} - Whether sessions are removed immediately after they are finished.
      */
     EyesBase.prototype.getRemoveSession = function () {
         return this._serverConnector.getRemoveSession();
@@ -281,14 +281,14 @@
     /**
      * Sets the user given agent id of the SDK.
      *
-     * @param agentId {string} The agent ID to set.
+     * @param agentId {string} - The agent ID to set.
      */
     EyesBase.prototype.setAgentId = function (agentId) {
         this._agentId = agentId;
     };
 
     /**
-     * @return {string} The user given agent id of the SDK.
+     * @return {string} - The user given agent id of the SDK.
      */
     EyesBase.prototype.getAgentId = function () {
         return this._agentId;
@@ -296,7 +296,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The user given agent id of the SDK.
+     * @return {string}- The user given agent id of the SDK.
      */
     EyesBase.prototype._getFullAgentId = function () {
         //noinspection JSUnresolvedVariable
@@ -316,7 +316,7 @@
     /**
      * Sets the host OS name - overrides the one in the agent string.
      *
-     * @param os {string} The host OS.
+     * @param os {string} - The host OS.
      */
     EyesBase.prototype.setHostOS = function (os) {
         this._os = os;
@@ -324,7 +324,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The host OS as set by the user.
+     * @return {string}- The host OS as set by the user.
      */
     EyesBase.prototype.getHostOS = function () {
         return this._os;
@@ -337,7 +337,7 @@
      *
      * Sets the host OS name - overrides the one in the agent string.
      *
-     * @param os {string} The host OS.
+     * @param os {string} - The host OS.
      */
     EyesBase.prototype.setOs = function (os) {
         this._os = os;
@@ -348,7 +348,7 @@
      * @deprecated
      * This function is deprecated, please use {@link getHostOS} instead.
      *
-     * @return {string} The host OS as set by the user.
+     * @return {string}- The host OS as set by the user.
      */
     EyesBase.prototype.getOs = function () {
         return this._os;
@@ -358,7 +358,7 @@
     /**
      * Sets the hosting application - overrides the one in the agent string.
      *
-     * @param hostingApp {string} The hosting application.
+     * @param hostingApp {string} - The hosting application.
      */
     EyesBase.prototype.setHostingApp = function (hostingApp) {
         this._hostingApp = hostingApp;
@@ -366,7 +366,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The hosting application as set by the user.
+     * @return {string}- The hosting application as set by the user.
      */
     EyesBase.prototype.getHostingApp = function () {
         return this._hostingApp;
@@ -376,8 +376,8 @@
     /**
      * If specified, determines the baseline to compare with and disables automatic baseline inference.
      *
-     * @deprecated Only available for backward compatibility. See {@link #setBaselineEnvName(string)}.
-     * @param baselineName {string} The hosting application.
+     * @deprecated - Only available for backward compatibility. See {@link #setBaselineEnvName(string)}.
+     * @param baselineName {string} - The hosting application.
      */
     EyesBase.prototype.setBaselineName = function (baselineName) {
         this._logger.log("Baseline environment name: " + baselineName);
@@ -391,8 +391,8 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @deprecated Only available for backward compatibility. See {@link #getBaselineEnvName()}.
-     * @return {string} The baseline name, if it was specified.
+     * @deprecated - Only available for backward compatibility. See {@link #getBaselineEnvName()}.
+     * @return {string}- The baseline name, if it was specified.
      */
     EyesBase.prototype.getBaselineName = function () {
         return this._baselineEnvName;
@@ -402,7 +402,7 @@
     /**
      * If not {@code null}, determines the name of the environment of the baseline.
      *
-     * @param baselineEnvName {string} The name of the baseline's environment.
+     * @param baselineEnvName {string} - The name of the baseline's environment.
      */
     EyesBase.prototype.setBaselineEnvName = function (baselineEnvName) {
         this._logger.log("Baseline environment name: " + baselineEnvName);
@@ -418,7 +418,7 @@
     /**
      * If not {@code null}, determines the name of the environment of the baseline.
      *
-     * @return {string} The name of the baseline's environment, or {@code null} if no such name was set.
+     * @return {string}- The name of the baseline's environment, or {@code null} if no such name was set.
      */
     EyesBase.prototype.getBaselineEnvName = function () {
         return this._baselineEnvName;
@@ -428,7 +428,7 @@
     /**
      * If not {@code null} specifies a name for the environment in which the application under test is running.
      *
-     * @param envName {string} The name of the environment of the baseline.
+     * @param envName {string} - The name of the environment of the baseline.
      */
     EyesBase.prototype.setEnvName = function (envName) {
         this._logger.log("Environment name: " + envName);
@@ -444,7 +444,7 @@
     /**
      * If not {@code null} specifies a name for the environment in which the application under test is running.
      *
-     * @return {string} The name of the environment of the baseline, or {@code null} if no such name was set.
+     * @return {string}- The name of the environment of the baseline, or {@code null} if no such name was set.
      */
     EyesBase.prototype.getEnvName = function () {
         return this._environmentName;
@@ -477,7 +477,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {{id: string, name: string, startedAt: string}} gets the test batch.
+     * @return {{id: string, name: string, startedAt: string}} - gets the test batch.
      */
     EyesBase.prototype.getBatch = function () {
         if (!this._batch) {
@@ -495,7 +495,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set whether or not new tests are saved by default.
-     * @param {boolean} shouldSave True if new tests should be saved by default.
+     * @param {boolean} shouldSave - True if new tests should be saved by default.
      *                     False otherwise.
      */
     EyesBase.prototype.setSaveNewTests = function (shouldSave) {
@@ -505,7 +505,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @return {boolean} True if new tests are saved by default.
+     * @return {boolean} - True if new tests are saved by default.
      */
     EyesBase.prototype.getSaveNewTests = function () {
         return this._saveNewTests;
@@ -514,7 +514,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Set whether or not failed tests are saved by default.
-     * @param {boolean} shouldSave True if failed tests should be saved by
+     * @param {boolean} shouldSave - True if failed tests should be saved by
      *                        default, false otherwise.
      */
     EyesBase.prototype.setSaveFailedTests = function (shouldSave) {
@@ -523,7 +523,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} True if failed tests are saved by default.
+     * @return {boolean} - True if failed tests are saved by default.
      */
     EyesBase.prototype.getSaveFailedTests = function () {
         return this._saveFailedTests;
@@ -532,7 +532,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Sets the maximal time a match operation tries to perform a match.
-     * @param {number} timeout Timeout in milliseconds.
+     * @param {number} timeout - Timeout in milliseconds.
      */
     EyesBase.prototype.setDefaultMatchTimeout = function (timeout) {
         this._defaultMatchTimeout = timeout;
@@ -541,7 +541,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @return {number} The maximal time in milliseconds a match operation tries to perform a match.
+     * @return {number}- The maximal time in milliseconds a match operation tries to perform a match.
      */
     EyesBase.prototype.getDefaultMatchTimeout = function () {
         return this._defaultMatchTimeout;
@@ -551,14 +551,14 @@
     /**
      * Activate/Deactivate HTTP client debugging.
      *
-     * @param {boolean} isDebug Whether or not debug mode is active.
+     * @param {boolean} isDebug - Whether or not debug mode is active.
      */
     EyesBase.prototype.setDebugMode = function (isDebug) {
         this._serverConnector.setDebugMode(isDebug);
     };
 
     /**
-     * @return {boolean} Whether or not HTTP client debugging mode is active.
+     * @return {boolean} - Whether or not HTTP client debugging mode is active.
      */
     EyesBase.prototype.getIsDebugMode = function () {
         return this._serverConnector.getIsDebugMode();
@@ -567,7 +567,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @param mode Use one of the values in EyesBase.FailureReport.
+     * @param {EyesBase.FailureReport} mode - Use one of the values in EyesBase.FailureReport.
      */
     EyesBase.prototype.setFailureReport = function (mode) {
         switch (mode) {
@@ -586,7 +586,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      *
-     * @return {EyesBase.FailureReport} The currently set FailureReport.
+     * @return {EyesBase.FailureReport}- The currently set FailureReport.
      */
     EyesBase.prototype.getFailureReport = function () {
         return this._failureReport;
@@ -597,7 +597,7 @@
      * @deprecated
      * This function is superseded by {@link setDefaultMatchSettings}.
      *
-     * @param {MatchLevel} level The test-wide match level to use when checking application screenshot with the
+     * @param {MatchLevel} level - The test-wide match level to use when checking application screenshot with the
      *                           expected output.
      */
     EyesBase.prototype.setMatchLevel = function (level) {
@@ -609,7 +609,7 @@
      * @deprecated
      * This function is superseded by {@link getDefaultMatchSettings}
      *
-     * @return {MatchLevel} The test-wide match level.
+     * @return {MatchLevel} - The test-wide match level.
      */
     EyesBase.prototype.getMatchLevel = function () {
         //noinspection JSValidateTypes
@@ -618,7 +618,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param {ImageMatchSettings} defaultMatchSettings The match settings for the session.
+     * @param {ImageMatchSettings} defaultMatchSettings - The match settings for the session.
      */
     EyesBase.prototype.setDefaultMatchSettings = function (defaultMatchSettings) {
         this._defaultMatchSettings = defaultMatchSettings;
@@ -626,7 +626,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {ImageMatchSettings} The match settings for the session.
+     * @return {ImageMatchSettings}- The match settings for the session.
      */
     EyesBase.prototype.getDefaultMatchSettings = function () {
         return this._defaultMatchSettings;
@@ -636,7 +636,7 @@
     /**
      * Sets the ignore blinking caret value.
      *
-     * @param {boolean} ignoreCaret The ignore value.
+     * @param {boolean} ignoreCaret - The ignore value.
      */
     EyesBase.prototype.setIgnoreCaret = function (ignoreCaret) {
         this._defaultMatchSettings.setIgnoreCaret(ignoreCaret)
@@ -644,7 +644,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} Whether to ignore or the blinking caret or not when comparing images.
+     * @return {boolean} - Whether to ignore or the blinking caret or not when comparing images.
      */
     EyesBase.prototype.getIgnoreCaret = function () {
         var ignoreCaret = this._defaultMatchSettings.getIgnoreCaret();
@@ -653,7 +653,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} The currently compareWithParentBranch value
+     * @return {boolean}- The currently compareWithParentBranch value
      */
     EyesBase.prototype.isCompareWithParentBranch = function () {
         return this._compareWithParentBranch;
@@ -661,7 +661,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param {boolean} compareWithParentBranch New compareWithParentBranch value, default is false
+     * @param {boolean} compareWithParentBranch - New compareWithParentBranch value, default is false
      */
     EyesBase.prototype.setCompareWithParentBranch = function (compareWithParentBranch) {
         this._compareWithParentBranch = compareWithParentBranch;
@@ -669,7 +669,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} The currently ignoreBaseline value
+     * @return {boolean}- The currently ignoreBaseline value
      */
     EyesBase.prototype.isIgnoreBaseline = function () {
         return this._ignoreBaseline;
@@ -677,7 +677,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param {boolean} ignoreBaseline New ignoreBaseline value, default is false
+     * @param {boolean} ignoreBaseline - New ignoreBaseline value, default is false
      */
     EyesBase.prototype.setIgnoreBaseline = function (ignoreBaseline) {
         this._ignoreBaseline = ignoreBaseline;
@@ -685,7 +685,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {PositionProvider} The currently set position provider.
+     * @return {PositionProvider} - The currently set position provider.
      */
     EyesBase.prototype.getPositionProvider = function () {
         return this._positionProvider;
@@ -693,7 +693,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param {PositionProvider} positionProvider The position provider to be used.
+     * @param {PositionProvider} positionProvider - The position provider to be used.
      */
     EyesBase.prototype.setPositionProvider = function (positionProvider) {
         this._positionProvider = positionProvider;
@@ -703,7 +703,7 @@
     /**
      * Manually set the the sizes to cut from an image before it's validated.
      *
-     * @param {CutProvider} [cutProvider] the provider doing the cut.
+     * @param {CutProvider} [cutProvider] - the provider doing the cut.
      */
     EyesBase.prototype.setImageCut = function (cutProvider) {
         if (cutProvider) {
@@ -723,7 +723,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {number} The ratio used to scale the images being validated.
+     * @return {number} - The ratio used to scale the images being validated.
      */
     EyesBase.prototype.getScaleRatio = function () {
         return this._scaleProviderHandler.get().getScaleRatio();
@@ -733,7 +733,7 @@
     /**
      * Manually set the scale ratio for the images being validated.
      *
-     * @param {number} [scaleRatio=1] The scale ratio to use, or {@code null} to reset back to automatic scaling.
+     * @param {number} [scaleRatio=1] - The scale ratio to use, or {@code null} to reset back to automatic scaling.
      */
     EyesBase.prototype.setScaleRatio = function (scaleRatio) {
         if (scaleRatio != null) {
@@ -745,8 +745,8 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param {boolean} saveDebugScreenshots If true, will save all screenshots to local directory
-     * @param {string} pathToSave Path where you want to save debug screenshots
+     * @param {boolean} saveDebugScreenshots - If true, will save all screenshots to local directory
+     * @param {string} pathToSave - Path where you want to save debug screenshots
      */
     EyesBase.prototype.setSaveDebugScreenshots = function (saveDebugScreenshots, pathToSave) {
         this._saveDebugScreenshots = saveDebugScreenshots;
@@ -766,7 +766,7 @@
     /**
      * Sets the branch name.
      *
-     * @param branchName {string} The branch name.
+     * @param branchName {string} - The branch name.
      */
     EyesBase.prototype.setBranchName = function (branchName) {
         this._branchName = branchName;
@@ -774,7 +774,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The branch name.
+     * @return {string} - The branch name.
      */
     EyesBase.prototype.getBranchName = function () {
         return this._branchName || process.env.APPLITOOLS_BRANCH;
@@ -784,7 +784,7 @@
     /**
      * Sets the parent branch name.
      *
-     * @param parentBranchName {string} The parent branch name.
+     * @param parentBranchName {string} - The parent branch name.
      */
     EyesBase.prototype.setParentBranchName = function (parentBranchName) {
         this._parentBranchName = parentBranchName;
@@ -792,7 +792,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} The parent branch name.
+     * @return {string} - The parent branch name.
      */
     EyesBase.prototype.getParentBranchName = function () {
         return this._parentBranchName || process.env.APPLITOOLS_PARENT_BRANCH;
@@ -802,7 +802,7 @@
     /**
      * Sets the baseline branch under which new branches are created.
      *
-     * @param baselineBranchName {String} Branch name or {@code null} to specify the default branch.
+     * @param baselineBranchName {String} - Branch name or {@code null} to specify the default branch.
      */
     EyesBase.prototype.setBaselineBranchName = function (baselineBranchName) {
         this._baselineBranchName = baselineBranchName;
@@ -810,7 +810,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {String} The name of the baseline branch.
+     * @return {String} - The name of the baseline branch.
      */
     EyesBase.prototype.getBaselineBranchName = function () {
         return this._baselineBranchName || process.env.APPLITOOLS_BASELINE_BRANCH;
@@ -820,7 +820,7 @@
     /**
      * Sets the proxy settings to be used by the request module.
      *
-     * @param {string} url The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
+     * @param {string} url - The proxy url to be used by the serverConnector. If {@code null} then no proxy is set.
      * @param {string} [username]
      * @param {string} [password]
      */
@@ -830,7 +830,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {string} current proxy settings used by the server connector, or {@code null} if no proxy is set.
+     * @return {string} - current proxy settings used by the server connector, or {@code null} if no proxy is set.
      */
     EyesBase.prototype.getProxy = function () {
         return this._serverConnector.getProxy();
@@ -840,8 +840,8 @@
     /**
      * Used for grouping test results by custom test properties
      *
-     * @param {string} name The name of property
-     * @param {string} value The value of property
+     * @param {string} name - The name of property
+     * @param {string} value - The value of property
      */
     EyesBase.prototype.addProperty = function (name, value) {
         return this._properties.push({name: name, value: value});
@@ -849,7 +849,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?string} The name of the currently running test.
+     * @return {?string}- The name of the currently running test.
      */
     EyesBase.prototype.getTestName = function () {
         return this._testName;
@@ -857,7 +857,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {?string} The name of the currently tested application.
+     * @return {?string}- The name of the currently tested application.
      */
     EyesBase.prototype.getAppName = function () {
         return this._appName;
@@ -865,7 +865,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {boolean} Whether eyes is disabled.
+     * @return {boolean} - Whether eyes is disabled.
      */
     EyesBase.prototype.getIsDisabled = function () {
         return this._isDisabled;
@@ -873,7 +873,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @param isDisabled {boolean} If true, all interactions with this API will be silently ignored.
+     * @param isDisabled {boolean} - If true, all interactions with this API will be silently ignored.
      */
     EyesBase.prototype.setIsDisabled = function (isDisabled) {
         this._isDisabled = isDisabled;
@@ -881,7 +881,7 @@
 
     //noinspection JSUnusedGlobalSymbols
     /**
-     * @return {RunningSession} An object containing data about the currently running session.
+     * @return {RunningSession} - An object containing data about the currently running session.
      */
     EyesBase.prototype.getRunningSession = function () {
         return this._runningSession;
@@ -936,10 +936,10 @@
      * defined as a method) for creating an error for immediate failure reports (i.e., when the user wants
      * to know immediately when a checkWindow returns false).
      *
-     * @param {TestResults} results The TestResults object.
-     * @param {string} testName The test name.
-     * @param {string} appName The application name
-     * @return {Error|null} An error object representing the test.
+     * @param {TestResults} results - The TestResults object.
+     * @param {strting} testName - The test name.
+     * @param {string} appName - The application name
+     * @return {Error|null} - An error object representing the test.
      */
     EyesBase.buildTestError = function (results, testName, appName) {
         var header,
@@ -974,10 +974,10 @@
     /**
      * Utility function for ending a session on the server.
      *
-     * @param {boolean} isAborted Whether or not the test was aborted.
-     * @param {boolean} throwEx Whether 'reject' should be called if the results returned from the server indicate
+     * @param {boolean} isAborted - Whether or not the test was aborted.
+     * @param {boolean} throwEx - Whether 'reject' should be called if the results returned from the server indicate
      *   a test failure.
-     * @return {Promise<void>} A promise which resolves (or rejected, dependeing on 'throwEx' and the test result)
+     * @return {Promise<void>} - A promise which resolves (or rejected, dependeing on 'throwEx' and the test result)
      *   after ending the session.
      * @private
      */
@@ -1072,8 +1072,8 @@
     /**
      * Ends the currently running test.
      *
-     * @param {boolean} [throwEx=true] If true, then the returned promise will 'reject' for failed/aborted tests.
-     * @return {Promise<TestResults>} A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
+     * @param {boolean} [throwEx=true] - If true, then the returned promise will 'reject' for failed/aborted tests.
+     * @return {Promise<TestResults>} - A promise which resolves/rejects (depending on the value of 'throwEx') to the test results.
      */
     EyesBase.prototype.close = function (throwEx) {
         if (throwEx === undefined) {
@@ -1104,7 +1104,7 @@
     /**
      * Aborts the currently running test.
      *
-     * @return {Promise<TestResults>} A promise which resolves to the test results.
+     * @return {Promise<TestResults>} - A promise which resolves to the test results.
      */
     EyesBase.prototype.abortIfNotClosed = function () {
 
@@ -1145,7 +1145,7 @@
 
     /**
      * @abstract
-     * @param {{width: number, height: number}} size The required viewport size.
+     * @param {{width: number, height: number}} size - The required viewport size.
      * @return {Promise<void>}
      */
     EyesBase.prototype.setViewportSize = function(size) {
@@ -1369,12 +1369,12 @@
     //noinspection JSValidateJSDoc
     /**
      * Replaces an actual image in the current running session.
-     * @param {number} stepIndex The zero based index of the step in which to replace the actual image.
-     * @param {Buffer} screenshot The PNG bytes of the updated screenshot.
-     * @param {string} [tag] The updated tag for the step.
-     * @param {string} [title] The updated title for the step.
-     * @param {Trigger[]} [userInputs] The updated userInputs for the step.
-     * @return {Promise<void>} A promise which resolves when replacing is done, or rejects on error.
+     * @param {number} stepIndex - The zero based index of the step in which to replace the actual image.
+     * @param {Buffer} screenshot - The PNG bytes of the updated screenshot.
+     * @param {string} [tag] - The updated tag for the step.
+     * @param {string} [title] - The updated title for the step.
+     * @param {Trigger[]} [userInputs] - The updated userInputs for the step.
+     * @return {Promise<void>} - A promise which resolves when replacing is done, or rejects on error.
      */
     EyesBase.prototype.replaceWindow = function (stepIndex, screenshot, tag, title, userInputs) {
         tag = tag || '';
@@ -1585,7 +1585,7 @@
     };
 
     /**
-     * @param {*...} args
+     * @param {... *} args
      */
     EyesBase.prototype.log = function(...args) {
         this._logger.log(...args);
