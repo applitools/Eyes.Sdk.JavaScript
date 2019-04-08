@@ -162,7 +162,7 @@ export declare class GeneralUtils {
      * @return Product of arrays as an array of X arrays of N elements,
      * where X is the product of the input arrays' lengths
      */
-    static cartesianProduct(...arrays: any): string;
+    static cartesianProduct(...arrays: any[]): string;
 }
 
 

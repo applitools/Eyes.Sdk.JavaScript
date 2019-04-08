@@ -45,13 +45,14 @@
   "main": "./index.js",
   "types": "./typings/index.d.ts",
   "dependencies": {
-    "@types/node": "*",
     "eyes.sdk": "^3.6.2",
     "eyes.utils": "^3.6.1"
   },
   "devDependencies": {
+    "@types/node": "*",
     "chromedriver": "^2.46.0",
     "mocha": "^6.1.1",
+    "typescript": "^2.9.2",
     "protractor": "^5.4.2",
     "selenium-webdriver": "^3.6.0"
   },
@@ -64,7 +65,8 @@
     "test:unit": "mocha --no-timeouts \"test/unit/**/*.js\"",
     "test:appium": "mocha --no-timeouts \"test/e2e/appium/**/*.js\"",
     "test:selenium": "mocha --no-timeouts \"test/e2e/selenium/**/*.js\"",
-    "test:protractor": "protractor test/e2e/protractor/protractor.conf.js"
+    "test:protractor": "protractor test/e2e/protractor/protractor.conf.js",
+    "typings": "tsc --declaration"
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
