@@ -1,6 +1,6 @@
 {
   "name": "eyes.utils",
-  "version": "3.6.1",
+  "version": "3.6.2",
   "description": "General purpose Javascript utilities.",
   "keywords": [
     "eyes.utils",
@@ -46,10 +46,10 @@
     "png-async": "^0.9.4"
   },
   "devDependencies": {
-    "mocha": "^6.1.1",
-    "typescript": "^2.9.2",
     "@types/node": "*",
-    "@types/png-async": "*"
+    "@types/png-async": "*",
+    "mocha": "^6.1.1",
+    "typescript": "^2.9.2"
   },
   "scripts": {
     "test": "npm run test:unit",
