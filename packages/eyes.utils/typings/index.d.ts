@@ -1,6 +1,6 @@
-/* Type definitions for eyes.utils 0.0.1 */
-// Project: https://github.com/applitools/eyes.utils
-// Definitions by: Oleh Astappiev <https://github.com/astappev>
+/* Type definitions for eyes.utils 3.6.0 */
+// Project: https://github.com/applitools/eyes.sdk.javascript
+// Definitions by: Applitools Team <https://applitools.com>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.4
 
@@ -37,63 +37,54 @@ export declare class ArgumentGuard {
      * @param param The input parameter.
      * @param value The input value.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static notEqual(param: any, value: any, paramName: string): void;
     /**
      * Fails if the input parameter is null.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static notNull(param: any, paramName: string): void;
     /**
      * Fails if the input parameter is not null.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static isNull(param: any, paramName: string): void;
     /**
      * Fails if the input parameter string is null or empty.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static notNullOrEmpty(param: any, paramName: string): void;
     /**
      * Fails if the input integer parameter is negative.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static greaterThanOrEqualToZero(param: any, paramName: string): void;
     /**
      * Fails if the input integer parameter is smaller than 1.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static greaterThanZero(param: any, paramName: string): void;
     /**
      * Fails if the input integer parameter is equal to 0.
      * @param param The input parameter.
      * @param paramName The input parameter name.
-     * @throws {Error}
      */
     static notZero(param: any, paramName: string): void;
     /**
      * Fails if isValid is false.
      * @param isValid Whether the current state is valid.
      * @param errMsg The input parameter name.
-     * @throws {Error}
      */
     static isValidState(isValid: boolean, errMsg: string): void;
     /**
      * Fails if isValid is false.
      * @param param The input parameter.
      * @param type The expected param type.
-     * @throws {Error}
      */
     static isValidType(param: any, type: any): void;
 }
@@ -165,6 +156,13 @@ export declare class GeneralUtils {
      * @return String formatted as ISO-8601 (yyyy-MM-dd'T'HH:mm:ss'Z')
      */
     static toISO8601DateTime(date?: Date): string;
+    /**
+     * Cartesian product of arrays
+     * @param arrays Variable number of arrays of n elements
+     * @return Product of arrays as an array of X arrays of N elements,
+     * where X is the product of the input arrays' lengths
+     */
+    static cartesianProduct(...arrays: any): string;
 }
 
 

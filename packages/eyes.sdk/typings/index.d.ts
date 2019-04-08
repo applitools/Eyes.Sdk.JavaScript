@@ -1,6 +1,6 @@
-/* Type definitions for eyes.sdk 0.0.1 */
+/* Type definitions for eyes.sdk 3.6.0 */
 // Project: https://github.com/applitools/eyes.sdk.javascript
-// Definitions by: Oleh Astappiev <https://github.com/astappev>
+// Definitions by: Applitools Team <https://applitools.com>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.4
 
@@ -155,7 +155,7 @@ export declare abstract class LogHandler {
     getIsVerbose(): boolean;
     /**
      * If set to {@code true} then log output include session id, useful in multi-thread environment
-     * @param {boolean} [isPrintSessionId=false]
+     * @param [isPrintSessionId=false]
      */
     setPrintSessionId(isPrintSessionId: boolean): void;
     getIsPrintSessionId(): boolean;
@@ -177,13 +177,13 @@ export declare class NullLogHandler extends LogHandler {
  */
 export declare class ConsoleLogHandler extends LogHandler {
     /**
-     * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
+     * @param isVerbose Whether to handle or ignore verbose log messages.
      */
     constructor(isVerbose: boolean);
     /**
      * Handle a message to be logged.
-     * @param {boolean} verbose - is the message verbose
-     * @param {string} logString The string to log.
+     * @param verbose - is the message verbose
+     * @param logString The string to log.
      */
     onMessage(verbose: boolean, logString: string): void;
 }
@@ -194,9 +194,9 @@ export declare class ConsoleLogHandler extends LogHandler {
  */
 export declare class FileLogHandler extends LogHandler {
     /**
-     * @param {boolean} isVerbose Whether to handle or ignore verbose log messages.
-     * @param {String} [filename] The file in which to save the logs.
-     * @param {boolean} [append=true] Whether to append the logs to existing file, or to overwrite the existing file.
+     * @param isVerbose Whether to handle or ignore verbose log messages.
+     * @param filename The file in which to save the logs.
+     * @param append Whether to append the logs to existing file, or to overwrite the existing file.
      */
     constructor(isVerbose: boolean, filename?: string, append?: boolean);
     /**
@@ -225,8 +225,8 @@ export declare class FileLogHandler extends LogHandler {
     close(): boolean;
     /**
      * Handle a message to be logged.
-     * @param {boolean} verbose Whether this message is flagged as verbose or not.
-     * @param {String} logString The string to log.
+     * @param verbose Whether this message is flagged as verbose or not.
+     * @param logString The string to log.
      */
     onMessage(verbose: boolean, logString: string): void;
 }
@@ -449,6 +449,15 @@ export declare abstract class EyesScreenshot {
      * @return A new region which is the transformation of {@code region} to the {@code to} coordinates type.
      */
     convertRegionLocation(region: Region, from: CoordinatesType, to: CoordinatesType): Region;
+}
+
+
+export declare abstract class EyesSimpleScreenshot extends EyesScreenshot {
+    protected constructor(image: MutableImage, location?: RectangleSize);
+    /**
+     * Get size of screenshot
+     */
+    getSize(): RectangleSize;
 }
 
 
@@ -697,7 +706,13 @@ export declare class MutableImage {
      * Write image to local directory
      */
     saveImage(filename: string): Promise<void>;
+    /**
+     * Write image to local directory
+     */
     getImageBuffer(): Promise<Buffer>;
+    /**
+     * Get an instance of png-async Image class
+     */
     getImageData(): Promise<any>;
 }
 

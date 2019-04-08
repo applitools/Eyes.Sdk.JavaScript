@@ -1,6 +1,6 @@
-/* Type definitions for eyes.selenium 0.0.1 */
-// Project: https://github.com/applitools/eyes.selenium.javascript
-// Definitions by: Oleh Astappiev <https://github.com/astappev>
+/* Type definitions for eyes.selenium 3.6.0 */
+// Project: https://github.com/applitools/eyes.sdk.javascript
+// Definitions by: Applitools Team <https://applitools.com>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 // TypeScript Version: 2.4
 
@@ -114,7 +114,7 @@ export declare class Eyes extends EyesBase {
      * @param [throwEx=true] If true, an exception will be thrown for failed/new tests.
      * @return The test results.
      */
-    close(throwEx?: boolean): Promise<TestResults|undefined>;
+    close(throwEx?: boolean): Promise<TestResults>;
     /**
      * Preform visual validation
      * @param name A name to be associated with the match
@@ -191,7 +191,7 @@ export declare class Eyes extends EyesBase {
      * Get an updated screenshot.
      * @return The image of the new screenshot.
      */
-    getScreenShot(): Promise<MutableImage>;
+    getScreenShot(): Promise<EyesScreenshot>;
     getTitle(): Promise<string>;
     getInferredEnvironment(): Promise<string>;
     /**

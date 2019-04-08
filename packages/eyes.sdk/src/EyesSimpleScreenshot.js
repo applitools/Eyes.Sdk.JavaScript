@@ -11,7 +11,7 @@
 
     /**
      * @param {MutableImage} image The actual screenshot image.
-     * @param {{x: number, y: number}} location
+     * @param {{x: number, y: number}} [location]
      * @augments EyesScreenshot
      * @constructor
      */
