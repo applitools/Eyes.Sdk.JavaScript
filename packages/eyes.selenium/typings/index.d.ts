@@ -7,9 +7,9 @@
 ///<reference types="node"/>
 
 import { WebDriver, WebElement, By, TargetLocator, WebElementPromise, AlertPromise, promise } from 'selenium-webdriver';
-import { ElementFinder, ElementArrayFinder, ProtractorBy } from 'protractor';
 
 import {PromiseFactory, Location, Region, RectangleSize, UserAgent} from 'eyes.utils';
+
 import { PositionProvider, RegionProvider, Logger, CutProvider, ScaleProviderFactory, MatchSettings, CoordinatesType,
     EyesScreenshot, EyesBase, MutableImage, TestResults, ImageProvider } from 'eyes.sdk';
 
@@ -283,32 +283,32 @@ export declare namespace Eyes {
     }
 }
 
-/**
- * Wraps Protractor's ElementFinder to make sure we return our own Web Element.
- */
-export declare class ElementFinderWrapper extends ElementFinder {
-    constructor(finder: ElementFinder, eyesDriver: EyesWebDriver, logger: Logger);
-    /**
-     * Wrap the getWebElement function
-     */
-    getWebElement(): EyesRemoteWebElement;
-    /**
-     * Wrap the click function
-     */
-    click(): promise.Promise<void>;
-    /**
-     * Wrap the functions that return objects that require pre-wrapping
-     */
-    sendKeys(): promise.Promise<void>;
-}
+// /**
+//  * Wraps Protractor's ElementFinder to make sure we return our own Web Element.
+//  */
+// export declare class ElementFinderWrapper extends ElementFinder {
+//     constructor(finder: ElementFinder, eyesDriver: EyesWebDriver, logger: Logger);
+//     /**
+//      * Wrap the getWebElement function
+//      */
+//     getWebElement(): EyesRemoteWebElement;
+//     /**
+//      * Wrap the click function
+//      */
+//     click(): promise.Promise<void>;
+//     /**
+//      * Wrap the functions that return objects that require pre-wrapping
+//      */
+//     sendKeys(): promise.Promise<void>;
+// }
 
 
-/**
- * Wrapper for ElementArrayFinder object from Protractor
- */
-export declare class ElementArrayFinderWrapper extends ElementArrayFinder {
-    constructor(arrayFinder: ElementArrayFinder, eyesDriver: EyesWebDriver, logger: Logger);
-}
+// /**
+//  * Wrapper for ElementArrayFinder object from Protractor
+//  */
+// export declare class ElementArrayFinderWrapper extends ElementArrayFinder {
+//     constructor(arrayFinder: ElementArrayFinder, eyesDriver: EyesWebDriver, logger: Logger);
+// }
 
 
 export declare class EyesRegionProvider extends RegionProvider {
@@ -334,8 +334,8 @@ export declare class EyesRemoteWebElement extends WebElementPromise {
     static registerClick(element: EyesRemoteWebElement, eyesDriver: EyesWebDriver, logger: Logger): Promise<void>;
     sendKeys(...var_args: any[]): promise.Promise<void>;
     click(): promise.Promise<void>;
-    findElement(locator: By|ProtractorBy): EyesRemoteWebElement;
-    findElements(locator: By|ProtractorBy): promise.Promise<EyesRemoteWebElement[]>;
+    findElement(locator: By|object): EyesRemoteWebElement;
+    findElements(locator: By|object): promise.Promise<EyesRemoteWebElement[]>;
     /**
      * Returns the computed value of the style property for the current element.
      * @param propStyle The style property which value we would like to extract.
@@ -460,8 +460,8 @@ export declare class EyesWebDriver extends WebDriver {
     getRemoteWebDriver(): WebDriver;
     setRemoteWebDriver(driver: WebDriver): void;
     getUserAgent(): Promise<string>;
-    findElement(locator: By|ProtractorBy): EyesRemoteWebElement;
-    findElements(locator: By|ProtractorBy): promise.Promise<EyesRemoteWebElement[]>;
+    findElement(locator: By|object): EyesRemoteWebElement;
+    findElements(locator: By|object): promise.Promise<EyesRemoteWebElement[]>;
     findElementByCssSelector(cssSelector: string): EyesRemoteWebElement;
     findElementsByCssSelector(cssSelector: string): Promise<EyesRemoteWebElement[]>;
     findElementById(name: string): EyesRemoteWebElement;
