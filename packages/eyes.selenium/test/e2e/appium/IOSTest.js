@@ -3,7 +3,7 @@
 const { Builder, Capabilities, By } = require('selenium-webdriver');
 const { GeneralUtils } = require('eyes.utils');
 const { ConsoleLogHandler } = require('eyes.sdk');
-const { Eyes, Target, StitchMode } = require('../index');
+const { Eyes, Target, StitchMode } = require('../../../index');
 
 describe('IOSTest', function () {
   this.timeout(10 * 60 * 1000);

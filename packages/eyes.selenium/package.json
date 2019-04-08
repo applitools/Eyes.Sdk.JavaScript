@@ -50,9 +50,9 @@
     "eyes.utils": "^3.6.1"
   },
   "devDependencies": {
-    "chromedriver": "^2.38.3",
-    "mocha": "^5.2.0",
-    "protractor": "^5.4.0",
+    "chromedriver": "^2.46.0",
+    "mocha": "^6.1.1",
+    "protractor": "^5.4.2",
     "selenium-webdriver": "^3.6.0"
   },
   "peerDependencies": {
@@ -61,9 +61,9 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
     "test:e2e": "npm run test:selenium",
-    "test:unit": "mocha \"test/unit/**/*.js\"",
-    "test:appium": "mocha \"test/e2e/appium/**/*.js\"",
-    "test:selenium": "mocha \"test/e2e/selenium/**/*.js\"",
+    "test:unit": "mocha --no-timeouts \"test/unit/**/*.js\"",
+    "test:appium": "mocha --no-timeouts \"test/e2e/appium/**/*.js\"",
+    "test:selenium": "mocha --no-timeouts \"test/e2e/selenium/**/*.js\"",
     "test:protractor": "protractor test/e2e/protractor/protractor.conf.js"
   },
   "license": "SEE LICENSE IN LICENSE",

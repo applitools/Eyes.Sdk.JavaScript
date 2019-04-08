@@ -4,7 +4,7 @@ var chrome = require('selenium-webdriver/chrome');
 var Builder = webdriver.Builder;
 var By = webdriver.By;
 
-var SeleniumSDK = require('../../index');
+var SeleniumSDK = require('../../../index');
 var ConsoleLogHandler = SeleniumSDK.ConsoleLogHandler;
 var Eyes = SeleniumSDK.Eyes;
 

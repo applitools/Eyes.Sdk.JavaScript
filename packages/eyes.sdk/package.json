@@ -44,11 +44,11 @@
     "request": "^2.88.0"
   },
   "devDependencies": {
-    "mocha": "^5.2.0"
+    "mocha": "^6.1.1"
   },
   "scripts": {
-    "test": "mocha \"test/**/*.spec.js\"",
-    "test:unit": "mocha \"test/unit/**/*.spec.js\""
+    "test": "npm run test:unit",
+    "test:unit": "mocha --no-timeouts \"test/unit/**/*.spec.js\""
   },
   "browser": {
     "./src/FileLogHandler": false

@@ -48,11 +48,11 @@
     "png-async": "^0.9.3"
   },
   "devDependencies": {
-    "mocha": "^5.2.0"
+    "mocha": "^6.1.1"
   },
   "scripts": {
-    "test": "mocha \"test/**/*.spec.js\"",
-    "test:unit": "mocha \"test/unit/**/*.spec.js\""
+    "test": "npm run test:unit",
+    "test:unit": "mocha --no-timeouts \"test/unit/**/*.spec.js\""
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

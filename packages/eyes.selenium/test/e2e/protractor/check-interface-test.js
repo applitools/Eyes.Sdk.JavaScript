@@ -1,4 +1,4 @@
-var SeleniumSDK = require('../../index');
+var SeleniumSDK = require('../../../index');
 var Eyes = SeleniumSDK.Eyes;
 var ConsoleLogHandler = SeleniumSDK.ConsoleLogHandler;
 var StitchMode = SeleniumSDK.StitchMode;

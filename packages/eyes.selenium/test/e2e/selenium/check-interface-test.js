@@ -3,7 +3,7 @@ var webdriver = require('selenium-webdriver');
 var Builder = webdriver.Builder;
 var By = webdriver.By;
 
-var SeleniumSDK = require('../../index');
+var SeleniumSDK = require('../../../index');
 var ConsoleLogHandler = SeleniumSDK.ConsoleLogHandler;
 var MatchLevel = SeleniumSDK.MatchLevel;
 var Eyes = SeleniumSDK.Eyes;
