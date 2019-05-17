@@ -118,7 +118,7 @@ class SafariScreenshotImageProvider extends ImageProvider {
           }
 
           if (!that._eyes.getForceFullPageScreenshot()) {
-            const currentFrameChain = that._eyes.getDriver().getFrameChain();
+            const currentFrameChain = that._eyes._driver.getFrameChain();
 
             let promise;
             if (currentFrameChain.size() === 0) {
