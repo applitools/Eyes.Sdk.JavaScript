@@ -47,8 +47,8 @@
     "browserify": "^16.2.3",
     "browserify-fs": "^1.0.0",
     "browserify-zlib": "^0.2.0",
-    "node-fetch": "^2.2.0",
-    "uglify-js": "^3.4.9"
+    "node-fetch": "^2.6.0",
+    "uglify-js": "^3.6.0"
   },
   "scripts": {
     "test": "npm run test:e2e",

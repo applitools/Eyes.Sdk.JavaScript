@@ -47,8 +47,7 @@
   },
   "devDependencies": {
     "@types/node": "*",
-    "@types/png-async": "*",
-    "mocha": "^6.1.1",
+    "mocha": "^6.1.4",
     "typescript": "^2.9.2"
   },
   "scripts": {
