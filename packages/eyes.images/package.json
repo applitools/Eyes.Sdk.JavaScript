@@ -1,6 +1,6 @@
 {
   "name": "eyes.images",
-  "version": "3.6.4",
+  "version": "3.6.5",
   "description": "Applitools Eyes SDK for working directly with images",
   "keywords": [
     "eyes.images",
@@ -40,8 +40,8 @@
   ],
   "main": "./index.js",
   "dependencies": {
-    "eyes.sdk": "^3.6.3",
-    "eyes.utils": "^3.6.2"
+    "eyes.sdk": "^3.6.4",
+    "eyes.utils": "^3.6.3"
   },
   "devDependencies": {
     "browserify": "^16.2.3",
