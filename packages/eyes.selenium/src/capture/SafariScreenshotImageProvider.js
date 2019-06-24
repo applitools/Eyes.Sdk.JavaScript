@@ -39,6 +39,7 @@ class SafariScreenshotImageProvider extends ImageProvider {
         image = MutableImage.fromBase64(screenshot64, that._eyes._promiseFactory);
       })
       .then(() => {
+        that._logger.verbose(`Done creating MutableImage.`);
         if (that._eyes.getIsCutProviderExplicitlySet()) {
           return image;
         }
