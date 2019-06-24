@@ -248,14 +248,13 @@
             var currentFrames = that.getFrameChain();
             var promise = that.getPromiseFactory().resolve();
 
-            // Optimization
             if (currentFrames.size() > 0) {
-                promise.then(function () {
+                promise = promise.then(function () {
                     return that.switchTo().defaultContent();
                 });
             }
 
-            promise.then(function () {
+            promise = promise.then(function () {
                 that._logger.verbose("Extracting viewport size...");
                 return EyesSeleniumUtils.getViewportSizeOrDisplaySize(that._logger, that._driver, that.getPromiseFactory());
             }).then(function (viewportSize) {
@@ -264,7 +263,7 @@
             });
 
             if (currentFrames.size() > 0) {
-                promise.then(function () {
+                promise = promise.then(function () {
                     return that.switchTo().frames(currentFrames);
                 });
             }
