@@ -78,36 +78,26 @@
             // We use find elements(plural) to avoid exception when the element
             // is not found.
             this._logger.verbose("Getting frames by name...");
-            return this._driver.findElementsByName(obj).then(function(elements) {
-                if (elements.length === 0) {
+            return this._driver.findElementsByName(obj).then(function(frames) {
+                if (frames.length === 0) {
                     that._logger.verbose("No frames Found! Trying by id...");
                     // If there are no frames by that name, we'll try the id
                     return that._driver.findElementsById(obj);
                 }
 
-                return elements;
-            }).then(function(elements) {
-                if (elements.length === 0) {
+                return frames;
+            }).then(function(frames) {
+                if (frames.length === 0) {
                     // No such frame, bummer
                     throw new Error("No frame with name or id '" + obj + "' exists!");
                 }
 
-                return elements;
-            }).then(function (frames) {
-                if (frames.length === 0) {
-                    that._logger.verbose("No frames Found! Trying by id...");
-                    // If there are no frames by that name, we'll try the id
-                    frames = that._driver.findElementsById(obj);
-                    if (frames.length === 0) {
-                        // No such frame, bummer
-                        throw new Error("No frame with name or id '" + obj + "' exists!");
-                    }
-                }
                 that._logger.verbose("Done! Making preparations..");
-                return that._onWillSwitch.willSwitchToFrame(EyesTargetLocator.TargetType.FRAME, frames[0]);
-            }).then(function () {
+                return that._onWillSwitch.willSwitchToFrame(EyesTargetLocator.TargetType.FRAME, frames[0])
+                  .then(function () {return frames[0];});
+            }).then(function (frame) {
                 that._logger.verbose("Done! Switching to frame...");
-                return that._targetLocator.frame(obj)
+                return that._targetLocator.frame(frame.getRemoteWebElement())
             }).then(function () {
                 that._logger.verbose("Done!");
             });
