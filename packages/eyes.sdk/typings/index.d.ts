@@ -812,6 +812,13 @@ export declare abstract class EyesBase {
      * @param isDisabled
      **/
     protected constructor(promiseFactory: PromiseFactory, serverUrl: string, isDisabled: boolean);
+    /**
+     * @return Whether eyes are open or not.
+     */
+    getIsOpen(): boolean;
+    /**
+     * @param eventHandler
+     */
     addSessionEventHandler(eventHandler: any): void;
     /**
      * Set the log handler
