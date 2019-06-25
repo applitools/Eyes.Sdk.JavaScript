@@ -50,7 +50,7 @@
   },
   "devDependencies": {
     "@types/node": "*",
-    "chromedriver": "^74.0.0",
+    "chromedriver": "^75.0.0",
     "mocha": "^6.1.4",
     "protractor": "^5.4.2",
     "selenium-webdriver": "^3.6.0",
