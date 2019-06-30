@@ -1260,11 +1260,11 @@
     }
 
     //noinspection JSUnusedGlobalSymbols
-    EyesBase.prototype.checkWindowBase = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings) {
-        return this.checkWindow(tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings);
+    EyesBase.prototype.checkWindowBase = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings, source) {
+        return this.checkWindow(tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings, source);
     };
 
-    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings) {
+    EyesBase.prototype.checkWindow = function (tag, ignoreMismatch, retryTimeout, regionProvider, imageMatchSettings, source) {
         tag = tag || '';
         ignoreMismatch = ignoreMismatch || false;
         retryTimeout = retryTimeout || -1;
@@ -1319,7 +1319,7 @@
                     .then(function () {
                         this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                         return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
-                            this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, imageMatchSettings)
+                            this._shouldMatchWindowRunOnceOnTimeout, ignoreMismatch, retryTimeout, imageMatchSettings, source)
                     }.bind(this))
                     .then(function (result) {
                         this._logger.verbose("EyesBase.checkWindow - match window returned result.");

@@ -332,6 +332,8 @@
         }
 
         return promise.then(function () {
+            return that._driver.getCurrentUrl();
+        }).then(function (currentUrl) {
             that._logger.verbose("Call to checkWindowBase...");
             var imageMatchSettings = {
                 matchLevel: target.getMatchLevel(),
@@ -340,7 +342,7 @@
                 floating: target.getFloatingRegions(),
                 exact: null
             };
-            return EyesBase.prototype.checkWindow.call(that, name, target.getIgnoreMismatch(), target.getTimeout(), regionProvider, imageMatchSettings);
+            return EyesBase.prototype.checkWindow.call(that, name, target.getIgnoreMismatch(), target.getTimeout(), regionProvider, imageMatchSettings, currentUrl);
         }).then(function (result) {
             that._logger.verbose("Processing results...");
             if (result.asExpected || !that._failureReportOverridden) {

@@ -1149,7 +1149,7 @@ export declare abstract class EyesBase {
      * The current title of of the AUT.
      */
     abstract getTitle(): Promise<string>;
-    checkWindowBase(tag: string|undefined, ignoreMismatch: boolean|undefined, retryTimeout: number|undefined, regionProvider: RegionProvider, imageMatchSettings: MatchSettings.ImageMatchSettings|undefined): Promise<{asExpected: boolean}>;
+    checkWindowBase(tag: string|undefined, ignoreMismatch: boolean|undefined, retryTimeout: number|undefined, regionProvider: RegionProvider, imageMatchSettings: MatchSettings.ImageMatchSettings|undefined, source: string|undefined): Promise<{asExpected: boolean}>;
     /**
      * Replaces an actual image in the current running session.
      * @param stepIndex The zero based index of the step in which to replace the actual image.

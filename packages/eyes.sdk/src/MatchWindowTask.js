@@ -69,7 +69,7 @@
         resolve(this._matchResult);
     }
 
-    function _match(regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, resolve) {
+    function _match(regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, source, resolve) {
         this._logger.verbose('MatchWindowTask.matchWindow - _match calls for app output');
         return this._getAppOutput(regionProvider, lastScreenshot).then(function (appOutput) {
             this._logger.verbose('MatchWindowTask.matchWindow - _match retrieved app output');
@@ -83,6 +83,7 @@
                     userInputs: userInputs,
                     imageMatchSettings: imageMatchSettings,
                     ignoreMismatch: ignoreMismatch,
+                    source: source,
                 }
             };
             return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
@@ -94,7 +95,7 @@
         }.bind(this));
     }
 
-    function _retryMatch(start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, imageMatchSettings, screenshot, resolve) {
+    function _retryMatch(start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, imageMatchSettings, screenshot, source, resolve) {
         var appOutput;
         if ((new Date().getTime() - start) < retryTimeout) {
             this._logger.verbose('MatchWindowTask._retryMatch will retry');
@@ -123,6 +124,7 @@
                         userInputs: userInputs,
                         imageMatchSettings: imageMatchSettings,
                         ignoreMismatch: true,
+                        source: source,
                     }
                 };
                 this._logger.verbose('MatchWindowTask._retryMatch calls matchWindow');
@@ -141,7 +143,7 @@
                                 this._logger.verbose('MatchWindowTask.matchWindow -',
                                     '_retryMatch timeout passed -  retrying');
                                 return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot,
-                                    ignoreMismatch, imageMatchSettings, screenshot, resolve);
+                                    ignoreMismatch, imageMatchSettings, screenshot, source, resolve);
                             }.bind(this));
                         }
                         this._logger.verbose('MatchWindowTask.matchWindow -',
@@ -154,7 +156,7 @@
         if (!this._matchResult || !this._matchResult.asExpected) {
             // Try one last time...
             this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch last attempt because we got failure');
-            return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, resolve);
+            return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, source, resolve);
         }
 
         this._logger.verbose('MatchWindowTask.matchWindow - _retryMatch no need for ',
@@ -163,7 +165,7 @@
     }
 
     MatchWindowTask.prototype.matchWindow = function (userInputs, lastScreenshot, regionProvider, tag, shouldRunOnceOnRetryTimeout,
-                                                      ignoreMismatch, retryTimeout, imageMatchSettings) {
+                                                      ignoreMismatch, retryTimeout, imageMatchSettings, source) {
 
         this._logger.verbose("MatchWindowTask.matchWindow called with shouldRunOnceOnRetryTimeout: ",
             shouldRunOnceOnRetryTimeout, ", ignoreMismatch:", ignoreMismatch, ", retryTimeout:", retryTimeout);
@@ -179,16 +181,16 @@
                     this._logger.verbose('MatchWindowTask.matchWindow - running once but after going into timeout');
                     return this._waitTimeout(retryTimeout).then(function () {
                         this._logger.verbose('MatchWindowTask.matchWindow - back from timeout - calling match');
-                        return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, resolve);
+                        return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, source, resolve);
                     }.bind(this));
                 }
                 this._logger.verbose('MatchWindowTask.matchWindow - running once immediately');
-                return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, resolve);
+                return _match.call(this, regionProvider, tag, ignoreMismatch, imageMatchSettings, userInputs, lastScreenshot, source, resolve);
             }
             // Retry matching and ignore mismatches while the retry timeout does not expires.
             var start = new Date().getTime();
             this._logger.verbose('MatchWindowTask.matchWindow - starting retry sequence. start:', start);
-            return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, imageMatchSettings, undefined, resolve);
+            return _retryMatch.call(this, start, retryTimeout, regionProvider, tag, userInputs, lastScreenshot, ignoreMismatch, imageMatchSettings, undefined, source, resolve);
         }.bind(this));
     };
 
