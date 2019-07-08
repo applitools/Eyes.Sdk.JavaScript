@@ -50,7 +50,7 @@ describe('Eyes.Selenium.JavaScript - Selenium', function () {
 
     afterEach(function () {
         return driver.quit().then(function () {
-            return eyes.abortIfNotClosed();
+            return eyes.abort();
         });
     });
 });

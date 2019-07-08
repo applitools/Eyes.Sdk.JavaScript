@@ -49,7 +49,7 @@ describe('Eyes.Selenium.JavaScript - IOS Native Appium via SauseLab', function (
 
     afterEach(function () {
         return driver.quit().then(function () {
-            return eyes.abortIfNotClosed();
+            return eyes.abort();
         });
     });
 });

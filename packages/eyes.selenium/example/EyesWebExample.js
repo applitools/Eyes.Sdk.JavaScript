@@ -42,5 +42,5 @@ try {
     driver.quit();
 
     // If the test was aborted before eyes.close was called ends the test as aborted.
-    eyes.abortIfNotClosed();
+    eyes.abort();
 }

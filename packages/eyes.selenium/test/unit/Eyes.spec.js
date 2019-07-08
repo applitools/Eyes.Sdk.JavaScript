@@ -94,7 +94,7 @@ describe('Eyes', function () {
 
     after(function () {
         return driver.quit().then(function (value) {
-            return eyes.abortIfNotClosed();
+            return eyes.abort();
         });
     });
 });

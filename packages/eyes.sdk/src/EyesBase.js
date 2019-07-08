@@ -914,7 +914,7 @@
             if (this._isOpen) {
                 errMsg = "A test is already running";
                 this._logger.log(errMsg);
-                return this.abortIfNotClosed()
+                return this.abort()
                     .then(function () {
                         reject(new Error(errMsg));
                     }.bind(this));
@@ -1105,15 +1105,24 @@
     /**
      * Aborts the currently running test.
      *
+     * @alias abort
      * @return {Promise<TestResults>} - A promise which resolves to the test results.
      */
     EyesBase.prototype.abortIfNotClosed = function () {
+        return this.abort();
+    };
 
-        this._logger.verbose('EyesBase.abortIfNotClosed()');
+    /**
+     * Aborts the currently running test.
+     *
+     * @return {Promise<TestResults>} - A promise which resolves to the test results.
+     */
+    EyesBase.prototype.abort = function () {
+        this._logger.verbose('EyesBase.abort()');
         this._lastScreenshot = null;
 
         if (this._isDisabled) {
-            this._logger.log("Eyes abortIfNotClosed ignored. (disabled)");
+            this._logger.log("Eyes abort ignored. (disabled)");
             // Create an empty tests results.
             var testResults = _buildTestResults(this._logger, null, null, undefined, null, false, true);
             this._logger.getLogHandler().close();
@@ -1130,7 +1139,7 @@
         return this._endSession(true, false).then(function (testResults) {
             return testResults;
         }, function (err) {
-            this._logger.log("An error occurred during preform abortIfNotClosed: ", err);
+            this._logger.log("An error occurred during preform abort: ", err);
         }.bind(this));
     };
 

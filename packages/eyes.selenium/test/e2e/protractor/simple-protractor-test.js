@@ -42,7 +42,7 @@ describe("Eyes.Selenium.JavaScript - Protractor", function() {
     });
 
     afterEach(function(done) {
-        eyes.abortIfNotClosed().then(function () {
+        eyes.abort().then(function () {
             done();
         });
     });

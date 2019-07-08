@@ -60,5 +60,6 @@
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">= 6.9.0"
-  }
+  },
+  "gitHead": "c133606c1cb14c7d46d6ce4938829e2312a24ba2"
 }

@@ -30,7 +30,7 @@ var firstTestPromise = eyes.open("eyes.images.javascript", "First test5_3", {wid
     return eyes.close(false);
 }, function (err) {
     console.error("An error occurs during runtime", err);
-    return eyes.abortIfNotClosed();
+    return eyes.abort();
 });
 
 // Handle first test results..

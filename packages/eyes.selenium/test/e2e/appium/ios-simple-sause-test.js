@@ -55,7 +55,7 @@ describe('Eyes.Selenium.JavaScript - IOS Simple Appium via SauseLab', function (
 
     afterEach(function () {
         return driver.quit().then(function () {
-            return eyes.abortIfNotClosed();
+            return eyes.abort();
         });
     });
 });

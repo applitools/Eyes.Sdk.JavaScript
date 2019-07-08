@@ -49,7 +49,7 @@ describe('Eyes.Selenium.JavaScript - Android Native Appium via SauseLab', functi
 
     afterEach(function () {
         return driver.quit().then(function () {
-            return eyes.abortIfNotClosed();
+            return eyes.abort();
         });
     });
 });

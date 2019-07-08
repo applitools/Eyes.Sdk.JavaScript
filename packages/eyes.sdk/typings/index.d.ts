@@ -544,7 +544,7 @@ export declare namespace Triggers {
 export declare class TestResultsFormatter {
     /**
      * Adds an additional results object to the currently stored results list.
-     * @param results A test results object as returned by a call to  'eyes.close' or 'eyes.abortIfNotClosed'.
+     * @param results A test results object as returned by a call to 'eyes.close' or 'eyes.abort'.
      * @returns The updated 'TestResultsFormatter' instance.
      */
     addResults(results: TestResults): TestResultsFormatter;
@@ -1130,9 +1130,15 @@ export declare abstract class EyesBase {
     close(throwEx?: boolean): Promise<TestResults>;
     /**
      * Aborts the currently running test.
+     * @alias abort
      * @return A promise which resolves to the test results.
      */
     abortIfNotClosed(): Promise<TestResults>;
+    /**
+     * Aborts the currently running test.
+     * @return A promise which resolves to the test results.
+     */
+    abort(): Promise<TestResults>;
     /**
      * The viewport size of the AUT.
      */
