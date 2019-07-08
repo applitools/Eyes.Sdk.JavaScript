@@ -140,6 +140,7 @@
         this._matchLevel = matchLevel;
         this._exact = exact || null;
         this._ignoreCaret = ignoreCaret || true;
+        this._ignoreDisplacements = false;
     }
 
     //noinspection JSUnusedGlobalSymbols
@@ -188,6 +189,22 @@
      */
     ImageMatchSettings.prototype.setIgnoreCaret = function (ignoreCaret) {
         this._ignoreCaret = ignoreCaret;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @return {boolean}
+     */
+    ImageMatchSettings.prototype.getIgnoreDisplacements = function () {
+        return this._ignoreDisplacements;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {boolean} value
+     */
+    ImageMatchSettings.prototype.setIgnoreDisplacements = function (value) {
+        this._ignoreDisplacements = value;
     };
 
     Object.freeze(MatchLevel);

@@ -338,6 +338,7 @@
             var imageMatchSettings = {
                 matchLevel: target.getMatchLevel(),
                 ignoreCaret: target.getIgnoreCaret(),
+                ignoreDisplacements: target.getIgnoreDisplacements(),
                 ignore: target.getIgnoreRegions(),
                 floating: target.getFloatingRegions(),
                 exact: null

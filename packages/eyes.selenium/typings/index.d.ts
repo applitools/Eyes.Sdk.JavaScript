@@ -665,6 +665,7 @@ export declare class Target {
     ignoreMismatch(ignoreMismatch?: boolean): Target;
     matchLevel(matchLevel: MatchSettings.MatchLevel): Target;
     ignoreCaret(ignoreCaret?: boolean): Target;
+    ignoreDisplacements(ignoreDisplacements?: boolean): Target;
     ignore(...ignoreRegion: (Region|WebElement|EyesRemoteWebElement|By|{element: (WebElement|EyesRemoteWebElement|By)})[]): Target;
     floating(...floatingRegion: (FloatingRegion|FloatingElement)[]): Target;
     getRegion(): Region|WebElement|EyesRemoteWebElement|By|null;
@@ -676,6 +677,7 @@ export declare class Target {
     getIgnoreMismatch(): boolean;
     getMatchLevel(): boolean;
     getIgnoreCaret(): boolean|null;
+    getIgnoreDisplacements(): boolean|null;
     getIgnoreRegions(): Region[];
     getIgnoreObjects(): {element: (WebElement|EyesRemoteWebElement|By)}[];
     getFloatingRegions(): FloatingRegion[];

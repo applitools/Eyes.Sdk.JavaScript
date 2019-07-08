@@ -16,7 +16,7 @@
  */
 /**
  * @global
- * @typedef {{agentId: string, appIdOrName: string, scenarioIdOrName: string, batchInfo: BatchInfo, baselineEnvName: string, compareWithParentBranch: boolean, ignoreBaseline: boolean, environmentName: string, environment: AppEnvironment, defaultMatchSettings: {matchLevel: MatchSettings.MatchLevel, ignoreCaret: boolean, exact: { minDiffIntensity: number, minDiffWidth: number, minDiffHeight: number, matchThreshold: number}}, branchName: string, parentBranchName: string, baselineBranchName: string, autSessionId: string, properties: object}} SessionStartInfo
+ * @typedef {{agentId: string, appIdOrName: string, scenarioIdOrName: string, batchInfo: BatchInfo, baselineEnvName: string, compareWithParentBranch: boolean, ignoreBaseline: boolean, environmentName: string, environment: AppEnvironment, defaultMatchSettings: {matchLevel: MatchSettings.MatchLevel, ignoreCaret: boolean, ignoreDisplacements: boolean, exact: { minDiffIntensity: number, minDiffWidth: number, minDiffHeight: number, matchThreshold: number}}, branchName: string, parentBranchName: string, baselineBranchName: string, autSessionId: string, properties: object}} SessionStartInfo
  */
 /**
  * @global
@@ -652,6 +652,22 @@
         return ignoreCaret || true;
     };
 
+    /**
+     * @return {boolean} - The test-wide ignoreDisplacements to use in match requests.
+     */
+    EyesBase.prototype.getIgnoreDisplacements = function () {
+        return this._defaultMatchSettings.getIgnoreDisplacements();
+    };
+
+    /**
+     * The test-wide ignoreDisplacements to use.
+     *
+     * @param {boolean} value - The test-wide ignoreDisplacements to use in match requests.
+     */
+    EyesBase.prototype.setIgnoreDisplacements = function (value) {
+        this._defaultMatchSettings.setIgnoreDisplacements(value);
+    };
+
     //noinspection JSUnusedGlobalSymbols
     /**
      * @return {boolean}- The currently compareWithParentBranch value
@@ -1277,7 +1293,7 @@
         tag = tag || '';
         ignoreMismatch = ignoreMismatch || false;
         retryTimeout = retryTimeout || -1;
-        imageMatchSettings = imageMatchSettings || {matchLevel: null, ignoreCaret: null, exact: null, ignore: [], floating: []};
+        imageMatchSettings = imageMatchSettings || {matchLevel: null, ignoreCaret: null, ignoreDisplacements: null, exact: null, ignore: [], floating: []};
 
         return this._promiseFactory.makePromise(function (resolve, reject) {
             this._logger.verbose('EyesBase.checkWindow - running');
@@ -1313,6 +1329,9 @@
                 }
                 if (!imageMatchSettings.ignoreCaret) {
                     imageMatchSettings.ignoreCaret = this._defaultMatchSettings.isIgnoreCaret();
+                }
+                if (!imageMatchSettings.ignoreDisplacements) {
+                    imageMatchSettings.ignoreDisplacements = this._defaultMatchSettings.getIgnoreDisplacements();
                 }
                 if (!imageMatchSettings.exact && this._defaultMatchSettings.getExact()) {
                     var exactObj = this._defaultMatchSettings.getExact();
@@ -1493,6 +1512,7 @@
                 var defaultMatchSettings = {
                     matchLevel: this._defaultMatchSettings.getMatchLevel(),
                     ignoreCaret: this._defaultMatchSettings.isIgnoreCaret(),
+                    ignoreDisplacements: this._defaultMatchSettings.getIgnoreDisplacements(),
                     exact: exact
                 };
                 this._sessionStartInfo = {

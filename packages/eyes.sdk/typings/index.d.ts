@@ -55,6 +55,7 @@ export interface SessionStartInfo {
     defaultMatchSettings: {
         matchLevel: MatchSettings.MatchLevel,
         ignoreCaret: boolean,
+        ignoreDisplacements: boolean,
         exact: {
             minDiffIntensity: number,
             minDiffWidth: number,
@@ -656,6 +657,8 @@ export declare namespace MatchSettings {
         getExact(): ImageMatchSettings;
         setIgnoreCaret(ignoreCaret: boolean): void;
         isIgnoreCaret(): boolean;
+        getIgnoreDisplacements(value: boolean): void;
+        setIgnoreDisplacements(): boolean;
     }
 }
 
@@ -1006,6 +1009,15 @@ export declare abstract class EyesBase {
      * @return Whether to ignore or the blinking caret or not when comparing images.
      */
     getIgnoreCaret(): boolean;
+    /**
+     * The test-wide ignoreDisplacements to use.
+     * @param value The test-wide ignoreDisplacements to use in match requests.
+     */
+    setIgnoreDisplacements(value: boolean): void;
+    /**
+     * @return The test-wide ignoreDisplacements to use in match requests.
+     */
+    getIgnoreDisplacements(): boolean;
     /**
      * @return The currently compareWithParentBranch value
      */

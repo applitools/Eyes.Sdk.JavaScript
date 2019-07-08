@@ -23,6 +23,7 @@
         this._ignoreMismatch = false;
         this._matchLevel = null;
         this._ignoreCaret = null;
+        this._ignoreDisplacements = null;
         this._ignoreRegions = [];
         this._floatingRegions = [];
 
@@ -89,6 +90,20 @@
         }
 
         this._ignoreCaret = ignoreCaret;
+        return this;
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @param {boolean} [ignoreDisplacements=true]
+     * @return {Target}
+     */
+    Target.prototype.ignoreDisplacements = function (ignoreDisplacements) {
+        if (ignoreDisplacements !== false) {
+            ignoreDisplacements = true;
+        }
+
+        this._ignoreDisplacements = ignoreDisplacements;
         return this;
     };
 
@@ -197,6 +212,13 @@
      */
     Target.prototype.getIgnoreCaret = function () {
         return this._ignoreCaret;
+    };
+
+    /**
+     * @return {boolean|null}
+     */
+    Target.prototype.getIgnoreDisplacements = function () {
+        return this._ignoreDisplacements;
     };
 
     /**
