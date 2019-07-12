@@ -50,11 +50,11 @@
   },
   "devDependencies": {
     "@types/node": "*",
-    "chromedriver": "^75.0.0",
+    "chromedriver": "^75.1.0",
     "mocha": "^6.1.4",
     "protractor": "^5.4.2",
     "selenium-webdriver": "^3.6.0",
-    "typescript": "^2.9.2"
+    "typescript": "^3.5.3"
   },
   "peerDependencies": {
     "selenium-webdriver": "< 4.0.0"

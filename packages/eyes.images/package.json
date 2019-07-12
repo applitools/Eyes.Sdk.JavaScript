@@ -35,7 +35,6 @@
     "LICENSE",
     "index.js",
     "src/",
-    "example/",
     "dist/eyes-browser.min.js"
   ],
   "main": "./index.js",
@@ -44,7 +43,7 @@
     "eyes.utils": "^3.6.4"
   },
   "devDependencies": {
-    "browserify": "^16.2.3",
+    "browserify": "^16.3.0",
     "browserify-fs": "^1.0.0",
     "browserify-zlib": "^0.2.0",
     "node-fetch": "^2.6.0",
@@ -60,6 +59,5 @@
   "license": "SEE LICENSE IN LICENSE",
   "engines": {
     "node": ">= 6.9.0"
-  },
-  "gitHead": "c133606c1cb14c7d46d6ce4938829e2312a24ba2"
+  }
 }
