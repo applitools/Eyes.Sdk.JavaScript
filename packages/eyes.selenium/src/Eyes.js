@@ -212,7 +212,6 @@
      * @return {Promise<{asExpected: boolean}>} A promise which is resolved when the validation is finished.
      */
     Eyes.prototype.check = function (name, target) {
-        ArgumentGuard.notNullOrEmpty(name, "Name");
         ArgumentGuard.notNull(target, "Target");
 
         var that = this;
