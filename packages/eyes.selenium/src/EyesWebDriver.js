@@ -33,6 +33,7 @@
         this._frameChain = new FrameChain(this._logger, null);
 
         this._defaultContentViewportSize = null;
+        this._isMobileDevice = undefined;
     }
 
     //noinspection JSUnusedGlobalSymbols
@@ -73,7 +74,38 @@
 
     //noinspection JSUnusedGlobalSymbols
     EyesWebDriver.prototype.getUserAgent = function () {
-        return this._driver.executeScript('return navigator.userAgent');
+        var that = this;
+        return this.isMobileDevice().then(function (isMobileDevice) {
+            if (isMobileDevice) return;
+            return that._driver.executeScript('return navigator.userAgent');
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    EyesWebDriver.prototype.getCurrentUrl = function () {
+        var that = this;
+        return this.isMobileDevice().then(function (isMobileDevice) {
+            if (isMobileDevice) return;
+            return that._driver.getCurrentUrl();
+        });
+    };
+
+    //noinspection JSUnusedGlobalSymbols
+    /**
+     * @package
+     * @return {Promise<boolean>}
+     */
+    EyesWebDriver.prototype.isMobileDevice = function () {
+        if (this._isMobileDevice !== undefined) {
+            return this.getPromiseFactory().resolve(this._isMobileDevice)
+        }
+
+        var that = this;
+        return this._driver.getCapabilities().then(function (capabilities) {
+            const platformName = capabilities.get('platformName');
+            that._isMobileDevice = platformName && ['ANDROID', 'IOS'].includes(platformName.toUpperCase());
+            return that._isMobileDevice;
+        });
     };
 
     //noinspection JSCheckFunctionSignatures

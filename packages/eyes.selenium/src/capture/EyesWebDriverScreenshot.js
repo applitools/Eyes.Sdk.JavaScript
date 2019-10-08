@@ -93,62 +93,30 @@
      * @return {Promise<void>}
      */
     EyesWebDriverScreenshot.prototype.buildScreenshot = function (screenshotType, frameLocationInScreenshot, frameSize) {
-        var that = this, viewportSize, imageSize;
+        var that = this;
         var positionProvider = new ScrollPositionProvider(this._logger, this._driver, this._promiseFactory);
 
-        return this._driver.getDefaultContentViewportSize(false).then(function (vs) {
-            viewportSize = vs;
-            imageSize = that._image.getSize();
-            return positionProvider.getEntireSize();
-        }).then(function (ppEs) {
-            // If we're inside a frame, then the frame size is given by the frame
-            // chain. Otherwise, it's the size of the entire page.
-            if (!frameSize) {
-                if (that._frameChain.size() !== 0) {
-                    frameSize = that._frameChain.getCurrentFrameSize();
-                } else {
-                    // get entire page size might throw an exception for applications
-                    // which don't support Javascript (e.g., Appium). In that case
-                    // we'll use the viewport size as the frame's size.
-                    if (ppEs) {
-                        frameSize = ppEs;
-                    } else {
-                        frameSize = viewportSize;
-                    }
-                }
-            }
-
-            return positionProvider.getCurrentPosition();
-        }).then(function (ppCp) {
-            // Getting the scroll position. For native Appium apps we can't get the scroll position, so we use (0,0)
-            if (ppCp) {
-                that._currentFrameScrollPosition = ppCp;
+        return that._updateScreenshotType(screenshotType, that._image).then(function (screenshotType) {
+            that._screenshotType = screenshotType;
+            return that._driver.isMobileDevice();
+        }).then(function (isMobileDevice) {
+            if (!isMobileDevice) {
+                return that._getUpdatedScrollPosition(positionProvider).then(function (sp) {
+                    that._currentFrameScrollPosition = sp;
+                    return that._updateFrameLocationInScreenshot(frameLocationInScreenshot);
+                }).then(function () {
+                    return that._getFrameSize(positionProvider);
+                }).then(function (frameSize) {
+                    that._logger.verbose("Calculating frame window...");
+                    that._frameWindow = GeometryUtils.createRegionFromLocationAndSize(that._frameLocationInScreenshot, frameSize);
+                });
             } else {
                 that._currentFrameScrollPosition = GeometryUtils.createLocation(0, 0);
+                that._frameLocationInScreenshot = GeometryUtils.createLocation(0, 0);
+                that._frameWindow = GeometryUtils.createRegionFromLocationAndSize(that._frameLocationInScreenshot, that._image.getSize());
             }
-
-            if (screenshotType == null) {
-                if (imageSize.width <= viewportSize.width && imageSize.height <= viewportSize.height) {
-                    screenshotType = ScreenshotType.VIEWPORT;
-                } else {
-                    screenshotType = ScreenshotType.ENTIRE_FRAME;
-                }
-            }
-            that._screenshotType = screenshotType;
-
-            // This is used for frame related calculations.
-            if (frameLocationInScreenshot == null) {
-                if (that._frameChain.size() > 0) {
-                    frameLocationInScreenshot = calcFrameLocationInScreenshot(that._logger, that._frameChain, that._screenshotType);
-                } else {
-                    frameLocationInScreenshot = GeometryUtils.createLocation(0, 0);
-                }
-            }
-            that._frameLocationInScreenshot = frameLocationInScreenshot;
-
-            that._logger.verbose("Calculating frame window..");
-            that._frameWindow = GeometryUtils.createRegionFromLocationAndSize(frameLocationInScreenshot, frameSize);
-
+        }).then(function () {
+            var imageSize = that._image.getSize();
             if (GeometryUtils.isRegionsIntersected(that._frameWindow, GeometryUtils.createRegion(0, 0, imageSize.width, imageSize.height))) {
                 that._frameWindow = GeometryUtils.intersect(that._frameWindow, GeometryUtils.createRegion(0, 0, imageSize.width, imageSize.height));
             }
@@ -158,6 +126,80 @@
             }
 
             that._logger.verbose("EyesWebDriverScreenshot - Done!");
+        });
+    };
+
+    /**
+     * @private
+     * @param {PositionProvider} positionProvider
+     * @return {Promise<{width: number, height: number}>}
+     */
+    EyesWebDriverScreenshot.prototype._getFrameSize = function (positionProvider) {
+        var that = this;
+        if (this._frameChain.size() !== 0) {
+            return this._promiseFactory.resolve(this._frameChain.getCurrentFrameSize());
+        }
+
+        return this._driver.isMobileDevice().then(function (isMobileDevice) {
+            if (isMobileDevice) {
+                return positionProvider.getEntireSize();
+            }
+
+            return that._driver.getDefaultContentViewportSize(false)
+        });
+    };
+
+    /**
+     * @private
+     * @param {ScreenshotType} screenshotType
+     * @param {MutableImage} image
+     * @return {Promise<ScreenshotType>}
+     */
+    EyesWebDriverScreenshot.prototype._updateScreenshotType = function (screenshotType, image) {
+        var that = this;
+        if (!screenshotType) {
+            return that._driver.getEyes().getViewportSize().then(function (viewportSize) {
+                if (image.getWidth() <= viewportSize.width && image.getHeight() <= viewportSize.height) {
+                    screenshotType = ScreenshotType.VIEWPORT;
+                } else {
+                    screenshotType = ScreenshotType.ENTIRE_FRAME;
+                }
+                return screenshotType;
+            });
+        }
+        return that._promiseFactory.resolve(screenshotType);
+    };
+
+    /**
+     * @private
+     * @param {{x: number, y: number}} location
+     * @return {Promise}
+     */
+    EyesWebDriverScreenshot.prototype._updateFrameLocationInScreenshot = function (location) {
+        if (!location) {
+            if (this._frameChain.size() > 0) {
+                this._frameLocationInScreenshot = calcFrameLocationInScreenshot(this._logger, this._frameChain, this._screenshotType);
+            } else {
+                this._frameLocationInScreenshot = GeometryUtils.createLocation(0, 0);
+            }
+        } else {
+            this._frameLocationInScreenshot = location;
+        }
+    };
+
+    /**
+     * @private
+     * @param {PositionProvider} positionProvider
+     * @return {Promise<{width: number, height: number}>}
+     */
+    EyesWebDriverScreenshot.prototype._getUpdatedScrollPosition = function (positionProvider) {
+        return positionProvider.getCurrentPosition().then(function (sp) {
+            if (!sp) {
+                sp = GeometryUtils.createLocation(0, 0)
+            }
+            return sp;
+        }).catch(function () {
+            return GeometryUtils.createLocation(0, 0);
         });
     };
 
