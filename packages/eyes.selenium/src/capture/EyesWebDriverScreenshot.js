@@ -238,11 +238,8 @@
         // We calculate intersection based on as-is coordinates.
         var asIsSubScreenshotRegion = this.getIntersectedRegion(region, coordinatesType, CoordinatesType.SCREENSHOT_AS_IS);
 
-        var sizeFromRegion = GeometryUtils.createSizeFromRegion(region);
-        var sizeFromSubRegion = GeometryUtils.createSizeFromRegion(asIsSubScreenshotRegion);
-        if (GeometryUtils.isRegionEmpty(asIsSubScreenshotRegion) || (throwIfClipped &&
-            !(sizeFromRegion.height == sizeFromSubRegion.height && sizeFromRegion.width == sizeFromSubRegion.width))) {
-            throw new Error("Region ", region, ", (", coordinatesType, ") is out of screenshot bounds ", this._frameWindow);
+        if (GeometryUtils.isRegionEmpty(asIsSubScreenshotRegion) || (throwIfClipped && !(region.height === asIsSubScreenshotRegion.height && region.width === asIsSubScreenshotRegion.width))) {
+            throw new Error("Region " + JSON.stringify(region) + ", (" + coordinatesType + ") is out of screenshot bounds " + JSON.stringify(this._frameWindow));
         }
 
         return this._image.cropImage(asIsSubScreenshotRegion).then(function (subScreenshotImage) {
@@ -285,16 +282,16 @@
         // page, then the context as-is/relative are the same (notice
         // screenshot as-is might be different, e.g.,
         // if it is actually a sub-screenshot of a region).
-        if (this._frameChain.size() == 0 && this._screenshotType == ScreenshotType.ENTIRE_FRAME) {
-            if ((from == CoordinatesType.CONTEXT_RELATIVE
-                || from == CoordinatesType.CONTEXT_AS_IS)
-                && to == CoordinatesType.SCREENSHOT_AS_IS) {
+        if (this._frameChain.size() == 0 && this._screenshotType === ScreenshotType.ENTIRE_FRAME) {
+            if ((from === CoordinatesType.CONTEXT_RELATIVE
+                || from === CoordinatesType.CONTEXT_AS_IS)
+                && to === CoordinatesType.SCREENSHOT_AS_IS) {
 
                 // If this is not a sub-screenshot, this will have no effect.
                 result = GeometryUtils.locationOffset(result, this._frameLocationInScreenshot);
 
-            } else if (from == CoordinatesType.SCREENSHOT_AS_IS &&
-                (to == CoordinatesType.CONTEXT_RELATIVE || to == CoordinatesType.CONTEXT_AS_IS)) {
+            } else if (from === CoordinatesType.SCREENSHOT_AS_IS &&
+                (to === CoordinatesType.CONTEXT_RELATIVE || to === CoordinatesType.CONTEXT_AS_IS)) {
 
                 result = GeometryUtils.locationOffset(result, {
                     x: -this._frameLocationInScreenshot.x,

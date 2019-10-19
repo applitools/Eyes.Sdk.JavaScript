@@ -17,7 +17,10 @@
 
     var JS_GET_OVERFLOW = "return arguments[0].style.overflow;";
 
-    var JS_GET_LOCATION = "var rect = arguments[0].getBoundingClientRect(); return [rect.left, rect.top]";
+    var JS_GET_LOCATION = "var rect = arguments[0].getBoundingClientRect(); " +
+      "var offsetLeft = window.pageXOffset || document.documentElement.scrollLeft; " +
+      "var offsetTop = window.pageYOffset || document.documentElement.scrollTop; " +
+      "return [rect.left + offsetLeft, rect.top + offsetTop]";
 
     /**
      * @param {string} styleProp
