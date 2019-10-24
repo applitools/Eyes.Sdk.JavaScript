@@ -41,10 +41,13 @@ describe('TestFloatingRegion', function () {
     // Capture modal window region
     eyes.check("Modal-Content", Target.region(By.css("#exampleModalScrollable > div > div.modal-content")));
 
-    // Capture only scrollable part
-    var modalBodyElement = By.css("#exampleModalScrollable > div > div.modal-content > div.modal-body");
-    eyes.setScrollRootElement(modalBodyElement);
-    eyes.check("Scrollable Modal-Body", Target.region(modalBodyElement).fully());
+    // Execute this part only after first check is resolved.
+    driver.controlFlow().execute(function () {
+      // Capture only scrollable part
+      var modalBodyElement = By.css("#exampleModalScrollable > div > div.modal-content > div.modal-body");
+      eyes.setScrollRootElement(modalBodyElement);
+      eyes.check("Scrollable Modal-Body", Target.region(modalBodyElement).fully());
+    });
 
     return eyes.close();
   });
