@@ -258,6 +258,11 @@ export declare class Eyes extends EyesBase {
      */
     setStitchMode(mode: Eyes.StitchMode): void;
     /**
+     * Get the stitch mode.
+     * @return The currently set StitchMode.
+     */
+    getStitchMode(): Eyes.StitchMode;
+    /**
      * Sets the wait time between before each screen capture, including between screen parts of a full page screenshot.
      * @param waitBeforeScreenshots The wait time in milliseconds.
      */
