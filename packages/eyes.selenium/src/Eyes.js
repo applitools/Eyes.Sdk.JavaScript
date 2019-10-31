@@ -108,13 +108,20 @@
 
             // extend protractor element to return ours
             if (!global.isEyesOverrodeProtractor) {
-                var originalElementFn = global.element;
+                var by = global.by;
+                var element = global.element;
                 global.element = function (locator) {
-                    return new ElementFinderWrapper(originalElementFn(locator), that._driver, that._logger);
+                    return new ElementFinderWrapper(element(locator), that._driver, that._logger);
+                };
+                global.$ = function (locator) {
+                    return new ElementFinderWrapper(element(by.css(locator)), that._driver, that._logger);
                 };
 
                 global.element.all = function (locator) {
-                    return new ElementArrayFinderWrapper(originalElementFn.all(locator), that._driver, that._logger);
+                    return new ElementArrayFinderWrapper(element.all(locator), that._driver, that._logger);
+                };
+                global.$$ = function (locator) {
+                    return new ElementArrayFinderWrapper(element.all(by.css(locator)), that._driver, that._logger);
                 };
 
                 global.isEyesOverrodeProtractor = true;

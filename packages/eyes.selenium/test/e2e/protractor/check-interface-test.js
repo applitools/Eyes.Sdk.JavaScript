@@ -45,13 +45,13 @@ describe("Eyes.Selenium.JavaScript - Protractor", function() {
         );
 
         // Region by element, equivalent to eyes.checkRegionByElement()
-        eyes.check("Region by element", Target.region(element(by.css("body > h1"))));
+        eyes.check("Region by element", Target.region($("body > h1")));
 
         // Region by locator, equivalent to eyes.checkRegionBy()
-        eyes.check("Region by locator", Target.region(by.id("overflowing-div-image")));
+        eyes.check("Region by locator", Target.region($("#overflowing-div-image")));
 
-        // Entire element by element, equivalent to eyes.checkElement()
-        eyes.check("Entire element by element", Target.region(element(by.id("overflowing-div-image"))).fully());
+      // Entire element by element, equivalent to eyes.checkElement()
+      eyes.check("Entire element by element", Target.region(element(by.id("overflowing-div-image"))).fully());
 
         // Entire element by locator, equivalent to eyes.checkElementBy()
         eyes.check("Entire element by locator", Target.region(by.id("overflowing-div")).fully().matchLevel(MatchLevel.Exact));
