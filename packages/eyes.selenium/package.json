@@ -39,7 +39,6 @@
     "LICENSE",
     "index.js",
     "src/",
-    "test/",
     "typings/"
   ],
   "main": "./index.js",
