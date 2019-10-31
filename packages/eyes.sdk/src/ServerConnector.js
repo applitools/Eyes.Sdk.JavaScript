@@ -16,12 +16,33 @@
         MAX_LONG_REQUEST_DELAY = 10000, // ms
         LONG_REQUEST_DELAY_MULTIPLICATIVE_INCREASE_FACTOR = 1.5;
 
-    var HTTP_STATUS_CODES = {
+    const RETRY_REQUEST_INTERVAL = 500; // ms
+
+    const HTTP_STATUS_CODES = {
         CREATED: 201,
         ACCEPTED: 202,
         OK: 200,
-        GONE: 410
+        GONE: 410,
+        NOT_FOUND: 404,
+        INTERNAL_SERVER_ERROR: 500,
+        BAD_GATEWAY: 502,
+        GATEWAY_TIMEOUT: 504,
     };
+
+    const HTTP_FAILED_CODES = [
+        HTTP_STATUS_CODES.NOT_FOUND,
+        HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        HTTP_STATUS_CODES.BAD_GATEWAY,
+        HTTP_STATUS_CODES.GATEWAY_TIMEOUT,
+    ];
+
+    const REQUEST_FAILED_CODES = [
+        'ECONNRESET',
+        'ECONNABORTED',
+        'ETIMEDOUT',
+        'ENOTFOUND',
+        'EAI_AGAIN',
+    ];
 
     /**
      * Provides an API for communication with the Applitools server.
@@ -367,12 +388,14 @@
      * @param {string} uri
      * @param {string} method
      * @param {object} options
+     * @param {number} [retry=1]
+     * @param {boolean} [delayBeforeRetry=false]
      * @return {Promise<{status: int, body: object, response: {statusCode: int, statusMessage: string, headers: object}}>}
      */
-    function _sendRequest(that, name, uri, method, options) {
+    function _sendRequest(that, name, uri, method, options, retry = 1, delayBeforeRetry = false) {
         options = options || {};
 
-        var req = GeneralUtils.clone(that._httpOptions);
+        const req = GeneralUtils.clone(that._httpOptions);
         req.uri = uri;
         req.method = method;
         if (options.query) req.qs = GeneralUtils.objectAssign(req.qs, options.query);
@@ -381,14 +404,33 @@
         if (options.contentType) req.headers['Content-Type'] = options.contentType;
 
         return that._promiseFactory.makePromise(function (resolve, reject) {
-            that._logger.verbose('ServerConnector.' + name + ' will now post call to: ' + req.uri);
+            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} with params ${JSON.stringify(options.query)}`);
             request(req, function (err, response, body) {
                 if (err) {
-                    that._logger.log('ServerConnector.' + name + ' - request failed: ', err, response);
+                    let reasonMsg = err.message;
+                    if (err.response && err.response.statusMessage) {
+                        reasonMsg += ` (${err.response.statusMessage})`;
+                    }
+
+                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} with params ${JSON.stringify(options.query).slice(0, 100)}`);
+                    that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.response && err.response.data}`);
+
+                    if (retry > 0 && ((err.response && HTTP_FAILED_CODES.includes(err.response.status)) || REQUEST_FAILED_CODES.includes(err.code))) {
+                        that._logger.verbose(`Request failed with status '${err.response.status}' and error code '${err.code}'. Retrying...`);
+
+                        if (delayBeforeRetry) {
+                            return GeneralUtils.sleep(RETRY_REQUEST_INTERVAL, that._promiseFactory).then(function () {
+                                return _sendRequest(that, name, uri, method, options, retry - 1, delayBeforeRetry);
+                            });
+                        }
+
+                        return _sendRequest(that, name, uri, method, options, retry - 1, delayBeforeRetry);
+                    }
+
                     return reject(new Error(err));
                 }
 
-                var results = {
+                const results = {
                     status: response.statusCode,
                     body: body ? JSON.parse(body) : null,
                     response: {
@@ -398,7 +440,7 @@
                     }
                 };
 
-                that._logger.verbose('ServerConnector.' + name + ' - result ', results.body, ', status code ' + results.status);
+                that._logger.verbose(`ServerConnector.${name} - result ${response.statusMessage}, status code ${response.status}, url ${uri}`);
                 return resolve(results);
             });
         });
