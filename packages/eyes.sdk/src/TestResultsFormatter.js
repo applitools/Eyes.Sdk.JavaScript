@@ -63,7 +63,7 @@
             if (!currentResult.isPassed) { // Test did not pass (might also be a new test).
                 if (currentResult.isNew) { // New test
                     var newResult = markNewAsPassed ? OK : NOT_OK;
-                    tapString += newResult + " " + tapIndex + " - " + "[NEW TEST] " + name + "\n";
+                    tapString += newResult + " " + tapIndex + " - [NEW TEST] " + name + "\n";
                 } else { // Failed / Aborted test.
                     tapString += NOT_OK + " " + tapIndex + " - ";
                     if (currentResult.isAborted) {
@@ -89,7 +89,7 @@
                         var currentStep = currentResult.stepsInfo[j];
                         tapString += "\t";
                         tapString += currentStep.isDifferent ? NOT_OK : OK;
-                        tapString += " '" + currentStep.name + "'" + ", URL: " + currentStep.appUrls.step + "\n";
+                        tapString += " '" + currentStep.name + "', URL: " + currentStep.appUrls.step + "\n";
                     }
                 } else {
                     tapString += "\tNo steps exist for this test.\n";
@@ -156,7 +156,7 @@
                     ++stepsCounter;
                     var currentStep = currentResult.stepsInfo[j];
                     tapString += currentStep.isDifferent ? NOT_OK : OK;
-                    tapString += " " + stepsCounter + " '" + currentStep.name + "'" + ", URL: "
+                    tapString += " " + stepsCounter + " '" + currentStep.name + "', URL: "
                         + currentStep.appUrls.step + "\n";
                 }
             } else {

@@ -51,7 +51,7 @@
         }
 
         for (var i = 0; i < lc1; ++i) {
-            if (c1.getFrames()[i].getId() !== c1.getFrames()[i].getId()) {
+            if (c1.getFrames()[i].getId() !== c2.getFrames()[i].getId()) {
                 return false;
             }
         }
@@ -90,7 +90,7 @@
      * Removes all current frames in the frame chain.
      */
     FrameChain.prototype.clear = function () {
-        return this._frames = [];
+        this._frames = [];
     };
 
     /**

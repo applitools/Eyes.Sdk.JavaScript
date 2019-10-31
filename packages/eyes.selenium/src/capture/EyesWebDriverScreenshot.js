@@ -34,7 +34,7 @@
         var locationInScreenshot = GeometryUtils.createLocationFromLocation(firstFrame.getLocation());
 
         // We only consider scroll of the default content if this is a viewport screenshot.
-        if (screenshotType == ScreenshotType.VIEWPORT) {
+        if (screenshotType === ScreenshotType.VIEWPORT) {
             var defaultContentScroll = firstFrame.getParentScrollPosition();
             locationInScreenshot = GeometryUtils.locationOffset(locationInScreenshot, defaultContentScroll);
         }
@@ -274,7 +274,7 @@
 
         var result = {x: location.x, y: location.y};
 
-        if (from == to) {
+        if (from === to) {
             return result;
         }
 
@@ -282,7 +282,7 @@
         // page, then the context as-is/relative are the same (notice
         // screenshot as-is might be different, e.g.,
         // if it is actually a sub-screenshot of a region).
-        if (this._frameChain.size() == 0 && this._screenshotType === ScreenshotType.ENTIRE_FRAME) {
+        if (this._frameChain.size() === 0 && this._screenshotType === ScreenshotType.ENTIRE_FRAME) {
             if ((from === CoordinatesType.CONTEXT_RELATIVE
                 || from === CoordinatesType.CONTEXT_AS_IS)
                 && to === CoordinatesType.SCREENSHOT_AS_IS) {

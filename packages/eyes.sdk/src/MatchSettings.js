@@ -212,9 +212,7 @@
     /**
      * Encapsulates match settings for the a session.
      */
-    var MatchSettings = {};
-    MatchSettings.MatchLevel = MatchLevel;
-    MatchSettings.ImageMatchSettings = ImageMatchSettings;
-    MatchSettings.ExactMatchSettings = ExactMatchSettings;
-    module.exports = MatchSettings;
+    exports.MatchLevel = MatchLevel;
+    exports.ImageMatchSettings = ImageMatchSettings;
+    exports.ExactMatchSettings = ExactMatchSettings;
 }());

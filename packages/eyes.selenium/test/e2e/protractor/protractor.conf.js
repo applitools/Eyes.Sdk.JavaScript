@@ -20,7 +20,7 @@ exports.config = {
         jasmine.getEnv().addReporter({
             specStarted: function(result) {
                 global.testName = result.description;
-                global.appName = result.fullName.replace(" " + testName, "");
+                global.appName = result.fullName.replace(` ${global.testName}`, "");
             }
         });
     },

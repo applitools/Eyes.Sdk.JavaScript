@@ -41,7 +41,7 @@
     EyesRegionProvider.prototype.getRegionInLocation = function (image, toCoordinatesType, promiseFactory) {
         var that = this;
         return promiseFactory.makePromise(function (resolve) {
-            if (that._coordinatesType == toCoordinatesType) {
+            if (that._coordinatesType === toCoordinatesType) {
                 resolve(that._region);
                 return;
             }

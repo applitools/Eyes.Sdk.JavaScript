@@ -4,7 +4,7 @@
     var zlib = require('zlib'),
         WritableBufferStream = require('./StreamUtils').WritableBufferStream;
 
-    var PREAMBLE = new Buffer("applitools", "utf8");
+    var PREAMBLE = Buffer.from("applitools", "utf8");
     var COMPRESS_BY_RAW_BLOCKS_FORMAT = 3;
     var DEFLATE_BUFFER_RATE = 0.6;
 
@@ -59,7 +59,7 @@
 
         // The number of bytes actually contained in the block for the
         // current channel (might be less than blockSize*blockSize)
-        var channelBytes = new Buffer(actualBlockHeight * actualBlockWidth);
+        var channelBytes = Buffer.alloc(actualBlockHeight * actualBlockWidth);
         var channelBytesOffset = 0;
 
         // Actually comparing and copying the pixels
@@ -145,7 +145,7 @@
         var stream = new WritableBufferStream();
         var blocksStream = new WritableBufferStream();
         stream.write(PREAMBLE);
-        stream.write(new Buffer([COMPRESS_BY_RAW_BLOCKS_FORMAT]));
+        stream.write(Buffer.from([COMPRESS_BY_RAW_BLOCKS_FORMAT]));
 
         // since we don't have a source ID, we write 0 length (Big endian).
         stream.writeShort(0);

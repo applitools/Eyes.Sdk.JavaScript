@@ -61,11 +61,11 @@ describe('EyesBase', function () {
             var batch = eyes.getBatch();
             assert.strictEqual(batch.id, 'fake batch id');
             assert.strictEqual(batch.name, 'batch name');
-            assert.notDeepEqual(batch, defaultBatch);
-            assert.deepEqual(eyes.getBatch(), batch);
+            assert.notDeepStrictEqual(batch, defaultBatch);
+            assert.deepStrictEqual(eyes.getBatch(), batch);
 
             eyes.setBatch(defaultBatch);
-            assert.deepEqual(eyes.getBatch(), defaultBatch);
+            assert.deepStrictEqual(eyes.getBatch(), defaultBatch);
         });
 
         it('should create batch by default using values from env', function () {

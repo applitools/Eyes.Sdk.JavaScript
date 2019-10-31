@@ -41,7 +41,7 @@
             return new WritableBufferStream(options);
         }
         stream.Writable.call(this, options);
-        this._buffer = new Buffer(0);
+        this._buffer = Buffer.alloc(0);
     };
 
     util.inherits(WritableBufferStream, stream.Writable);
@@ -56,7 +56,7 @@
      */
     WritableBufferStream.prototype._write = function (chunk, enc, next) {
         // Since chunk could be either a Buffer or a string.
-        var chunkAsBuffer = Buffer.isBuffer(chunk) ? chunk : new Buffer(chunk, enc);
+        var chunkAsBuffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, enc);
         this._buffer = Buffer.concat([this._buffer, chunkAsBuffer]);
         next();
     };
@@ -66,7 +66,7 @@
      * @return {Buffer} The buffer which contains the chunks written up to this point.
      */
     WritableBufferStream.prototype.writeInt = function (value) {
-        var buf = new Buffer(4);
+        var buf = Buffer.alloc(4);
         buf.writeInt32BE(value, 0);
         return this.write(buf);
     };
@@ -76,7 +76,7 @@
      * @return {Buffer} The buffer which contains the chunks written up to this point.
      */
     WritableBufferStream.prototype.writeShort = function (value) {
-        var buf = new Buffer(2);
+        var buf = Buffer.alloc(2);
         buf.writeInt16BE(value, 0);
         return this.write(buf);
     };
@@ -86,7 +86,7 @@
      * @return {Buffer} The buffer which contains the chunks written up to this point.
      */
     WritableBufferStream.prototype.writeByte = function (value) {
-        var buf = new Buffer(1);
+        var buf = Buffer.alloc(1);
         buf.writeInt8(value, 0);
         return this.write(buf);
     };
@@ -106,7 +106,7 @@
      */
     WritableBufferStream.prototype.resetBuffer = function () {
         var buffer = this._buffer;
-        this._buffer = new Buffer(0);
+        this._buffer = Buffer.alloc(0);
         return buffer;
     };
 

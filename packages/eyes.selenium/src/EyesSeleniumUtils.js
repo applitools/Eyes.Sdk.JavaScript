@@ -263,8 +263,8 @@
      */
     EyesSeleniumUtils.setTransforms = function (browser, transforms, promiseFactory) {
         var script = "";
-        for (var key in transforms) {
-            if (transforms.hasOwnProperty(key)) {
+        for (var key of Object.keys(transforms)) {
+            if (Object.prototype.hasOwnProperty.call(transforms, key)) {
                 script += "document.documentElement.style['" + key + "'] = '" + transforms[key] + "';";
             }
         }
@@ -406,7 +406,7 @@
     EyesSeleniumUtils.getViewportSize = function (browser, promiseFactory) {
         return promiseFactory.makePromise(function (resolve, reject) {
             return EyesSeleniumUtils.executeScript(browser, JS_GET_VIEWPORT_SIZE, promiseFactory, undefined).then(function (results) {
-                if (isNaN(results[0]) || isNaN(results[1])) {
+                if (Number.isNaN(results[0]) || Number.isNaN(results[1])) {
                     reject("Can't parse values.");
                 } else {
                     resolve({

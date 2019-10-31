@@ -288,7 +288,7 @@
      * @constructor
      */
     MutableImage.fromBase64 = function (image64, promiseFactory) {
-        return new MutableImage(new Buffer(image64, 'base64'), promiseFactory);
+        return new MutableImage(Buffer.from(image64, 'base64'), promiseFactory);
     };
 
     exports.MutableImage = MutableImage;

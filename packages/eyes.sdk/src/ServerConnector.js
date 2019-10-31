@@ -336,12 +336,12 @@
             case HTTP_STATUS_CODES.OK:
                 return that._promiseFactory.resolve(results);
             case HTTP_STATUS_CODES.ACCEPTED:
-                var loopUri = results.response.headers['location'];
+                var loopUri = results.response.headers.location;
                 return _longRequestLoop(that, name, loopUri, LONG_REQUEST_DELAY).then(function (results) {
                     return _longRequestCheckStatus(that, name, uri, method, options, results, retryIfGone);
                 });
             case HTTP_STATUS_CODES.CREATED:
-                var deleteUri = results.response.headers['location'];
+                var deleteUri = results.response.headers.location;
                 var loopOptions = {headers: {'Eyes-Date': GeneralUtils.getRfc1123Date()}};
                 return _sendRequest(that, name, deleteUri, 'delete', loopOptions);
             case HTTP_STATUS_CODES.GONE:
@@ -458,7 +458,7 @@
         var dataLen = Buffer.byteLength(dataStr, 'utf8');
 
         // The result buffer will contain the length of the data + 4 bytes of size
-        var result = new Buffer(dataLen + 4);
+        var result = Buffer.alloc(dataLen + 4);
         result.writeUInt32BE(dataLen, 0);
         result.write(dataStr, 4, dataLen);
         return result;

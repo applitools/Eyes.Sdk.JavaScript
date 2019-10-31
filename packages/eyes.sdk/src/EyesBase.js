@@ -138,7 +138,7 @@
                     currentHanlder[eventName].apply(currentHanlder, Array.prototype.slice.call(args, 4))
                         .then(null, function (err) {
                             if (logger) {
-                                logger.verbose("'" + eventName + "'" + " notification handler returned an error: " + err);
+                                logger.verbose("'" + eventName + "' notification handler returned an error: " + err);
                             }
                         });
                 notificationPromises.push(currentPromise)
@@ -933,7 +933,7 @@
                 return this.abort()
                     .then(function () {
                         reject(new Error(errMsg));
-                    }.bind(this));
+                    });
             }
 
             this._isOpen = true;
@@ -1041,8 +1041,8 @@
 
                 // printing the results
                 var flattenedResults = {};
-                for (var p in testResults) {
-                    flattenedResults[p] = testResults[p];
+                for (var key of Object.keys(testResults)) {
+                    flattenedResults[key] = testResults[key];
                 }
                 this._logger.log('Results:', flattenedResults);
 
@@ -1475,7 +1475,7 @@
                 return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'setSizeEnded', this._autSessionId).then(function () {
                     // Throw to skip execution of all consecutive "then" blocks.
                     throw new Error('Failed to set/get viewport size.');
-                }.bind(this));
+                });
             }.bind(this)).then(function () {
                 return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers, 'initStarted', this._autSessionId);
             }.bind(this)).then(function () {
@@ -1483,7 +1483,7 @@
                 return this.getInferredEnvironment()
                     .then(function (inferredEnv_) {
                         inferredEnv = inferredEnv_;
-                    }.bind(this), function (err) {
+                    }, function (err) {
                         this._logger.log(err);
                     }.bind(this));
             }.bind(this)).then(function () {

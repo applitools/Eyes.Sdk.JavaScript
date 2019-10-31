@@ -909,4 +909,5 @@
 
     Eyes.StitchMode = StitchMode;
     exports.Eyes = Eyes;
+    exports.StitchMode = StitchMode;
 }());

@@ -112,7 +112,7 @@
 
             // Pass 1 - interpolate rows
             // buf1 has width of dst2 and height of src
-            var buf1 = new Buffer(wDst2 * hSrc * 4);
+            var buf1 = Buffer.alloc(wDst2 * hSrc * 4);
             for (i = 0; i < hSrc; i++) {
                 for (j = 0; j < wDst2; j++) {
                     x = j * (wSrc - 1) / wDst2;
@@ -134,7 +134,7 @@
 
             // Pass 2 - interpolate columns
             // buf2 has width and height of dst2
-            var buf2 = new Buffer(wDst2 * hDst2 * 4);
+            var buf2 = Buffer.alloc(wDst2 * hDst2 * 4);
             for (i = 0; i < hDst2; i++) {
                 for (j = 0; j < wDst2; j++) {
                     y = i * (hSrc - 1) / hDst2;
@@ -230,7 +230,7 @@
 
                 // Render the incremental scaled image.
                 var incrementalImage = {
-                    data: new Buffer(currentWidth * currentHeight * 4),
+                    data: Buffer.alloc(currentWidth * currentHeight * 4),
                     width: currentWidth,
                     height: currentHeight
                 };
@@ -251,7 +251,7 @@
 
         return promiseFactory.makePromise(function (resolve) {
             var dst = {
-                data: new Buffer(targetWidth * targetHeight * 4),
+                data: Buffer.alloc(targetWidth * targetHeight * 4),
                 width: targetWidth,
                 height: targetHeight
             };
@@ -305,7 +305,7 @@
                 }
             }
 
-            image.data = new Buffer(croppedArray);
+            image.data = Buffer.from(croppedArray);
             image.width = xEnd - xStart;
             image.height = yEnd - yStart;
 
@@ -331,7 +331,7 @@
             if (i < 0) i += 4;
 
             while (i > 0) {
-                var buffer = new Buffer(image.data.length);
+                var buffer = Buffer.alloc(image.data.length);
                 var offset = 0;
                 for (var x = 0; x < image.width; x++) {
                     for (var y = image.height - 1; y >= 0; y--) {

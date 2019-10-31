@@ -66,7 +66,7 @@
      */
     GeneralUtils.mixin = function (to, from) {
         var index, protos = [], proto = from;
-        while (!!proto) {
+        while (proto) {
             protos.push(Object.getOwnPropertyNames(proto));
             proto = Object.getPrototypeOf(proto);
         }
@@ -107,7 +107,7 @@
      */
     GeneralUtils.clone = function (obj) {
         var copy;
-        if (null == obj || "object" != typeof obj) {
+        if (null == obj || "object" !== typeof obj) {
             return obj;
         }
 
@@ -127,7 +127,7 @@
 
         if (obj instanceof Object) {
             copy = obj.constructor();
-            for (var attr in obj) {
+            for (var attr of Object.keys(obj)) {
                 copy[attr] = GeneralUtils.clone(obj[attr]);
             }
             return copy;
@@ -155,17 +155,16 @@
         var to = Object(target);
         for (var i = 1; i < arguments.length; i++) {
             var nextSource = arguments[i];
-            if (nextSource === undefined || nextSource === null) {
-                continue;
-            }
-            nextSource = Object(nextSource);
+            if (nextSource != null) {
+                nextSource = Object(nextSource);
 
-            var keysArray = Object.keys(Object(nextSource));
-            for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
-                var nextKey = keysArray[nextIndex];
-                var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
-                if (desc !== undefined && desc.enumerable) {
-                    to[nextKey] = nextSource[nextKey];
+                var keysArray = Object.keys(nextSource);
+                for (var nextIndex = 0, len = keysArray.length; nextIndex < len; nextIndex++) {
+                    var nextKey = keysArray[nextIndex];
+                    var desc = Object.getOwnPropertyDescriptor(nextSource, nextKey);
+                    if (desc !== undefined && desc.enumerable) {
+                        to[nextKey] = nextSource[nextKey];
+                    }
                 }
             }
         }
