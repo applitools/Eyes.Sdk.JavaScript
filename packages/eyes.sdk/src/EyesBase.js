@@ -32,7 +32,7 @@
         MatchWindowTask = require('./MatchWindowTask').MatchWindowTask,
         SessionEventHandler = require('./SessionEventHandler'),
         FixedScaleProvider = require('./FixedScaleProvider').FixedScaleProvider,
-        NullScaleProvider = require('./NullScaleProvider').FixedScaleProvider,
+        NullScaleProvider = require('./NullScaleProvider').NullScaleProvider,
         NullCutProvider = require('./NullCutProvider').NullCutProvider,
         Triggers = require('./Triggers').Triggers,
         Logger = require('./Logger').Logger;

@@ -16,5 +16,5 @@
     NullScaleProvider.prototype = Object.create(FixedScaleProvider.prototype);
     NullScaleProvider.prototype.constructor = NullScaleProvider;
 
-    exports.FixedScaleProvider = NullScaleProvider;
+    exports.NullScaleProvider = NullScaleProvider;
 }());
