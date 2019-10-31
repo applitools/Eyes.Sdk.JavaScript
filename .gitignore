@@ -7,10 +7,15 @@ logs
 
 # VS Code
 .vscode
+*.code-workspace
+.history
+
+# Dependency trees
+yarn.lock
+package-lock.json
 
 # Dependency directory
 node_modules
-/packages/*/package-lock.json
 
 # Other
 .DS_STORE
