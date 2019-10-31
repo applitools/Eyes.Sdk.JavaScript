@@ -109,7 +109,7 @@
     //noinspection JSUnusedGlobalSymbols
     /**
      * Takes a screenshot.
-     * @return {Promise<MutableImage>} - An updated screenshot.
+     * @return {Promise<EyesSimpleScreenshot>} - An updated screenshot.
      */
     Eyes.prototype.getScreenShot = function () {
         var that = this;

@@ -38,11 +38,15 @@
     "dist/eyes-browser.min.js"
   ],
   "main": "./index.js",
+  "types": "./typings/index.d.ts",
   "dependencies": {
     "eyes.sdk": "^3.8.0",
     "eyes.utils": "^3.8.0"
   },
   "devDependencies": {
+    "@types/node": "*",
+    "mocha": "^6.2.2",
+    "typescript": "^3.6.4",
     "browserify": "^16.5.0",
     "browserify-fs": "^1.0.0",
     "browserify-zlib": "^0.2.0",
@@ -54,7 +58,8 @@
     "test:e2e": "node test/simplerun.js",
     "build": "npm run browserify && npm run uglify",
     "browserify": "browserify eyes-browser-loader.js > dist/eyes-browser.js",
-    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js"
+    "uglify": "uglifyjs dist/eyes-browser.js > dist/eyes-browser.min.js",
+    "typings": "tsc --declaration"
   },
   "license": "SEE LICENSE IN LICENSE",
   "engines": {

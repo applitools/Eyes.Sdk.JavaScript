@@ -5,7 +5,8 @@
     "install": "lerna bootstrap --hoist",
     "bootstrap": "lerna bootstrap --hoist",
     "test": "lerna run test",
-    "test:unit": "lerna run test:unit"
+    "test:unit": "lerna run test:unit",
+    "typings": "lerna run typings"
   },
   "devDependencies": {
     "lerna": "^3.13.1"
