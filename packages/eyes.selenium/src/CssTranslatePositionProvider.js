@@ -47,7 +47,13 @@
     CssTranslatePositionProvider.prototype.setPosition = function (location) {
         var that = this;
         that._logger.verbose("Setting position to:", location);
-        return EyesSeleniumUtils.translateTo(this._driver, location, this._promiseFactory).then(function () {
+
+        var setFakeTransformScript = `document.documentElement.style.transform = 'translate(10px, -${location.y}px)';`;
+        var setTransformScript = `document.documentElement.style.transform = 'translate(-${location.x}px, -${location.y}px)';`;
+
+        return EyesSeleniumUtils.executeScript(that._driver, setFakeTransformScript, that._promiseFactory).then(function () {
+            return EyesSeleniumUtils.executeScript(that._driver, setTransformScript, that._promiseFactory, 250);
+        }).then(function () {
             that._logger.verbose("Done!");
             that._lastSetPosition = location;
         });
@@ -65,24 +71,33 @@
     };
 
     /**
-     * @return {Promise<object.<string, string>>}
+     * @return {Promise<{transform: object, position: object}>}
      */
     CssTranslatePositionProvider.prototype.getState = function () {
         var that = this;
-        return EyesSeleniumUtils.getCurrentTransform(this._driver, this._promiseFactory).then(function (transforms) {
+
+        return EyesSeleniumUtils.executeScript(that._driver, 'return document.documentElement.style.transform;', that._promiseFactory).then(function (transforms) {
             that._logger.verbose("Current transform", transforms);
-            return transforms;
+            return {
+                transform: transforms,
+                position: that._lastSetPosition
+            };
         });
     };
 
     /**
-     * @param {object.<string, string>} state The initial state of position
+     * @param {{transform: object, position: object}} state The initial state of position
      * @return {Promise<void>}
      */
     CssTranslatePositionProvider.prototype.restoreState = function (state) {
         var that = this;
-        return EyesSeleniumUtils.setTransforms(this._driver, state, this._promiseFactory).then(function () {
+        const script = 'var originalTransform = document.documentElement.style.transform;' +
+          `document.documentElement.style.transform = '${state.transform}';` +
+          'return originalTransform;';
+
+        return EyesSeleniumUtils.executeScript(this._driver, script, this._promiseFactory).then(function () {
             that._logger.verbose("Transform (position) restored.");
+            that._lastSetPosition = state.position;
         });
     };
 

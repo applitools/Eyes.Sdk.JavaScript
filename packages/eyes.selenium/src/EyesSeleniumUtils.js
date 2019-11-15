@@ -92,12 +92,6 @@
         "return overflow == 'hidden' || overflowX == 'hidden' || overflowY == 'hidden'";
 
     /**
-     * @private
-     * @type {string[]}
-     */
-    var JS_TRANSFORM_KEYS = ["transform", "-webkit-transform"];
-
-    /**
      * Executes a script using the browser's executeScript function - and optionally waits a timeout.
      *
      * @param {WebDriver} browser The driver using which to execute the script.
@@ -105,7 +99,7 @@
      * @param {PromiseFactory} promiseFactory
      * @param {number|undefined} [stabilizationTimeMs] The amount of time to wait after script execution to
      *        let the browser a chance to stabilize (e.g., finish rendering).
-     * @param {WebElement} element
+     * @param {WebElement} [element]
      * @return {Promise<void>} A promise which resolves to the result of the script's execution on the tab.
      */
     EyesSeleniumUtils.executeScript = function executeScript(browser, script, promiseFactory, stabilizationTimeMs, element) {
@@ -234,75 +228,6 @@
         return EyesSeleniumUtils.executeScript(browser, 'return window.devicePixelRatio', promiseFactory, undefined).then(function (results) {
             return parseFloat(results);
         });
-    };
-
-    /**
-     * Get the current transform of page.
-     *
-     * @param {WebDriver} browser The driver which will execute the script to get the scroll position.
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<object.<string, string>>} A promise which resolves to the current transform value.
-     */
-    EyesSeleniumUtils.getCurrentTransform = function getCurrentTransform(browser, promiseFactory) {
-        var script = "return { ";
-        for (var i = 0, l = JS_TRANSFORM_KEYS.length; i < l; i++) {
-            script += "'" + JS_TRANSFORM_KEYS[i] + "': document.documentElement.style['" + JS_TRANSFORM_KEYS[i] + "'],";
-        }
-        script += " }";
-
-        return EyesSeleniumUtils.executeScript(browser, script, promiseFactory, undefined);
-    };
-
-    /**
-     * Sets transforms for document.documentElement according to the given map of style keys and values.
-     *
-     * @param {WebDriver} browser The browser to use.
-     * @param {object.<string, string>} transforms The transforms to set. Keys are used as style keys and values are the values for those styles.
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>}
-     */
-    EyesSeleniumUtils.setTransforms = function (browser, transforms, promiseFactory) {
-        var script = "";
-        for (var key of Object.keys(transforms)) {
-            if (Object.prototype.hasOwnProperty.call(transforms, key)) {
-                script += "document.documentElement.style['" + key + "'] = '" + transforms[key] + "';";
-            }
-        }
-
-        return EyesSeleniumUtils.executeScript(browser, script, promiseFactory, 250);
-    };
-
-    /**
-     * Set the given transform to document.documentElement for all style keys defined in {@link JS_TRANSFORM_KEYS}
-     *
-     * @param {WebDriver} browser The driver which will execute the script to set the transform.
-     * @param {string} transformToSet The transform to set.
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>} A promise which resolves to the previous transform once the updated transform is set.
-     */
-    EyesSeleniumUtils.setTransform = function setTransform(browser, transformToSet, promiseFactory) {
-        var transforms = {};
-        if (!transformToSet) {
-            transformToSet = '';
-        }
-
-        for (var i = 0, l = JS_TRANSFORM_KEYS.length; i < l; i++) {
-            transforms[JS_TRANSFORM_KEYS[i]] = transformToSet;
-        }
-
-        return EyesSeleniumUtils.setTransforms(browser, transforms, promiseFactory);
-    };
-
-    /**
-     * CSS translate the document to a given location.
-     *
-     * @param {WebDriver} browser The driver which will execute the script to set the transform.
-     * @param {{x: number, y: number}} point
-     * @param {PromiseFactory} promiseFactory
-     * @return {Promise<void>} A promise which resolves to the previous transform when the scroll is executed.
-     */
-    EyesSeleniumUtils.translateTo = function translateTo(browser, point, promiseFactory) {
-        return EyesSeleniumUtils.setTransform(browser, 'translate(-' + point.x + 'px, -' + point.y + 'px)', promiseFactory);
     };
 
     /**
