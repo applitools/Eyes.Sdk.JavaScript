@@ -43,11 +43,13 @@ describe('IOSTest', function () {
       caps.set('platformName', 'iOS');
       caps.set('browserName', 'Safari');
 
-      caps.set('username', process.env.SAUCE_USERNAME);
-      caps.set('accesskey', process.env.SAUCE_ACCESS_KEY);
+      caps.set('browserstack.user', process.env.BROWSERSTACK_USERNAME);
+      caps.set('browserstack.key', process.env.BROWSERSTACK_ACCESS_KEY);
 
-      const sauceUrl = 'http://ondemand.saucelabs.com/wd/hub';
-      const driver = new Builder().withCapabilities(caps).usingServer(sauceUrl).build();
+      const driver = new Builder()
+        .withCapabilities(caps)
+        .usingServer('https://hub-cloud.browserstack.com/wd/hub')
+        .build();
 
       eyes.setLogHandler(new ConsoleLogHandler(true));
       eyes.setStitchMode(StitchMode.Scroll);
