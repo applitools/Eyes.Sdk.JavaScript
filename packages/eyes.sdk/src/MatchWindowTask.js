@@ -1,6 +1,7 @@
 (function () {
     'use strict';
 
+    var GeneralUtils = require('eyes.utils').GeneralUtils;
     var CoordinatesType = require('./CoordinatesType').CoordinatesType;
 
     /**
@@ -86,7 +87,22 @@
                     source: source,
                 }
             };
-            return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
+
+            var screenshot = data.appOutput.screenShot;
+            data.appOutput.screenShot = null;
+
+            var id = GeneralUtils.guid();
+            return this._serverConnector.renderInfo()
+                .then(function () {
+                    return this._serverConnector.uploadScreenshot(id, screenshot)
+                }.bind(this))
+                .then(function (screenShotUrl) {
+                    data.appOutput.screenShotUrl = screenShotUrl;
+                    return data
+                }.bind(this))
+                .then(function (data) {
+                    return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
+                }.bind(this))
                 .then(function (matchResult) {
                     this._logger.verbose('MatchWindowTask.matchWindow - _match received server connector result:', matchResult);
                     this._matchResult = matchResult;
