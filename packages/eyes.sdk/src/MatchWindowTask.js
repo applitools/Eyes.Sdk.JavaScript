@@ -88,20 +88,14 @@
                 }
             };
 
-            var screenshot = data.appOutput.screenShot;
-            data.appOutput.screenShot = null;
-
             var id = GeneralUtils.guid();
-            return this._serverConnector.renderInfo()
-                .then(function () {
-                    return this._serverConnector.uploadScreenshot(id, screenshot)
-                }.bind(this))
+            return this._serverConnector.uploadScreenshot(id, appOutput.screenShot.imageBuffer)
                 .then(function (screenShotUrl) {
-                    data.appOutput.screenShotUrl = screenShotUrl;
+                    data.appOutput.screenshotUrl = screenShotUrl;
                     return data
                 }.bind(this))
                 .then(function (data) {
-                    return this._serverConnector.matchWindow(this._runningSession, data, appOutput.screenShot.imageBuffer)
+                    return this._serverConnector.matchWindow(this._runningSession, data)
                 }.bind(this))
                 .then(function (matchResult) {
                     this._logger.verbose('MatchWindowTask.matchWindow - _match received server connector result:', matchResult);
@@ -144,7 +138,16 @@
                     }
                 };
                 this._logger.verbose('MatchWindowTask._retryMatch calls matchWindow');
-                return this._serverConnector.matchWindow(this._runningSession, data, appOutput.compressScreenshot || appOutput.screenShot)
+
+                var id = GeneralUtils.guid();
+                return this._serverConnector.uploadScreenshot(id, appOutput.compressScreenshot || appOutput.screenShot)
+                    .then(function (screenShotUrl) {
+                        data.appOutput.screenshotUrl = screenShotUrl;
+                        return data
+                    }.bind(this))
+                    .then(function (data) {
+                        return this._serverConnector.matchWindow(this._runningSession, data)
+                    }.bind(this))
                     .then(function (result) {
                         this._logger.verbose(
                             'MatchWindowTask.matchWindow - _retryMatch received server connector result:',

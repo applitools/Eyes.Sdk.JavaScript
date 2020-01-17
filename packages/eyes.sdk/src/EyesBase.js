@@ -150,6 +150,16 @@
         });
     };
 
+    var _createRenderingInfoWithCache = function (createRenderingInfo) {
+        let renderingInfoPromise
+        return function getRenderingInfo() {
+            if (!renderingInfoPromise) {
+                renderingInfoPromise = createRenderingInfo()
+            }
+            return renderingInfoPromise
+        }
+    }
+
     /**
      * Core/Base class for Eyes - to allow code reuse for different SDKs (images, selenium, etc).
      *
@@ -194,6 +204,8 @@
         this._saveDebugScreenshots = false;
         this._debugScreenshotsPath = null;
         this._properties = [];
+
+        this.getRenderingInfo = _createRenderingInfoWithCache(this._serverConnector.renderInfo.bind(this._serverConnector))
     }
 
     //noinspection JSUnusedGlobalSymbols
@@ -904,6 +916,12 @@
         return this._runningSession;
     };
 
+    EyesBase.prototype.getAndSaveRenderingInfo = function () {
+        return _getRenderingInfoWithCache().then(function (renderingInfo) {
+            this._serverConnector.setRenderingInfo(renderingInfo)
+        }.bind(this))
+    }
+
     // noinspection JSUnusedGlobalSymbols
     EyesBase.prototype.openBase = function (appName, testName, viewportSize) {
         return this.open(appName, testName, viewportSize);
@@ -934,6 +952,12 @@
                     .then(function () {
                         reject(new Error(errMsg));
                     });
+            }
+
+            if (!this._renderingInfoPromise) {
+                this._renderingInfoPromise = this.getRenderingInfo().then(function (renderingInfo) {
+                    this._serverConnector.setRenderingInfo(renderingInfo)
+                }.bind(this))
             }
 
             this._isOpen = true;
@@ -1344,6 +1368,9 @@
                 }
                 return _notifyEvent(this._logger, this._promiseFactory, this._sessionEventHandlers,
                     'validationWillStart', this._autSessionId, validationInfo)
+                    .then(function () {
+                        return this._renderingInfoPromise
+                    }.bind(this))
                     .then(function () {
                         this._logger.verbose("EyesBase.checkWindow - calling matchWindowTask.matchWindow");
                         return this._matchWindowTask.matchWindow(this._userInputs, this._lastScreenshot, regionProvider, tag,
