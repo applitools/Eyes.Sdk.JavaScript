@@ -291,7 +291,7 @@
      * @param {Buffer} screenshot The PNG bytes of the updated image.
      * @return {Promise<{asExpected: boolean}>} A promise which resolves when matching is done, or rejects on error.
      */
-    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
+    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData) {
         this._logger.verbose('ServerConnector.matchWindow called with ', matchWindowData, ' for session: ', runningSession);
         
         var that = this;
