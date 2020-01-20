@@ -65,6 +65,7 @@
     "test:appium": "mocha --no-timeouts \"test/e2e/appium/**/*.js\"",
     "test:selenium": "mocha --no-timeouts \"test/e2e/selenium/**/*.js\"",
     "test:protractor": "protractor test/e2e/protractor/protractor.conf.js",
+    "test:coverage:custom": "mocha --no-timeouts \"test/coverage/custom/*.spec.js\"",
     "typings": "tsc --declaration"
   },
   "license": "SEE LICENSE IN LICENSE",
