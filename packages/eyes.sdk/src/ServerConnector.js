@@ -427,6 +427,11 @@
         });
     }
 
+    function _makeParamsOutput(params) {
+      if (!params) return ''
+      return `with params ${JSON.stringify(params)}`
+    }
+
     /**
      * @private
      * @param {ServerConnector} that
@@ -450,7 +455,7 @@
         if (options.contentType) req.headers['Content-Type'] = options.contentType;
 
         return that._promiseFactory.makePromise(function (resolve, reject) {
-            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} with params ${JSON.stringify(options.query)}`);
+            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} ${_makeParamsOutput(options.query)}`);
             request(req, function (err, response, body) {
                 if (err) {
                     let reasonMsg = err.message;
@@ -458,7 +463,7 @@
                         reasonMsg += ` (${err.response.statusMessage})`;
                     }
 
-                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} with params ${JSON.stringify(options.query).slice(0, 100)}`);
+                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} ${_makeParamsOutput(options.query)}`);
                     that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.response && err.response.data}`);
 
                     if (retry > 0 && ((err.response && HTTP_FAILED_CODES.includes(err.response.status)) || REQUEST_FAILED_CODES.includes(err.code))) {
@@ -510,5 +515,6 @@
         return result;
     }
 
+    exports._makeParamsOutput = _makeParamsOutput;
     exports.ServerConnector = ServerConnector;
 }());
