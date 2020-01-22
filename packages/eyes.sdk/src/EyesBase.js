@@ -916,12 +916,6 @@
         return this._runningSession;
     };
 
-    EyesBase.prototype.getAndSaveRenderingInfo = function () {
-        return _getRenderingInfoWithCache().then(function (renderingInfo) {
-            this._serverConnector.setRenderingInfo(renderingInfo)
-        }.bind(this))
-    }
-
     // noinspection JSUnusedGlobalSymbols
     EyesBase.prototype.openBase = function (appName, testName, viewportSize) {
         return this.open(appName, testName, viewportSize);
