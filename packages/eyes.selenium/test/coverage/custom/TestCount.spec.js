@@ -1,7 +1,8 @@
 'use strict';
 const assert = require('assert');
 const {Target, GeneralUtils} = require('../../../index');
-const Configuration = () => {}; // Need to be implemented for tests
+const Configuration = () => {
+}; // Need to be implemented for tests
 const {getDriver, getEyes} = require('./util/TestSetup');
 
 describe.skip('TestCounts', () => {
@@ -11,7 +12,7 @@ describe.skip('TestCounts', () => {
     beforeEach(async () => {
         driver = await getDriver('CHROME');
         await driver.get('https://applitools.com/helloworld');
-        eyes = await getEyes('VG')
+        eyes = await getEyes()
         // need to set sendDom value (not implemented)
     });
 

@@ -1,9 +1,12 @@
 'use strict';
 const {getDriver, getEyes} = require('./util/TestSetup');
-const BrowserType = {}, AccessibilityLevel = {}, DeviceName = {}, Configuration = () => {}; // Unimplemented part of the API for the Selenium 3 SDK
+const BrowserType = {}, AccessibilityLevel = {}, DeviceName = {}, Configuration = () => {
+}; // Unimplemented part of the API for the Selenium 3 SDK
 const {MatchLevel, GeneralUtils} = require('../../../index');
-const assertDefaultMatchSettings = () => {};
-const assertImageMatchSettings = () => {};
+const assertDefaultMatchSettings = () => {
+};
+const assertImageMatchSettings = () => {
+};
 const {expect} = require('chai');
 
 const batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
