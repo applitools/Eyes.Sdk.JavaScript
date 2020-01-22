@@ -789,13 +789,23 @@ export declare class ServerConnector {
      **/
     endSession(runningSession: RunningSession, isAborted: boolean, save: boolean): Promise<object>;
     /**
+     * @return A promise which resolves when renderingInfo is ready, or rejects on error.
+     */
+    renderInfo(): Promise<object>;
+    /**
+     * Upload the screenshot.
+     * @param id guid for url.
+     * @param screenshot The PNG bytes of the updated image.
+     * @return A promise which resolves when uploading is done, or rejects on error.
+     */
+    uploadScreenshot(id: string, screenshot: Buffer): Promise<string>;
+    /**
      * Matches the current window to the expected window.
      * @param runningSession The current agent's running session.
      * @param matchWindowData The window data.
-     * @param screenshot The PNG bytes of the updated image.
      * @return A promise which resolves when matching is done, or rejects on error.
      */
-    matchWindow(runningSession: RunningSession, matchWindowData: object, screenshot: Buffer): Promise<object>;
+    matchWindow(runningSession: RunningSession, matchWindowData: object): Promise<object>;
     /**
      * Replaces an actual image in the current running session.
      * @param runningSession The currently running session.

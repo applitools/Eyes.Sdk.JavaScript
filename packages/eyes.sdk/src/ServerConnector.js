@@ -3,6 +3,7 @@
 
     var request = require('request');
     var GeneralUtils = require('eyes.utils').GeneralUtils;
+    var RenderingInfo = require('./RenderingInfo').RenderingInfo;
 
     // constants
     var TIMEOUT = 5 * 60 * 1000,
@@ -56,6 +57,7 @@
         this._promiseFactory = promiseFactory;
         this._logger = logger;
         this._runKey = undefined;
+        this._renderingInfo = undefined;
         this._httpOptions = {
             proxy: null,
             strictSSL: false,
@@ -174,6 +176,14 @@
         return !!this._httpOptions.qs.removeSession;
     };
 
+    ServerConnector.prototype.setRenderingInfo = function (renderingInfo) {
+        this._renderingInfo = renderingInfo;
+    };
+
+    ServerConnector.prototype.getRenderingInfo = function () {
+        return this._renderingInfo;
+    };
+
     /**
      * Starts a new running session in the server. Based on the given parameters, this running session will either be
      * linked to an existing session, or to a completely new session.
@@ -237,6 +247,43 @@
         });
     };
 
+    ServerConnector.prototype.renderInfo = function () {
+        this._logger.verbose('ServerConnector.renderInfo called.');
+
+        var that = this;
+        var uri = GeneralUtils.urlConcat(this._serverUrl, '/api/sessions/renderinfo');
+    
+        return _sendRequest(this, 'renderInfo', uri, 'get').then(function (results) {
+            if (results.status === HTTP_STATUS_CODES.OK) {
+                that._renderingInfo = new RenderingInfo(results.body.serviceUrl, results.body.accessToken, results.body.resultsUrl);
+                that._logger.verbose('ServerConnector.renderInfo - post succeeded', that._renderingInfo);
+                return that._renderingInfo;
+            }
+            throw new Error('ServerConnector.renderInfo - unexpected status ' + JSON.stringify(results.response));
+        })
+    }
+
+    ServerConnector.prototype.uploadScreenshot = function (id, screenshot) {
+        var uri = this._renderingInfo.getResultsUrl().replace('__random__', id)
+        var options = {
+          body: screenshot,
+          headers: {
+            Date: new Date().toISOString(),
+            'x-ms-blob-type': 'BlockBlob',
+            'content-type': 'application/octet-stream',
+          },
+        }
+    
+        return _sendRequest(this, 'uploadScreenshot', uri, 'put', options, 3).then(function (results) {
+            if (results.status !== HTTP_STATUS_CODES.CREATED) {
+                throw new Error(
+                    `ServerConnector.uploadScreenshot - unexpected status (${response.statusText})`,
+                )
+            }
+            return uri
+        })
+    }
+
     /**
      * Matches the current window to the expected window.
      * @param {RunningSession} runningSession The current agent's running session.
@@ -244,14 +291,13 @@
      * @param {Buffer} screenshot The PNG bytes of the updated image.
      * @return {Promise<{asExpected: boolean}>} A promise which resolves when matching is done, or rejects on error.
      */
-    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData, screenshot) {
+    ServerConnector.prototype.matchWindow = function (runningSession, matchWindowData) {
         this._logger.verbose('ServerConnector.matchWindow called with ', matchWindowData, ' for session: ', runningSession);
-
+        
         var that = this;
         var uri = GeneralUtils.urlConcat(this._endPoint, runningSession.sessionId.toString());
         var options = {
-            contentType: 'application/octet-stream',
-            body: Buffer.concat([_createDataBytes(matchWindowData), screenshot])
+            body: JSON.stringify(matchWindowData)
         };
 
         return _sendLongRequest(that, 'matchWindow', uri, 'post', options).then(function (results) {
@@ -381,6 +427,11 @@
         });
     }
 
+    function _makeParamsOutput(params) {
+      if (!params) return ''
+      return `with params ${JSON.stringify(params)}`
+    }
+
     /**
      * @private
      * @param {ServerConnector} that
@@ -404,7 +455,7 @@
         if (options.contentType) req.headers['Content-Type'] = options.contentType;
 
         return that._promiseFactory.makePromise(function (resolve, reject) {
-            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} with params ${JSON.stringify(options.query)}`);
+            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} ${_makeParamsOutput(options.query)}`);
             request(req, function (err, response, body) {
                 if (err) {
                     let reasonMsg = err.message;
@@ -412,7 +463,7 @@
                         reasonMsg += ` (${err.response.statusMessage})`;
                     }
 
-                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} with params ${JSON.stringify(options.query).slice(0, 100)}`);
+                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} ${_makeParamsOutput(options.query)}`);
                     that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.response && err.response.data}`);
 
                     if (retry > 0 && ((err.response && HTTP_FAILED_CODES.includes(err.response.status)) || REQUEST_FAILED_CODES.includes(err.code))) {
@@ -464,5 +515,6 @@
         return result;
     }
 
+    exports._makeParamsOutput = _makeParamsOutput;
     exports.ServerConnector = ServerConnector;
 }());
