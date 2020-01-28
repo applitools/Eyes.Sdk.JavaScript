@@ -432,6 +432,13 @@
       return `with params ${JSON.stringify(params)}`
     }
 
+    function makeFailedOutput(err) {
+      const message = err.message
+      const errorCode = error.code
+      const statusCode = err.response ? err.response.status : undefined
+      return 
+    }
+
     /**
      * @private
      * @param {ServerConnector} that
@@ -467,7 +474,7 @@
                     that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.response && err.response.data}`);
 
                     if (retry > 0 && ((err.response && HTTP_FAILED_CODES.includes(err.response.status)) || REQUEST_FAILED_CODES.includes(err.code))) {
-                        that._logger.verbose(`Request failed with status '${err.response.status}' and error code '${err.code}'. Retrying...`);
+                        that._logger.verbose(`Request failed with message '${err.message}' and error code '${err.code}'${(err.response && err.response.status) ? ' and status code ' + "'" + err.response.status + "'" : ''}. Retrying...`)
 
                         if (delayBeforeRetry) {
                             return GeneralUtils.sleep(RETRY_REQUEST_INTERVAL, that._promiseFactory).then(function () {
