@@ -6,13 +6,12 @@ chai.use(chaiAsPromised);
 const expect = chai.expect;
 const {
     Target,
-    GeneralUtils,
     StitchMode,
 } = require('../../../index');
 const appName = 'My application';
 const testedUrl = 'https://applitools.com/docs/topics/overview.html';
 const testName = `test URL : ${testedUrl}`;
-const batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
+
 describe(appName, () => {
 
     let webDriver, eyes;

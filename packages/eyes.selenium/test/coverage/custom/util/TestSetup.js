@@ -1,9 +1,10 @@
 'use strict';
 const {Builder} = require('selenium-webdriver');
-const {Eyes, StitchMode} = require('../../../../index');
+const {Eyes, StitchMode, GeneralUtils} = require('../../../../index');
 const defaultArgs = process.env.HEADLESS === 'true' ? ['headless'] : [];
 
 const SAUCE_SERVER_URL = 'https://ondemand.saucelabs.com:443/wd/hub';
+const batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
 
 const Browsers = {
     CHROME: {
@@ -20,10 +21,7 @@ const Browsers = {
     },
 };
 
-const SETUPS = {
-    default: {stitchMode: 'CSS', title: ''},
-    scroll: {stitchMode: 'SCROLL', title: '_SCROLL'},
-};
+
 
 async function getDriver(browser) {
     let capabilities = Browsers[browser];
@@ -43,13 +41,9 @@ function getEyes(stitchMode) {
     }
 }
 
-function getSetups(...args) {
-    return args.length ? args.map(arg => SETUPS[arg]) : [SETUPS.default, SETUPS.scroll]
-}
-
 module.exports = {
     getDriver: getDriver,
     getEyes: getEyes,
-    getSetups: getSetups,
+    batch: batch,
     sauceUrl: SAUCE_SERVER_URL,
 };

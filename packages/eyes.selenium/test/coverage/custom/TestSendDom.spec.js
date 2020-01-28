@@ -1,14 +1,13 @@
 'use strict';
 const assertImage = () => {
 };
-const {getDriver, getEyes} = require('./util/TestSetup');
+const {getDriver, getEyes, batch} = require('./util/TestSetup');
 const {By} = require('selenium-webdriver');
-const {Target, GeneralUtils} = require('../../../index');
+const {Target} = require('../../../index');
 const appName = 'Test Send Dom';
 
 describe.skip(appName, () => {
     // There is no VG runner in the SDK...
-    let batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
     describe(`TestSendDom_VG`, () => {
         let driver;
         beforeEach(async () => {

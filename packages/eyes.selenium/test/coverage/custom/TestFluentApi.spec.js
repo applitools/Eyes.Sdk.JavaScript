@@ -1,9 +1,8 @@
 'use strict';
 const {By} = require('selenium-webdriver');
-const {getDriver, getEyes} = require('./util/TestSetup');
-const {Target, StitchMode, GeneralUtils} = require('../../../index');
+const {getDriver, getEyes, batch} = require('./util/TestSetup');
+const {Target, StitchMode} = require('../../../index');
 const appName = 'Eyes Selenium SDK - Fluent API';
-const batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
 describe(appName, () => {
     let webDriver, eyes;
 

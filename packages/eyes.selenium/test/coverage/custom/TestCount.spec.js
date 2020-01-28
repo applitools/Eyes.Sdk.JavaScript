@@ -1,14 +1,13 @@
 'use strict';
 const assert = require('assert');
-const {Target, GeneralUtils} = require('../../../index');
+const {Target} = require('../../../index');
 const Configuration = () => {
 }; // Need to be implemented for tests
-const {getDriver, getEyes} = require('./util/TestSetup');
+const {getDriver, getEyes, batch} = require('./util/TestSetup');
 
 describe.skip('TestCounts', () => {
     // VG runner isn't implemented for the SDK
     let driver, eyes;
-    let batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
     beforeEach(async () => {
         driver = await getDriver('CHROME');
         await driver.get('https://applitools.com/helloworld');

@@ -1,12 +1,11 @@
 'use strict';
-const {sauceUrl} = require('./util/TestSetup');
-const {Eyes, Target, StitchMode, GeneralUtils} = require('../../../index');
+const {sauceUrl, batch} = require('./util/TestSetup');
+const {Eyes, Target, StitchMode} = require('../../../index');
 const {Builder, By} = require('selenium-webdriver');
 const appName = 'TestScrolling';
 
 
 describe(appName, () => {
-    let batch = {id: GeneralUtils.guid(), name: 'JS Selenium 3 SDK', startedAt: new Date().toUTCString()};
     let eyes, driver;
 
     afterEach(async () => {
