@@ -1,15 +1,23 @@
 const assert = require('assert')
-const {_makeParamsOutput} = require('../../src/ServerConnector')
+const {_makeParamsOutputString, _makeResponseOutputString} = require('../../src/ServerConnector')
 
 function PromiseFactory() {}
 
 describe('ServerConnector', () => {
-  describe('makeParamsOutput', () => {
+  describe('makeParamsOutputString', () => {
     it('should return a message when params are provided', () => {
-      assert.deepStrictEqual(_makeParamsOutput({blah: 'blah'}), 'with params {"blah":"blah"}')
+      assert.deepStrictEqual(_makeParamsOutputString({blah: 'blah'}), 'with params {"blah":"blah"}')
     })
     it('should return an empty string when params are not provided', () => {
-      assert.deepStrictEqual(_makeParamsOutput(), '')
+      assert.deepStrictEqual(_makeParamsOutputString(), '')
+    })
+  })
+  describe('makeResponseOutputString', () => {
+    it('should return stringified JSON', () => {
+      assert.deepStrictEqual(_makeResponseOutputString({blah: 'blah'}), '{"blah":"blah"}')
+    })
+    it('should return an interpolated string when JSON stringify throws', () => {
+      assert.deepStrictEqual(_makeResponseOutputString(BigInt(9001)), '9001')
     })
   })
 })

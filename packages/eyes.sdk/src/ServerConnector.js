@@ -212,7 +212,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.startSession - unexpected status ' + JSON.stringify(results.response));
+            throw new Error(`ServerConnector.startSession - unexpected status ${_makeResponseOutputString(results.response)}`);
         });
     };
 
@@ -243,7 +243,7 @@
                 return results.body;
             }
 
-            throw new Error('ServerConnector.stopSession - unexpected status ' + JSON.stringify(results.response));
+            throw new Error(`ServerConnector.stopSession - unexpected status ${_makeResponseOutputString(results.response)}`);
         });
     };
 
@@ -259,7 +259,7 @@
                 that._logger.verbose('ServerConnector.renderInfo - post succeeded', that._renderingInfo);
                 return that._renderingInfo;
             }
-            throw new Error('ServerConnector.renderInfo - unexpected status ' + JSON.stringify(results.response));
+            throw new Error(`ServerConnector.renderInfo - unexpected status ${_makeResponseOutputString(results.response)}`);
         })
     }
 
@@ -275,12 +275,12 @@
         }
     
         return _sendRequest(this, 'uploadScreenshot', uri, 'put', options, 3).then(function (results) {
-            if (results.status !== HTTP_STATUS_CODES.CREATED) {
-                throw new Error(
-                    `ServerConnector.uploadScreenshot - unexpected status (${response.statusText})`,
-                )
-            }
-            return uri
+          if (results.status !== HTTP_STATUS_CODES.CREATED) {
+            throw new Error(
+                `ServerConnector.uploadScreenshot - unexpected status ${_makeResponseOutputString(results.response)}`,
+            )
+          }
+          return uri
         })
     }
 
@@ -309,7 +309,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.matchWindow - unexpected status ' + JSON.stringify(results.response));
+            throw new Error(`ServerConnector.matchWindow - unexpected status ${_makeResponseOutputString(results.response)}`);
         });
     };
 
@@ -341,7 +341,7 @@
                 };
             }
 
-            throw new Error('ServerConnector.replaceWindow - unexpected status ' + JSON.stringify(results.response));
+            throw new Error(`ServerConnector.replaceWindow - unexpected status ${_makeResponseOutputString(results.response)}`);
         });
     };
 
@@ -427,16 +427,17 @@
         });
     }
 
-    function _makeParamsOutput(params) {
+    function _makeParamsOutputString(params) {
       if (!params) return ''
       return `with params ${JSON.stringify(params)}`
     }
 
-    function makeFailedOutput(err) {
-      const message = err.message
-      const errorCode = error.code
-      const statusCode = err.response ? err.response.status : undefined
-      return 
+    function _makeResponseOutputString(response) {
+      try {
+        return JSON.stringify(response)
+      } catch {
+        return `${response}`
+      }
     }
 
     /**
@@ -462,7 +463,7 @@
         if (options.contentType) req.headers['Content-Type'] = options.contentType;
 
         return that._promiseFactory.makePromise(function (resolve, reject) {
-            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} ${_makeParamsOutput(options.query)}`);
+            that._logger.verbose(`ServerConnector.${name} will now call to: ${uri} ${_makeParamsOutputString(options.query)}`);
             request(req, function (err, response, body) {
                 if (err) {
                     let reasonMsg = err.message;
@@ -470,11 +471,11 @@
                         reasonMsg += ` (${err.response.statusMessage})`;
                     }
 
-                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} ${_makeParamsOutput(options.query)}`);
-                    that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.response && err.response.data}`);
+                    that._logger.log(`ServerConnector.${name} - ${method} failed on ${uri}: ${reasonMsg} ${_makeParamsOutputString(options.query)}`);
+                    that._logger.verbose(`ServerConnector.${name} - failure body:\n${err.message}`);
 
                     if (retry > 0 && ((err.response && HTTP_FAILED_CODES.includes(err.response.status)) || REQUEST_FAILED_CODES.includes(err.code))) {
-                        that._logger.verbose(`Request failed with message '${err.message}' and error code '${err.code}'${(err.response && err.response.status) ? ' and status code ' + "'" + err.response.status + "'" : ''}. Retrying...`)
+                        that._logger.verbose(`Request failed with message '${err.message}' and error code '${err.code}'${(err.response && err.response.statusCode) ? ' and status code ' + "'" + err.response.statusCode + "'" : ''}. Retrying...`)
 
                         if (delayBeforeRetry) {
                             return GeneralUtils.sleep(RETRY_REQUEST_INTERVAL, that._promiseFactory).then(function () {
@@ -498,7 +499,7 @@
                     }
                 };
 
-                that._logger.verbose(`ServerConnector.${name} - result ${response.statusMessage}, status code ${response.status}, url ${uri}`);
+                that._logger.verbose(`ServerConnector.${name} - result ${response.statusMessage}, status code ${response.statusCode}, url ${uri}`);
                 return resolve(results);
             });
         });
@@ -522,6 +523,7 @@
         return result;
     }
 
-    exports._makeParamsOutput = _makeParamsOutput;
+    exports._makeParamsOutputString = _makeParamsOutputString;
+    exports._makeResponseOutputString = _makeResponseOutputString
     exports.ServerConnector = ServerConnector;
 }());
