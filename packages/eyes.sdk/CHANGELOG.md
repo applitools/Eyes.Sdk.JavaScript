@@ -1,3 +1,7 @@
+## 4.0.5
+
+- fix syntax error that appears in older versions of Node (e.g., Node 8) [Trello 186](https://trello.com/c/XpDyr8n8)
+
 ## 4.0.4
 
 - bug fix for logging valid requests with unexpected formats [Trello 186](https://trello.com/c/XpDyr8n8)
