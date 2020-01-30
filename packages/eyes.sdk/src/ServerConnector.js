@@ -435,7 +435,7 @@
     function _makeResponseOutputString(response) {
       try {
         return JSON.stringify(response)
-      } catch {
+      } catch(error) {
         return `${response}`
       }
     }
@@ -443,7 +443,7 @@
     function _makeBodyOutputString(body) {
       try {
         return JSON.parse(body)
-      } catch {
+      } catch(error) {
         return `${body}`
       }
     }
